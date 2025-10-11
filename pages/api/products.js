@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { IncomingForm } from 'formidable';
 import fs from 'fs';
+import os from 'os'; // ✅ ADDED FOR CROSS-PLATFORM SUPPORT
 import { promisify } from 'util';
 import mongoose from 'mongoose';
 import { verifyToken } from '../../lib/authMiddleware';
@@ -86,11 +87,20 @@ export const config = {
 
 const parseFormData = (req) => {
   return new Promise((resolve, reject) => {
+    // ✅ FIXED: Use OS-specific temp directory
+    // /tmp for Vercel/Linux, C:\Users\...\AppData\Local\Temp for Windows
+    const uploadDir = process.env.VERCEL ? '/tmp' : os.tmpdir();
+    
+    // Ensure the directory exists
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    
     const form = new IncomingForm({
       multiples: false,
       keepExtensions: true,
       maxFileSize: 10 * 1024 * 1024, // 10MB
-      uploadDir: '/tmp', // Important for Vercel serverless
+      uploadDir: uploadDir, // ✅ UPDATED
       filter: function ({ mimetype }) {
         return mimetype && mimetype.includes('image');
       },
@@ -98,6 +108,7 @@ const parseFormData = (req) => {
 
     form.parse(req, (err, fields, files) => {
       if (err) {
+        console.error('Form parse error:', err);
         reject(err);
         return;
       }
@@ -108,6 +119,13 @@ const parseFormData = (req) => {
 
 const uploadToCloudinary = async (filePath) => {
   try {
+    console.log('📤 Uploading to Cloudinary:', filePath);
+    
+    // Verify file exists
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`File not found: ${filePath}`);
+    }
+    
     const result = await cloudinary.uploader.upload(filePath, {
       folder: 'nidsscrochet',
       transformation: [
@@ -117,12 +135,14 @@ const uploadToCloudinary = async (filePath) => {
       allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'gif'],
     });
 
+    console.log('✅ Cloudinary upload successful:', result.public_id);
+
     return {
       url: result.secure_url,
       publicId: result.public_id,
     };
   } catch (error) {
-    console.error('Cloudinary upload error:', error);
+    console.error('❌ Cloudinary upload error:', error);
     throw new Error(`Image upload failed: ${error.message}`);
   }
 };
@@ -134,7 +154,7 @@ const deleteFromCloudinary = async (publicId) => {
     await cloudinary.uploader.destroy(publicId);
     console.log('✅ Image deleted from Cloudinary:', publicId);
   } catch (error) {
-    console.error('Cloudinary delete error:', error);
+    console.error('❌ Cloudinary delete error:', error);
   }
 };
 
@@ -150,7 +170,7 @@ const cleanupTempFile = async (filepath) => {
       console.log('✅ Temp file cleaned:', filepath);
     }
   } catch (error) {
-    console.error('Error cleaning up temp file:', error);
+    console.error('⚠️ Error cleaning up temp file:', error);
   }
 };
 
@@ -269,6 +289,7 @@ export default async function handler(req, res) {
       let tempFilePath = null;
 
       try {
+        console.log('📝 Parsing form data...');
         const { fields, files } = await parseFormData(req);
 
         if (!files.image) {
@@ -280,6 +301,8 @@ export default async function handler(req, res) {
 
         const imageFile = Array.isArray(files.image) ? files.image[0] : files.image;
         tempFilePath = imageFile.filepath;
+
+        console.log('📁 Temp file created at:', tempFilePath);
 
         const { url: imageUrl, publicId } = await uploadToCloudinary(tempFilePath);
 
@@ -294,6 +317,7 @@ export default async function handler(req, res) {
           stock: parseInt(getFieldValue(fields.stock)) || 0,
         };
 
+        console.log('💾 Creating product:', productData.name);
         const product = await Product.create(productData);
 
         await cleanupTempFile(tempFilePath);
@@ -304,6 +328,7 @@ export default async function handler(req, res) {
           data: product,
         });
       } catch (error) {
+        console.error('❌ POST Error:', error);
         if (tempFilePath) await cleanupTempFile(tempFilePath);
 
         if (error.name === 'ValidationError') {
@@ -388,6 +413,7 @@ export default async function handler(req, res) {
           data: updatedProduct,
         });
       } catch (error) {
+        console.error('❌ PUT Error:', error);
         if (tempFilePath) await cleanupTempFile(tempFilePath);
 
         if (error.name === 'ValidationError') {

@@ -13,7 +13,8 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
-  
+  const [editingProduct, setEditingProduct] = useState(null); // NEW: Track editing state
+
   const [formData, setFormData] = useState({
     category: '',
     name: '',
@@ -22,15 +23,16 @@ function AdminDashboard() {
     stock: '0',
     featured: false,
   });
-  
+
   const [categoryFormData, setCategoryFormData] = useState({
     name: '',
     icon: '🎨',
     order: 0,
   });
-  
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
+
+  // NEW: Changed to array for multiple images
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [activeTab, setActiveTab] = useState('products');
@@ -85,19 +87,69 @@ function AdminDashboard() {
     });
   };
 
+  // NEW: Handle multiple image selection (max 5)
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files);
+    
+    if (files.length > 5) {
+      setMessage({ type: 'error', text: 'Maximum 5 images allowed' });
+      return;
     }
+
+    setImageFiles(files);
+    
+    // Create previews
+    const previews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(previews);
+  };
+
+  // NEW: Remove image from selection
+  const removeImage = (index) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // NEW: Start editing a product
+  const handleEdit = (product) => {
+    setEditingProduct(product);
+    setFormData({
+      category: product.category,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      stock: product.stock.toString(),
+      featured: product.featured,
+    });
+    setImagePreviews(product.images || [product.image]); // Show existing images
+    setImageFiles([]);
+    setShowForm(true);
+  };
+
+  // NEW: Cancel editing
+  const cancelEdit = () => {
+    setEditingProduct(null);
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setFormData({
+      category: categories[0]?.name || '',
+      name: '',
+      description: '',
+      price: '',
+      stock: '0',
+      featured: false,
+    });
+    setImageFiles([]);
+    setImagePreviews([]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!imageFile) {
-      setMessage({ type: 'error', text: 'Please select an image' });
+
+    // Validation: Check if adding new product or editing with existing images
+    if (!editingProduct && imageFiles.length === 0) {
+      setMessage({ type: 'error', text: 'Please select at least one image' });
       return;
     }
 
@@ -106,18 +158,33 @@ function AdminDashboard() {
 
     try {
       const token = localStorage.getItem('adminToken');
-
       const formDataToSend = new FormData();
+      
       formDataToSend.append('category', formData.category);
       formDataToSend.append('name', formData.name);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('price', formData.price);
       formDataToSend.append('stock', formData.stock);
       formDataToSend.append('featured', formData.featured);
-      formDataToSend.append('image', imageFile);
 
-      const response = await fetch('/api/products', {
-        method: 'POST',
+      // NEW: Append multiple images
+      imageFiles.forEach((file) => {
+        formDataToSend.append('images', file);
+      });
+
+      // NEW: If editing, add product ID and existing images
+      if (editingProduct) {
+        formDataToSend.append('id', editingProduct._id);
+        // Keep existing images that weren't replaced
+        const existingImages = imagePreviews.filter(img => typeof img === 'string' && img.startsWith('http'));
+        formDataToSend.append('existingImages', JSON.stringify(existingImages));
+      }
+
+      const url = editingProduct ? '/api/products' : '/api/products';
+      const method = editingProduct ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -127,19 +194,13 @@ function AdminDashboard() {
       const data = await response.json();
 
       if (data.success) {
-        setMessage({ type: 'success', text: '✓ Product added successfully!' });
-        
-        setFormData({
-          category: categories[0]?.name || '',
-          name: '',
-          description: '',
-          price: '',
-          stock: '0',
-          featured: false,
+        setMessage({ 
+          type: 'success', 
+          text: `✓ Product ${editingProduct ? 'updated' : 'added'} successfully!` 
         });
-        setImageFile(null);
-        setImagePreview('');
         
+        resetForm();
+        setEditingProduct(null);
         fetchProducts();
         
         setTimeout(() => {
@@ -147,10 +208,10 @@ function AdminDashboard() {
           setMessage({ type: '', text: '' });
         }, 2000);
       } else {
-        setMessage({ type: 'error', text: data.message || 'Failed to add product' });
+        setMessage({ type: 'error', text: data.message || 'Operation failed' });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Error uploading product' });
+      setMessage({ type: 'error', text: 'Error processing request' });
     } finally {
       setUploading(false);
     }
@@ -158,7 +219,7 @@ function AdminDashboard() {
 
   const handleCategorySubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const token = localStorage.getItem('adminToken');
       
@@ -315,7 +376,18 @@ function AdminDashboard() {
             <>
               <div className={styles.sectionActions}>
                 <motion.button
-                  onClick={() => setShowForm(!showForm)}
+                  onClick={() => {
+                    if (showForm && editingProduct) {
+                      cancelEdit();
+                      setShowForm(false);
+                    } else {
+                      setShowForm(!showForm);
+                      if (!showForm) {
+                        setEditingProduct(null);
+                        resetForm();
+                      }
+                    }
+                  }}
                   className={styles.addBtn}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -330,7 +402,7 @@ function AdminDashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <h2>Add New Product</h2>
+                  <h2>{editingProduct ? '✏️ Edit Product' : 'Add New Product'}</h2>
                   <form onSubmit={handleSubmit} className={styles.productForm}>
                     <div className={styles.formRow}>
                       <div className={styles.formGroup}>
@@ -407,37 +479,70 @@ function AdminDashboard() {
                       </label>
                     </div>
 
+                    {/* NEW: Multiple Image Upload */}
                     <div className={styles.formGroup}>
-                      <label>Product Image *</label>
+                      <label>Product Images * (Max 5)</label>
                       <input
                         type="file"
                         accept="image/*"
+                        multiple
                         onChange={handleImageChange}
-                        required
+                        required={!editingProduct && imagePreviews.length === 0}
                       />
-                      {imagePreview && (
-                        <div className={styles.imagePreview}>
-                          <Image 
-                            src={imagePreview} 
-                            alt="Preview" 
-                            width={200} 
-                            height={200}
-                            style={{ objectFit: 'cover' }}
-                            unoptimized
-                          />
+                      <small>Upload up to 5 images for your product</small>
+                      
+                      {/* Image Previews */}
+                      {imagePreviews.length > 0 && (
+                        <div className={styles.imagePreviewGrid}>
+                          {imagePreviews.map((preview, index) => (
+                            <div key={index} className={styles.imagePreviewItem}>
+                              <Image 
+                                src={preview} 
+                                alt={`Preview ${index + 1}`} 
+                                width={150} 
+                                height={150}
+                                style={{ objectFit: 'cover' }}
+                                unoptimized
+                              />
+                              <button
+                                type="button"
+                                className={styles.removeImageBtn}
+                                onClick={() => removeImage(index)}
+                              >
+                                ✕
+                              </button>
+                              {index === 0 && (
+                                <span className={styles.primaryBadge}>Primary</span>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
 
-                    <motion.button
-                      type="submit"
-                      className={styles.submitBtn}
-                      disabled={uploading}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {uploading ? '⏳ Uploading...' : '✓ Add Product'}
-                    </motion.button>
+                    <div className={styles.formActions}>
+                      <motion.button
+                        type="submit"
+                        className={styles.submitBtn}
+                        disabled={uploading}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {uploading ? '⏳ Processing...' : editingProduct ? '✓ Update Product' : '✓ Add Product'}
+                      </motion.button>
+                      
+                      {editingProduct && (
+                        <motion.button
+                          type="button"
+                          className={styles.cancelBtn}
+                          onClick={cancelEdit}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          Cancel
+                        </motion.button>
+                      )}
+                    </div>
                   </form>
                 </motion.div>
               )}
@@ -463,7 +568,7 @@ function AdminDashboard() {
                       >
                         <div className={styles.productImage}>
                           <Image
-                            src={product.image}
+                            src={product.images?.[0] || product.image}
                             alt={product.name}
                             width={300}
                             height={280}
@@ -472,6 +577,12 @@ function AdminDashboard() {
                           />
                           {product.featured && (
                             <span className={styles.featuredBadge}>⭐ Featured</span>
+                          )}
+                          {/* Show image count if multiple */}
+                          {product.images && product.images.length > 1 && (
+                            <span className={styles.imageCountBadge}>
+                              📸 {product.images.length}
+                            </span>
                           )}
                         </div>
                         <div className={styles.productDetails}>
@@ -484,6 +595,15 @@ function AdminDashboard() {
                           </div>
                         </div>
                         <div className={styles.productActions}>
+                          {/* NEW: Edit Button */}
+                          <motion.button
+                            onClick={() => handleEdit(product)}
+                            className={styles.editBtn}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            ✏️ Edit
+                          </motion.button>
                           <motion.button
                             onClick={() => handleDelete(product._id)}
                             className={styles.deleteBtn}

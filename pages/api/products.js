@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { IncomingForm } from 'formidable';
 import fs from 'fs';
-import os from 'os'; // ✅ ADDED FOR CROSS-PLATFORM SUPPORT
+import os from 'os';
 import { promisify } from 'util';
 import mongoose from 'mongoose';
 import { verifyToken } from '../../lib/authMiddleware';
@@ -17,7 +17,7 @@ cloudinary.config({
   secure: true,
 });
 
-// ===== MONGOOSE SCHEMA =====
+// ===== MONGOOSE SCHEMA (UPDATED FOR MULTIPLE IMAGES) =====
 const ProductSchema = new mongoose.Schema(
   {
     category: {
@@ -37,9 +37,20 @@ const ProductSchema = new mongoose.Schema(
       trim: true,
       maxlength: [500, 'Description cannot exceed 500 characters'],
     },
+    // NEW: Support both single image (backward compatibility) and multiple images
     image: {
       type: String,
-      required: [true, 'Image is required'],
+      required: function() {
+        return !this.images || this.images.length === 0;
+      },
+    },
+    images: {
+      type: [String],
+      default: [],
+    },
+    cloudinaryIds: {
+      type: [String],
+      default: [],
     },
     cloudinaryId: {
       type: String,
@@ -69,7 +80,6 @@ const ProductSchema = new mongoose.Schema(
   }
 );
 
-// Create indexes for faster queries
 ProductSchema.index({ category: 1, createdAt: -1 });
 ProductSchema.index({ featured: 1 });
 ProductSchema.index({ name: 'text', description: 'text' });
@@ -87,20 +97,17 @@ export const config = {
 
 const parseFormData = (req) => {
   return new Promise((resolve, reject) => {
-    // ✅ FIXED: Use OS-specific temp directory
-    // /tmp for Vercel/Linux, C:\Users\...\AppData\Local\Temp for Windows
     const uploadDir = process.env.VERCEL ? '/tmp' : os.tmpdir();
-    
-    // Ensure the directory exists
+
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
-    
+
     const form = new IncomingForm({
-      multiples: false,
+      multiples: true, // UPDATED: Allow multiple files
       keepExtensions: true,
-      maxFileSize: 10 * 1024 * 1024, // 10MB
-      uploadDir: uploadDir, // ✅ UPDATED
+      maxFileSize: 10 * 1024 * 1024,
+      uploadDir: uploadDir,
       filter: function ({ mimetype }) {
         return mimetype && mimetype.includes('image');
       },
@@ -120,12 +127,11 @@ const parseFormData = (req) => {
 const uploadToCloudinary = async (filePath) => {
   try {
     console.log('📤 Uploading to Cloudinary:', filePath);
-    
-    // Verify file exists
+
     if (!fs.existsSync(filePath)) {
       throw new Error(`File not found: ${filePath}`);
     }
-    
+
     const result = await cloudinary.uploader.upload(filePath, {
       folder: 'nidsscrochet',
       transformation: [
@@ -178,7 +184,6 @@ const cleanupTempFile = async (filepath) => {
 export default async function handler(req, res) {
   const { method, query } = req;
 
-  // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -188,14 +193,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Connect to database
     await connectDB();
 
     // ===== GET: PUBLIC - NO AUTH REQUIRED =====
     if (method === 'GET') {
       const { category, id, featured, search, sort, limit, page } = query;
 
-      // Get single product by ID
       if (id) {
         if (!mongoose.Types.ObjectId.isValid(id)) {
           return res.status(400).json({
@@ -219,28 +222,22 @@ export default async function handler(req, res) {
         });
       }
 
-      // Build query
       let queryFilter = { active: true };
 
-      // Filter by category
       if (category && category.toLowerCase() !== 'all') {
         queryFilter.category = category;
       }
 
-      // Filter by featured
       if (featured === 'true') {
         queryFilter.featured = true;
       }
 
-      // Search functionality
       if (search) {
         queryFilter.$text = { $search: search };
       }
 
-      // Execute query
       let queryBuilder = Product.find(queryFilter);
 
-      // Sorting
       if (sort === 'price-asc') {
         queryBuilder = queryBuilder.sort({ price: 1 });
       } else if (sort === 'price-desc') {
@@ -253,14 +250,12 @@ export default async function handler(req, res) {
         queryBuilder = queryBuilder.sort({ createdAt: -1 });
       }
 
-      // Pagination
       const pageNum = parseInt(page) || 1;
       const limitNum = parseInt(limit) || 100;
       const skip = (pageNum - 1) * limitNum;
 
       queryBuilder = queryBuilder.skip(skip).limit(limitNum);
 
-      // Execute
       const products = await queryBuilder;
       const total = await Product.countDocuments(queryFilter);
 
@@ -274,7 +269,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // ===== PROTECTED ROUTES - REQUIRE AUTHENTICATION =====
+    // ===== PROTECTED ROUTES =====
     const auth = verifyToken(req);
 
     if (!auth.valid) {
@@ -284,35 +279,51 @@ export default async function handler(req, res) {
       });
     }
 
-    // ===== POST: CREATE PRODUCT (PROTECTED) =====
+    // ===== POST: CREATE PRODUCT (UPDATED FOR MULTIPLE IMAGES) =====
     if (method === 'POST') {
-      let tempFilePath = null;
+      const tempFilePaths = [];
 
       try {
         console.log('📝 Parsing form data...');
         const { fields, files } = await parseFormData(req);
 
-        if (!files.image) {
+        // NEW: Handle multiple images
+        const imageFiles = files.images ? (Array.isArray(files.images) ? files.images : [files.images]) : [];
+        
+        if (imageFiles.length === 0) {
           return res.status(400).json({
             success: false,
-            message: 'Product image is required',
+            message: 'At least one product image is required',
           });
         }
 
-        const imageFile = Array.isArray(files.image) ? files.image[0] : files.image;
-        tempFilePath = imageFile.filepath;
+        if (imageFiles.length > 5) {
+          return res.status(400).json({
+            success: false,
+            message: 'Maximum 5 images allowed',
+          });
+        }
 
-        console.log('📁 Temp file created at:', tempFilePath);
+        // Upload all images to Cloudinary
+        const uploadedImages = [];
+        const cloudinaryIds = [];
 
-        const { url: imageUrl, publicId } = await uploadToCloudinary(tempFilePath);
+        for (const file of imageFiles) {
+          tempFilePaths.push(file.filepath);
+          const { url, publicId } = await uploadToCloudinary(file.filepath);
+          uploadedImages.push(url);
+          cloudinaryIds.push(publicId);
+        }
 
         const productData = {
           category: getFieldValue(fields.category),
           name: getFieldValue(fields.name),
           description: getFieldValue(fields.description),
           price: getFieldValue(fields.price),
-          image: imageUrl,
-          cloudinaryId: publicId,
+          image: uploadedImages[0], // Primary image (backward compatibility)
+          images: uploadedImages, // All images
+          cloudinaryId: cloudinaryIds[0], // Primary ID
+          cloudinaryIds: cloudinaryIds, // All IDs
           featured: getFieldValue(fields.featured) === 'true',
           stock: parseInt(getFieldValue(fields.stock)) || 0,
         };
@@ -320,7 +331,10 @@ export default async function handler(req, res) {
         console.log('💾 Creating product:', productData.name);
         const product = await Product.create(productData);
 
-        await cleanupTempFile(tempFilePath);
+        // Cleanup temp files
+        for (const path of tempFilePaths) {
+          await cleanupTempFile(path);
+        }
 
         return res.status(201).json({
           success: true,
@@ -329,7 +343,11 @@ export default async function handler(req, res) {
         });
       } catch (error) {
         console.error('❌ POST Error:', error);
-        if (tempFilePath) await cleanupTempFile(tempFilePath);
+        
+        // Cleanup temp files on error
+        for (const path of tempFilePaths) {
+          await cleanupTempFile(path);
+        }
 
         if (error.name === 'ValidationError') {
           const messages = Object.values(error.errors).map((err) => err.message);
@@ -344,9 +362,9 @@ export default async function handler(req, res) {
       }
     }
 
-    // ===== PUT: UPDATE PRODUCT (PROTECTED) =====
+    // ===== PUT: UPDATE PRODUCT (UPDATED FOR MULTIPLE IMAGES) =====
     if (method === 'PUT') {
-      let tempFilePath = null;
+      const tempFilePaths = [];
 
       try {
         const { fields, files } = await parseFormData(req);
@@ -385,20 +403,61 @@ export default async function handler(req, res) {
           updates.active = getFieldValue(fields.active) === 'true';
         }
 
-        if (files.image) {
-          const imageFile = Array.isArray(files.image) ? files.image[0] : files.image;
-          tempFilePath = imageFile.filepath;
-
-          const { url: newImageUrl, publicId: newPublicId } = await uploadToCloudinary(tempFilePath);
-
-          if (existingProduct.cloudinaryId) {
-            await deleteFromCloudinary(existingProduct.cloudinaryId);
+        // NEW: Handle image updates
+        const imageFiles = files.images ? (Array.isArray(files.images) ? files.images : [files.images]) : [];
+        
+        if (imageFiles.length > 0) {
+          if (imageFiles.length > 5) {
+            return res.status(400).json({
+              success: false,
+              message: 'Maximum 5 images allowed',
+            });
           }
 
-          updates.image = newImageUrl;
-          updates.cloudinaryId = newPublicId;
+          // Upload new images
+          const uploadedImages = [];
+          const cloudinaryIds = [];
 
-          await cleanupTempFile(tempFilePath);
+          for (const file of imageFiles) {
+            tempFilePaths.push(file.filepath);
+            const { url, publicId } = await uploadToCloudinary(file.filepath);
+            uploadedImages.push(url);
+            cloudinaryIds.push(publicId);
+          }
+
+          // Get existing images to keep (from existingImages field)
+          let existingImages = [];
+          try {
+            const existingImagesField = getFieldValue(fields.existingImages);
+            if (existingImagesField) {
+              existingImages = JSON.parse(existingImagesField);
+            }
+          } catch (e) {
+            console.log('No existing images to preserve');
+          }
+
+          // Combine existing + new images
+          const allImages = [...existingImages, ...uploadedImages];
+          const allIds = [...(existingProduct.cloudinaryIds || []), ...cloudinaryIds];
+
+          // Delete old images that are being replaced
+          const imagesToDelete = (existingProduct.cloudinaryIds || []).filter(
+            id => !allIds.includes(id)
+          );
+          
+          for (const publicId of imagesToDelete) {
+            await deleteFromCloudinary(publicId);
+          }
+
+          updates.images = allImages;
+          updates.image = allImages[0]; // Primary image
+          updates.cloudinaryIds = allIds;
+          updates.cloudinaryId = allIds[0];
+
+          // Cleanup temp files
+          for (const path of tempFilePaths) {
+            await cleanupTempFile(path);
+          }
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(
@@ -414,7 +473,10 @@ export default async function handler(req, res) {
         });
       } catch (error) {
         console.error('❌ PUT Error:', error);
-        if (tempFilePath) await cleanupTempFile(tempFilePath);
+        
+        for (const path of tempFilePaths) {
+          await cleanupTempFile(path);
+        }
 
         if (error.name === 'ValidationError') {
           const messages = Object.values(error.errors).map((err) => err.message);
@@ -429,7 +491,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // ===== DELETE: REMOVE PRODUCT (PROTECTED) =====
+    // ===== DELETE: REMOVE PRODUCT (UPDATED TO DELETE ALL IMAGES) =====
     if (method === 'DELETE') {
       const { id, permanent } = query;
 
@@ -450,8 +512,15 @@ export default async function handler(req, res) {
       }
 
       if (permanent === 'true') {
-        if (product.cloudinaryId) {
-          await deleteFromCloudinary(product.cloudinaryId);
+        // Delete all images from Cloudinary
+        const idsToDelete = product.cloudinaryIds && product.cloudinaryIds.length > 0 
+          ? product.cloudinaryIds 
+          : [product.cloudinaryId];
+
+        for (const publicId of idsToDelete) {
+          if (publicId) {
+            await deleteFromCloudinary(publicId);
+          }
         }
 
         await Product.findByIdAndDelete(id);

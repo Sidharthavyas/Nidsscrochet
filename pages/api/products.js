@@ -1,8 +1,12 @@
 import { v2 as cloudinary } from 'cloudinary';
-import formidable from 'formidable';
+import { IncomingForm } from 'formidable';
 import fs from 'fs';
+import { promisify } from 'util';
 import mongoose from 'mongoose';
 import { verifyToken } from '../../lib/authMiddleware';
+import connectDB from '../../lib/mongodb';
+
+const unlinkFile = promisify(fs.unlink);
 
 // ===== CLOUDINARY CONFIGURATION =====
 cloudinary.config({
@@ -11,36 +15,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET || '',
   secure: true,
 });
-
-// ===== MONGODB CONNECTION =====
-const MONGODB_URI = process.env.MONGODB_URI || '';
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
-
-async function connectDB() {
-  if (cached.conn) return cached.conn;
-  
-  if (!cached.promise) {
-    const opts = { bufferCommands: false };
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      console.log('✅ MongoDB Connected');
-      return mongoose;
-    });
-  }
-  
-  try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-    console.error('❌ MongoDB Connection Error:', e);
-    throw e;
-  }
-  
-  return cached.conn;
-}
 
 // ===== MONGOOSE SCHEMA =====
 const ProductSchema = new mongoose.Schema(
@@ -112,11 +86,12 @@ export const config = {
 
 const parseFormData = (req) => {
   return new Promise((resolve, reject) => {
-    const form = formidable({
+    const form = new IncomingForm({
       multiples: false,
       keepExtensions: true,
       maxFileSize: 10 * 1024 * 1024, // 10MB
-      filter: function ({ name, originalFilename, mimetype }) {
+      uploadDir: '/tmp', // Important for Vercel serverless
+      filter: function ({ mimetype }) {
         return mimetype && mimetype.includes('image');
       },
     });
@@ -154,7 +129,7 @@ const uploadToCloudinary = async (filePath) => {
 
 const deleteFromCloudinary = async (publicId) => {
   if (!publicId) return;
-  
+
   try {
     await cloudinary.uploader.destroy(publicId);
     console.log('✅ Image deleted from Cloudinary:', publicId);
@@ -168,10 +143,11 @@ const getFieldValue = (field) => {
   return field || '';
 };
 
-const cleanupTempFile = (filepath) => {
+const cleanupTempFile = async (filepath) => {
   try {
     if (filepath && fs.existsSync(filepath)) {
-      fs.unlinkSync(filepath);
+      await unlinkFile(filepath);
+      console.log('✅ Temp file cleaned:', filepath);
     }
   } catch (error) {
     console.error('Error cleaning up temp file:', error);
@@ -182,6 +158,7 @@ const cleanupTempFile = (filepath) => {
 export default async function handler(req, res) {
   const { method, query } = req;
 
+  // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -191,6 +168,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Connect to database
     await connectDB();
 
     // ===== GET: PUBLIC - NO AUTH REQUIRED =====
@@ -318,7 +296,7 @@ export default async function handler(req, res) {
 
         const product = await Product.create(productData);
 
-        cleanupTempFile(tempFilePath);
+        await cleanupTempFile(tempFilePath);
 
         return res.status(201).json({
           success: true,
@@ -326,7 +304,7 @@ export default async function handler(req, res) {
           data: product,
         });
       } catch (error) {
-        cleanupTempFile(tempFilePath);
+        if (tempFilePath) await cleanupTempFile(tempFilePath);
 
         if (error.name === 'ValidationError') {
           const messages = Object.values(error.errors).map((err) => err.message);
@@ -395,7 +373,7 @@ export default async function handler(req, res) {
           updates.image = newImageUrl;
           updates.cloudinaryId = newPublicId;
 
-          cleanupTempFile(tempFilePath);
+          await cleanupTempFile(tempFilePath);
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(
@@ -410,7 +388,7 @@ export default async function handler(req, res) {
           data: updatedProduct,
         });
       } catch (error) {
-        cleanupTempFile(tempFilePath);
+        if (tempFilePath) await cleanupTempFile(tempFilePath);
 
         if (error.name === 'ValidationError') {
           const messages = Object.values(error.errors).map((err) => err.message);

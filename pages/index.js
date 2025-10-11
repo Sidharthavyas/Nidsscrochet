@@ -4,6 +4,184 @@ import Image from 'next/image';
 import { motion, useScroll, useTransform, useMotionValue, AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
 
+// Rose Burst Animation Component
+function RoseBurstIntro({ onComplete }) {
+  const [showRose, setShowRose] = useState(true);
+  const [isBursting, setIsBursting] = useState(false);
+
+  useEffect(() => {
+    // Start burst after 2 seconds
+    const burstTimer = setTimeout(() => {
+      setIsBursting(true);
+    }, 2000);
+
+    // Remove rose after burst animation
+    const removeTimer = setTimeout(() => {
+      setShowRose(false);
+      if (onComplete) onComplete();
+    }, 2800);
+
+    return () => {
+      clearTimeout(burstTimer);
+      clearTimeout(removeTimer);
+    };
+  }, [onComplete]);
+
+  // Create petal particles for burst effect
+  const petalCount = 12;
+  const petals = Array.from({ length: petalCount }, (_, i) => ({
+    angle: (360 / petalCount) * i,
+    delay: i * 0.02,
+  }));
+
+  return (
+    <AnimatePresence>
+      {showRose && (
+        <motion.div
+          className={styles.roseBurstOverlay}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className={styles.roseBurstContainer}>
+            {/* Main Rose */}
+            <motion.div
+              className={styles.mainRose}
+              initial={{ scale: 0, rotate: -180, opacity: 0 }}
+              animate={
+                isBursting
+                  ? {
+                      scale: [1, 1.3, 0],
+                      rotate: [0, 180, 360],
+                      opacity: [1, 0.8, 0],
+                    }
+                  : {
+                      scale: 1,
+                      rotate: 0,
+                      opacity: 1,
+                      y: [0, -20, 0],
+                    }
+              }
+              transition={
+                isBursting
+                  ? { duration: 0.8, ease: "easeOut" }
+                  : {
+                      scale: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
+                      rotate: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
+                      opacity: { duration: 0.8 },
+                      y: {
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      },
+                    }
+              }
+            >
+              <Image
+                src="/rose.png"
+                alt="Crochet Rose"
+                width={200}
+                height={200}
+                className={styles.roseMainImage}
+                priority
+              />
+              
+              {/* Glow effect */}
+              <motion.div
+                className={styles.roseGlow}
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.3, 0.6, 0.3],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            </motion.div>
+
+            {/* Burst Petals */}
+            {isBursting &&
+              petals.map((petal, index) => (
+                <motion.div
+                  key={index}
+                  className={styles.burstPetal}
+                  initial={{
+                    x: 0,
+                    y: 0,
+                    scale: 1,
+                    opacity: 1,
+                    rotate: 0,
+                  }}
+                  animate={{
+                    x: Math.cos((petal.angle * Math.PI) / 180) * 300,
+                    y: Math.sin((petal.angle * Math.PI) / 180) * 300,
+                    scale: [1, 0.5, 0],
+                    opacity: [1, 0.8, 0],
+                    rotate: [0, petal.angle * 2, petal.angle * 4],
+                  }}
+                  transition={{
+                    duration: 0.8,
+                    delay: petal.delay,
+                    ease: "easeOut",
+                  }}
+                >
+                  <Image
+                    src="/rose.png"
+                    alt=""
+                    width={60}
+                    height={60}
+                    className={styles.petalImage}
+                  />
+                </motion.div>
+              ))}
+
+            {/* Sparkle particles */}
+            {isBursting &&
+              Array.from({ length: 20 }).map((_, i) => (
+                <motion.div
+                  key={`sparkle-${i}`}
+                  className={styles.sparkleParticle}
+                  initial={{
+                    x: 0,
+                    y: 0,
+                    scale: 0,
+                    opacity: 1,
+                  }}
+                  animate={{
+                    x: (Math.random() - 0.5) * 400,
+                    y: (Math.random() - 0.5) * 400,
+                    scale: [0, 1, 0],
+                    opacity: [1, 1, 0],
+                  }}
+                  transition={{
+                    duration: 1,
+                    delay: i * 0.03,
+                    ease: "easeOut",
+                  }}
+                >
+                  ✨
+                </motion.div>
+              ))}
+
+            {/* Center flash effect */}
+            {isBursting && (
+              <motion.div
+                className={styles.burstFlash}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 3, opacity: [0, 1, 0] }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              />
+            )}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 // Decorative Shapes Component
 function DecorativeShapes() {
   return (
@@ -36,7 +214,7 @@ function DecorativeShapes() {
           delay: 1
         }}
       />
-      
+
       {/* Blob Shapes */}
       <motion.div
         className={styles.blobShape}
@@ -153,7 +331,7 @@ function DecorativeShapes() {
 // Scroll Progress Indicator
 function ScrollProgress() {
   const { scrollYProgress } = useScroll();
-  
+
   return (
     <motion.div
       className={styles.scrollProgress}
@@ -252,12 +430,12 @@ function FloatingEmoji({ emoji, delay, duration, x, y }) {
     <motion.div
       className={styles.floatingEmoji}
       initial={{ opacity: 0, y: 100 }}
-      animate={{ 
+      animate={{
         opacity: [0.2, 0.4, 0.2],
         y: [y, y - 50, y],
         x: [x, x + 20, x]
       }}
-      transition={{ 
+      transition={{
         duration: duration,
         repeat: Infinity,
         delay: delay,
@@ -297,7 +475,7 @@ function StatsCounter({ end, duration = 2, label, icon }) {
       const animate = (currentTime) => {
         if (!startTime) startTime = currentTime;
         const progress = (currentTime - startTime) / (duration * 1000);
-        
+
         if (progress < 1) {
           setCount(Math.floor(end * progress));
           requestAnimationFrame(animate);
@@ -310,13 +488,13 @@ function StatsCounter({ end, duration = 2, label, icon }) {
   }, [isInView, end, duration]);
 
   return (
-    <motion.div 
+    <motion.div
       ref={ref}
       className={styles.statCard}
       whileHover={{ scale: 1.05, y: -5 }}
       transition={{ type: "spring", stiffness: 300 }}
     >
-      <motion.div 
+      <motion.div
         className={styles.statIcon}
         whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
         transition={{ duration: 0.5 }}
@@ -342,7 +520,7 @@ function TestimonialCard({ name, review, rating, image, delay }) {
     >
       <div className={styles.testimonialRating}>
         {[...Array(rating)].map((_, i) => (
-          <motion.span 
+          <motion.span
             key={i}
             whileHover={{ scale: 1.3, rotate: 360 }}
             transition={{ duration: 0.3 }}
@@ -353,7 +531,7 @@ function TestimonialCard({ name, review, rating, image, delay }) {
       </div>
       <p className={styles.testimonialReview}>{review}</p>
       <div className={styles.testimonialAuthor}>
-        <motion.div 
+        <motion.div
           className={styles.testimonialAvatar}
           whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
         >
@@ -376,14 +554,14 @@ function ProcessStep({ number, title, description, icon, delay }) {
       viewport={{ once: true }}
       whileHover={{ scale: 1.05, rotateY: 5 }}
     >
-      <motion.div 
+      <motion.div
         className={styles.processNumber}
         whileHover={{ rotate: 360, scale: 1.2 }}
         transition={{ duration: 0.6 }}
       >
         {number}
       </motion.div>
-      <motion.div 
+      <motion.div
         className={styles.processIcon}
         whileHover={{ scale: 1.2, rotate: 10 }}
         transition={{ type: "spring", stiffness: 300 }}
@@ -400,9 +578,7 @@ function ProcessStep({ number, title, description, icon, delay }) {
 const formatPrice = (price) => {
   if (!price) return '₹0';
   const priceStr = price.toString();
-  // Check if ₹ already exists
   if (priceStr.includes('₹')) return priceStr;
-  // Remove any existing currency symbols and add ₹
   return `₹${priceStr.replace(/[^\d]/g, '')}`;
 };
 
@@ -414,9 +590,8 @@ function ProductCard({ product, index, onClick }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
-  // Get images array (support both old single image and new multiple images)
-  const productImages = product.images && product.images.length > 0 
-    ? product.images 
+  const productImages = product.images && product.images.length > 0
+    ? product.images
     : [product.image];
 
   const handleMouseMove = (e) => {
@@ -443,7 +618,6 @@ function ProductCard({ product, index, onClick }) {
 
   const badge = getBadge();
 
-  // Auto-cycle through images on hover
   useEffect(() => {
     if (!isHovered || productImages.length <= 1) return;
 
@@ -496,7 +670,6 @@ function ProductCard({ product, index, onClick }) {
           </motion.div>
         )}
 
-        {/* Image Count Indicator */}
         {productImages.length > 1 && (
           <div className={styles.imageIndicator}>
             {productImages.map((_, idx) => (
@@ -608,14 +781,13 @@ function ProductCard({ product, index, onClick }) {
   );
 }
 
-// Update ProductModal component with image carousel
 function ProductModal({ product, onClose }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  const productImages = product.images && product.images.length > 0 
-    ? product.images 
+  const productImages = product.images && product.images.length > 0
+    ? product.images
     : [product.image];
 
   useEffect(() => {
@@ -632,7 +804,6 @@ function ProductModal({ product, onClose }) {
     };
   }, [onClose]);
 
-  // Swipe handlers
   const handleTouchStart = (e) => {
     setTouchStart(e.targetTouches[0].clientX);
   };
@@ -643,7 +814,7 @@ function ProductModal({ product, onClose }) {
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
@@ -700,7 +871,6 @@ function ProductModal({ product, onClose }) {
         </motion.button>
 
         <div className={styles.modalGrid}>
-          {/* Image Carousel */}
           <div 
             className={styles.modalImageCarousel}
             onTouchStart={handleTouchStart}
@@ -728,7 +898,6 @@ function ProductModal({ product, onClose }) {
               </motion.div>
             </AnimatePresence>
 
-            {/* Navigation Arrows */}
             {productImages.length > 1 && (
               <>
                 <button 
@@ -748,7 +917,6 @@ function ProductModal({ product, onClose }) {
               </>
             )}
 
-            {/* Image Dots */}
             {productImages.length > 1 && (
               <div className={styles.carouselDots}>
                 {productImages.map((_, idx) => (
@@ -762,7 +930,6 @@ function ProductModal({ product, onClose }) {
               </div>
             )}
 
-            {/* Image Counter */}
             <div className={styles.imageCounter}>
               {currentImageIndex + 1} / {productImages.length}
             </div>
@@ -883,6 +1050,8 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
+  const [contentVisible, setContentVisible] = useState(false);
   const sliderRefs = useRef({});
 
   const { scrollYProgress } = useScroll();
@@ -895,6 +1064,15 @@ export default function Home() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    // Show content after intro completes
+    const timer = setTimeout(() => {
+      setContentVisible(true);
+    }, 2800);
+
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -941,7 +1119,7 @@ export default function Home() {
         <title>Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Creations</title>
         <meta name="description" content="Explore beautiful handcrafted crochet products by Nidhi Tripathi. Custom-made crochet items with love and care." />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-        
+
         <meta property="og:title" content="Nidsscrochet by Nidhi Tripathi" />
         <meta property="og:description" content="Handcrafted Crochet Creations - Where Every Stitch Tells a Story" />
         <meta property="og:type" content="website" />
@@ -952,399 +1130,409 @@ export default function Home() {
         <meta name="twitter:description" content="Handcrafted Crochet Creations" />
       </Head>
 
-      {/* Scroll Progress Indicator */}
-      <ScrollProgress />
-      
-      {/* Scroll to Top Button */}
-      <ScrollToTop />
+      {/* Rose Burst Intro Animation */}
+      <RoseBurstIntro onComplete={() => setShowIntro(false)} />
 
-      {/* Navbar */}
-      <motion.nav
-        className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+      {/* Main Content - Shows after intro */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: contentVisible ? 1 : 0 }}
+        transition={{ duration: 0.5 }}
       >
-        <div className={styles.navWrapper}>
-          <div className={styles.navContent}>
-            <motion.div 
-              className={styles.navBrand}
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.4 }}
-            >
-              Nidsscrochet
-            </motion.div>
-            
-            <motion.button 
-              className={styles.mobileMenuBtn}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              {mobileMenuOpen ? '✕' : '☰'}
-            </motion.button>
+        {/* Scroll Progress Indicator */}
+        <ScrollProgress />
+        
+        {/* Scroll to Top Button */}
+        <ScrollToTop />
 
-            <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''}`}>
-              <motion.a 
-                href="#collections" 
-                whileHover={{ y: -2 }}
-                className={styles.navLink}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Collections
-              </motion.a>
-              <motion.a 
-                href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                whileHover={{ y: -2 }}
-                className={styles.navLink}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Instagram
-              </motion.a>
-              <motion.a 
-                href="tel:9029562156" 
+        {/* Navbar */}
+        <motion.nav
+          className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <div className={styles.navWrapper}>
+            <div className={styles.navContent}>
+              <motion.div 
+                className={styles.navBrand}
                 whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={styles.navCta}
-                onClick={() => setMobileMenuOpen(false)}
+                transition={{ duration: 0.4 }}
               >
-                📞 Call Us
-              </motion.a>
-            </div>
-          </div>
-        </div>
-      </motion.nav>
-
-      <main className={styles.mainContainer}>
-        {/* Decorative Shapes */}
-        <DecorativeShapes />
-
-        {/* Hero Section */}
-        <section className={styles.hero}>
-          <FloatingEmoji emoji="🧶" delay={0} duration={8} x={100} y={100} />
-          <FloatingEmoji emoji="💕" delay={2} duration={10} x={300} y={150} />
-          <FloatingEmoji emoji="✨" delay={4} duration={9} x={500} y={80} />
-          <FloatingEmoji emoji="🌸" delay={1} duration={11} x={700} y={120} />
-          <FloatingEmoji emoji="🎀" delay={3} duration={10} x={200} y={200} />
-
-          <motion.div
-            className={styles.heroGlassCard}
-            style={{ y: heroY, opacity: heroOpacity }}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
-          >
-            <motion.div
-              className={styles.heroBadge}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              ✨ Handcrafted with Love ✨
-            </motion.div>
-            
-            <motion.h1
-              className={styles.brandName}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              Nidsscrochet
-            </motion.h1>
-            
-            <motion.p
-              className={styles.creatorName}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              by Nidhi Tripathi
-            </motion.p>
-            
-            <motion.p
-              className={styles.tagline}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.9, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              Where Every Stitch Tells a Story
-            </motion.p>
-            
-            <motion.div
-              className={styles.heroButtons}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.1, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              <MagneticButton
-                href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${styles.ctaButton} ${styles.ctaButtonPrimary}`}
-              >
-                <span className={styles.buttonIcon}>📷</span>
-                <span>Follow on Instagram</span>
-                <motion.div
-                  className={styles.buttonRipple}
-                  initial={{ scale: 0, opacity: 1 }}
-                  animate={{ scale: 2, opacity: 0 }}
-                  transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1 }}
-                />
-              </MagneticButton>
-              
-              <MagneticButton
-                href="tel:9029562156"
-                className={`${styles.ctaButton} ${styles.ctaButtonSecondary}`}
-              >
-                <span className={styles.buttonIcon}>📞</span>
-                <span>Contact Us</span>
-              </MagneticButton>
-            </motion.div>
-          </motion.div>
-        </section>
-
-        {/* Stats Section */}
-        <section className={styles.statsSection}>
-          <AnimatedSection>
-            <div className={styles.statsGrid}>
-              <StatsCounter end={80} label="Happy Customers" icon="😊" />
-              <StatsCounter end={100} label="Products Crafted" icon="🧶" />
-              <StatsCounter end={50} label="Unique Designs" icon="✨" />
-              <StatsCounter end={1.5} label="Years Experience" icon="🎨" />
-            </div>
-          </AnimatedSection>
-        </section>
-
-        {/* Products Section */}
-        <section className={styles.productsSection} id="collections">
-          <AnimatedSection>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Our Collections</h2>
-              <p className={styles.sectionSubtitle}>Handpicked with care, crafted with passion</p>
-            </div>
-          </AnimatedSection>
-
-          {loading ? (
-            <div className={styles.loadingState}>
-              <motion.div
-                className={styles.loader}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              >
-                🧶
+                Nidsscrochet
               </motion.div>
-              <p>Loading beautiful creations...</p>
-            </div>
-          ) : error ? (
-            <div className={styles.errorState}>
-              <p>😔 {error}</p>
+              
               <motion.button 
-                className={styles.retryButton}
-                onClick={() => window.location.reload()}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                className={styles.mobileMenuBtn}
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
               >
-                Retry
+                {mobileMenuOpen ? '✕' : '☰'}
               </motion.button>
-            </div>
-          ) : (
-            categories.map((category, idx) => {
-              const categoryProducts = getProductsByCategory(category);
 
-              return (
-                <AnimatedSection key={category._id} delay={idx * 0.15}>
-                  <div className={styles.categoryBlock}>
-                    <div className={styles.categoryHeader}>
-                      <h3 className={styles.categoryTitle}>
-                        <motion.span 
-                          className={styles.categoryIcon}
-                          whileHover={{ rotate: [0, -10, 10, 0], scale: 1.2 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          {category.icon}
-                        </motion.span>
-                        {category.name}
-                      </h3>
-                      
-                      <div className={styles.sliderControls}>
-                        <motion.button
-                          className={styles.sliderBtn}
-                          onClick={() => scrollSlider(category.slug, 'left')}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          aria-label="Previous products"
-                        >
-                          ←
-                        </motion.button>
-                        <motion.button
-                          className={styles.sliderBtn}
-                          onClick={() => scrollSlider(category.slug, 'right')}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          aria-label="Next products"
-                        >
-                          →
-                        </motion.button>
-                      </div>
-                    </div>
-
-                    <div className={styles.sliderWrapper}>
-                      <div className={`${styles.sliderFade} ${styles.sliderFadeLeft}`}></div>
-                      <div className={`${styles.sliderFade} ${styles.sliderFadeRight}`}></div>
-                      
-                      <div
-                        className={styles.productsSlider}
-                        ref={(el) => (sliderRefs.current[category.slug] = el)}
-                      >
-                        {categoryProducts.length > 0 ? (
-                          categoryProducts.map((product, index) => (
-                            <ProductCard 
-                              key={product._id} 
-                              product={product} 
-                              index={index}
-                              onClick={setSelectedProduct}
-                            />
-                          ))
-                        ) : (
-                          <motion.div 
-                            className={styles.emptyCategory}
-                            animate={{ scale: [1, 1.05, 1] }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                          >
-                            <p>✨ Coming Soon!</p>
-                          </motion.div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </AnimatedSection>
-              );
-            })
-          )}
-        </section>
-
-        {/* Process Section */}
-        <section className={styles.processSection}>
-          <AnimatedSection>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>How It&apos;s Made</h2>
-              <p className={styles.sectionSubtitle}>Every piece is crafted with love and attention to detail</p>
-            </div>
-          </AnimatedSection>
-
-          <div className={styles.processGrid}>
-            <ProcessStep
-              number="01"
-              title="Design Selection"
-              description="Choose from our collection or request a custom design"
-              icon="🎨"
-              delay={0}
-            />
-            <ProcessStep
-              number="02"
-              title="Handcrafted"
-              description="Each piece is carefully crocheted by hand with premium yarn"
-              icon="🧶"
-              delay={0.2}
-            />
-            <ProcessStep
-              number="03"
-              title="Quality Check"
-              description="Every product is inspected to ensure perfect quality"
-              icon="✨"
-              delay={0.4}
-            />
-            <ProcessStep
-              number="04"
-              title="Delivered with Love"
-              description="Packaged beautifully and delivered to your doorstep"
-              icon="💝"
-              delay={0.6}
-            />
-          </div>
-        </section>
-
-        {/* Testimonials Section */}
-        <section className={styles.testimonialsSection}>
-          <AnimatedSection>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>What Our Customers Say</h2>
-              <p className={styles.sectionSubtitle}>Real reviews from real people</p>
-            </div>
-          </AnimatedSection>
-
-          <div className={styles.testimonialsGrid}>
-            <TestimonialCard
-              name="Priya Sharma"
-              review="Absolutely love the quality! The crochet bag I ordered is so beautiful and well-made. Perfect for gifting!"
-              rating={5}
-              image="P"
-              delay={0}
-            />
-            <TestimonialCard
-              name="Rahul Mehta"
-              review="Ordered a custom design for my daughter's birthday. The attention to detail is amazing. Highly recommend!"
-              rating={5}
-              image="R"
-              delay={0.2}
-            />
-            <TestimonialCard
-              name="Ananya Singh"
-              review="The best handmade crochet products I've seen! Fast delivery and excellent customer service. Will order again!"
-              rating={5}
-              image="A"
-              delay={0.4}
-            />
-          </div>
-        </section>
-
-        {/* Footer */}
-        <AnimatedSection>
-          <footer className={styles.footer}>
-            <div className={styles.footerContent}>
-              <div className={styles.footerBrand}>
-                <h3>Nidsscrochet</h3>
-                <p>Crafting happiness, one stitch at a time</p>
-              </div>
-              <div className={styles.footerLinks}>
-                <motion.a
-                  href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ y: -3, scale: 1.05 }}
+              <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''}`}>
+                <motion.a 
+                  href="#collections" 
+                  whileHover={{ y: -2 }}
+                  className={styles.navLink}
+                  onClick={() => setMobileMenuOpen(false)}
                 >
-                  📷 Instagram
+                  Collections
+                </motion.a>
+                <motion.a 
+                  href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  whileHover={{ y: -2 }}
+                  className={styles.navLink}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Instagram
                 </motion.a>
                 <motion.a 
                   href="tel:9029562156" 
-                  whileHover={{ y: -3, scale: 1.05 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={styles.navCta}
+                  onClick={() => setMobileMenuOpen(false)}
                 >
-                  📞 9029562156
+                  📞 Call Us
                 </motion.a>
               </div>
-              <div className={styles.footerLove}>
-                <p>Made with 💖 by Nidhi Tripathi</p>
-              </div>
-              <div className={styles.footerCopyright}>
-                <p>© {new Date().getFullYear()} Nidsscrochet. All rights reserved.</p>
-              </div>
             </div>
-          </footer>
-        </AnimatedSection>
-      </main>
+          </div>
+        </motion.nav>
 
-      {/* Product Modal */}
-      <AnimatePresence mode="wait">
-        {selectedProduct && (
-          <ProductModal 
-            product={selectedProduct} 
-            onClose={() => setSelectedProduct(null)} 
-          />
-        )}
-      </AnimatePresence>
+        <main className={styles.mainContainer}>
+          {/* Decorative Shapes */}
+          <DecorativeShapes />
+
+          {/* Hero Section */}
+          <section className={styles.hero}>
+            <FloatingEmoji emoji="🧶" delay={0} duration={8} x={100} y={100} />
+            <FloatingEmoji emoji="💕" delay={2} duration={10} x={300} y={150} />
+            <FloatingEmoji emoji="✨" delay={4} duration={9} x={500} y={80} />
+            <FloatingEmoji emoji="🌸" delay={1} duration={11} x={700} y={120} />
+            <FloatingEmoji emoji="🎀" delay={3} duration={10} x={200} y={200} />
+
+            <motion.div
+              className={styles.heroGlassCard}
+              style={{ y: heroY, opacity: heroOpacity }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              <motion.div
+                className={styles.heroBadge}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                ✨ Handcrafted with Love ✨
+              </motion.div>
+              
+              <motion.h1
+                className={styles.brandName}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                Nidsscrochet
+              </motion.h1>
+              
+              <motion.p
+                className={styles.creatorName}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                by Nidhi Tripathi
+              </motion.p>
+              
+              <motion.p
+                className={styles.tagline}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.9, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                Where Every Stitch Tells a Story
+              </motion.p>
+              
+              <motion.div
+                className={styles.heroButtons}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 1.1, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                <MagneticButton
+                  href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${styles.ctaButton} ${styles.ctaButtonPrimary}`}
+                >
+                  <span className={styles.buttonIcon}>📷</span>
+                  <span>Follow on Instagram</span>
+                  <motion.div
+                    className={styles.buttonRipple}
+                    initial={{ scale: 0, opacity: 1 }}
+                    animate={{ scale: 2, opacity: 0 }}
+                    transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1 }}
+                  />
+                </MagneticButton>
+                
+                <MagneticButton
+                  href="tel:9029562156"
+                  className={`${styles.ctaButton} ${styles.ctaButtonSecondary}`}
+                >
+                  <span className={styles.buttonIcon}>📞</span>
+                  <span>Contact Us</span>
+                </MagneticButton>
+              </motion.div>
+            </motion.div>
+          </section>
+
+          {/* Stats Section */}
+          <section className={styles.statsSection}>
+            <AnimatedSection>
+              <div className={styles.statsGrid}>
+                <StatsCounter end={80} label="Happy Customers" icon="😊" />
+                <StatsCounter end={100} label="Products Crafted" icon="🧶" />
+                <StatsCounter end={50} label="Unique Designs" icon="✨" />
+                <StatsCounter end={1.5} label="Years Experience" icon="🎨" />
+              </div>
+            </AnimatedSection>
+          </section>
+
+          {/* Products Section */}
+          <section className={styles.productsSection} id="collections">
+            <AnimatedSection>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Our Collections</h2>
+                <p className={styles.sectionSubtitle}>Handpicked with care, crafted with passion</p>
+              </div>
+            </AnimatedSection>
+
+            {loading ? (
+              <div className={styles.loadingState}>
+                <motion.div
+                  className={styles.loader}
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                >
+                  🧶
+                </motion.div>
+                <p>Loading beautiful creations...</p>
+              </div>
+            ) : error ? (
+              <div className={styles.errorState}>
+                <p>😔 {error}</p>
+                <motion.button 
+                  className={styles.retryButton}
+                  onClick={() => window.location.reload()}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Retry
+                </motion.button>
+              </div>
+            ) : (
+              categories.map((category, idx) => {
+                const categoryProducts = getProductsByCategory(category);
+
+                return (
+                  <AnimatedSection key={category._id} delay={idx * 0.15}>
+                    <div className={styles.categoryBlock}>
+                      <div className={styles.categoryHeader}>
+                        <h3 className={styles.categoryTitle}>
+                          <motion.span 
+                            className={styles.categoryIcon}
+                            whileHover={{ rotate: [0, -10, 10, 0], scale: 1.2 }}
+                            transition={{ duration: 0.5 }}
+                          >
+                            {category.icon}
+                          </motion.span>
+                          {category.name}
+                        </h3>
+                        
+                        <div className={styles.sliderControls}>
+                          <motion.button
+                            className={styles.sliderBtn}
+                            onClick={() => scrollSlider(category.slug, 'left')}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            aria-label="Previous products"
+                          >
+                            ←
+                          </motion.button>
+                          <motion.button
+                            className={styles.sliderBtn}
+                            onClick={() => scrollSlider(category.slug, 'right')}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            aria-label="Next products"
+                          >
+                            →
+                          </motion.button>
+                        </div>
+                      </div>
+
+                      <div className={styles.sliderWrapper}>
+                        <div className={`${styles.sliderFade} ${styles.sliderFadeLeft}`}></div>
+                        <div className={`${styles.sliderFade} ${styles.sliderFadeRight}`}></div>
+                        
+                        <div
+                          className={styles.productsSlider}
+                          ref={(el) => (sliderRefs.current[category.slug] = el)}
+                        >
+                          {categoryProducts.length > 0 ? (
+                            categoryProducts.map((product, index) => (
+                              <ProductCard 
+                                key={product._id} 
+                                product={product} 
+                                index={index}
+                                onClick={setSelectedProduct}
+                              />
+                            ))
+                          ) : (
+                            <motion.div 
+                              className={styles.emptyCategory}
+                              animate={{ scale: [1, 1.05, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            >
+                              <p>✨ Coming Soon!</p>
+                            </motion.div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </AnimatedSection>
+                );
+              })
+            )}
+          </section>
+
+          {/* Process Section */}
+          <section className={styles.processSection}>
+            <AnimatedSection>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>How It&apos;s Made</h2>
+                <p className={styles.sectionSubtitle}>Every piece is crafted with love and attention to detail</p>
+              </div>
+            </AnimatedSection>
+
+            <div className={styles.processGrid}>
+              <ProcessStep
+                number="01"
+                title="Design Selection"
+                description="Choose from our collection or request a custom design"
+                icon="🎨"
+                delay={0}
+              />
+              <ProcessStep
+                number="02"
+                title="Handcrafted"
+                description="Each piece is carefully crocheted by hand with premium yarn"
+                icon="🧶"
+                delay={0.2}
+              />
+              <ProcessStep
+                number="03"
+                title="Quality Check"
+                description="Every product is inspected to ensure perfect quality"
+                icon="✨"
+                delay={0.4}
+              />
+              <ProcessStep
+                number="04"
+                title="Delivered with Love"
+                description="Packaged beautifully and delivered to your doorstep"
+                icon="💝"
+                delay={0.6}
+              />
+            </div>
+          </section>
+
+          {/* Testimonials Section */}
+          <section className={styles.testimonialsSection}>
+            <AnimatedSection>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>What Our Customers Say</h2>
+                <p className={styles.sectionSubtitle}>Real reviews from real people</p>
+              </div>
+            </AnimatedSection>
+
+            <div className={styles.testimonialsGrid}>
+              <TestimonialCard
+                name="Priya Sharma"
+                review="Absolutely love the quality! The crochet bag I ordered is so beautiful and well-made. Perfect for gifting!"
+                rating={5}
+                image="P"
+                delay={0}
+              />
+              <TestimonialCard
+                name="Rahul Mehta"
+                review="Ordered a custom design for my daughter's birthday. The attention to detail is amazing. Highly recommend!"
+                rating={5}
+                image="R"
+                delay={0.2}
+              />
+              <TestimonialCard
+                name="Ananya Singh"
+                review="The best handmade crochet products I've seen! Fast delivery and excellent customer service. Will order again!"
+                rating={5}
+                image="A"
+                delay={0.4}
+              />
+            </div>
+          </section>
+
+          {/* Footer */}
+          <AnimatedSection>
+            <footer className={styles.footer}>
+              <div className={styles.footerContent}>
+                <div className={styles.footerBrand}>
+                  <h3>Nidsscrochet</h3>
+                  <p>Crafting happiness, one stitch at a time</p>
+                </div>
+                <div className={styles.footerLinks}>
+                  <motion.a
+                    href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ y: -3, scale: 1.05 }}
+                  >
+                    📷 Instagram
+                  </motion.a>
+                  <motion.a 
+                    href="tel:9029562156" 
+                    whileHover={{ y: -3, scale: 1.05 }}
+                  >
+                    📞 9029562156
+                  </motion.a>
+                </div>
+                <div className={styles.footerLove}>
+                  <p>Made with 💖 by Nidhi Tripathi</p>
+                </div>
+                <div className={styles.footerCopyright}>
+                  <p>© {new Date().getFullYear()} Nidsscrochet. All rights reserved.</p>
+                </div>
+              </div>
+            </footer>
+          </AnimatedSection>
+        </main>
+
+        {/* Product Modal */}
+        <AnimatePresence mode="wait">
+          {selectedProduct && (
+            <ProductModal 
+              product={selectedProduct} 
+              onClose={() => setSelectedProduct(null)} 
+            />
+          )}
+        </AnimatePresence>
+      </motion.div>
     </>
   );
 }

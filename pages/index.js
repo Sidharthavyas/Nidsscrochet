@@ -1,8 +1,125 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 import { motion, useScroll, useTransform, useMotionValue, AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
+
+// ================================================
+// SHARE MODAL COMPONENT
+// ================================================
+function ShareModalComponent({ product, productUrl, onClose }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(productUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      alert('Link copied to clipboard!');
+    }
+  };
+
+  const shareText = `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`;
+  const encodedText = encodeURIComponent(shareText);
+  const encodedUrl = encodeURIComponent(productUrl);
+
+  const shareLinks = {
+    whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    twitter: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+    pinterest: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&media=${encodeURIComponent(product.images?.[0] || product.image)}&description=${encodeURIComponent(product.description)}`,
+  };
+
+  return (
+    <motion.div
+      className={styles.shareModalOverlay}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className={styles.shareModalContent}
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button className={styles.shareModalClose} onClick={onClose}>✕</button>
+        
+        <h3 className={styles.shareModalTitle}>Share this Product</h3>
+        
+        <div className={styles.shareOptions}>
+          {/* Copy Link */}
+          <motion.button
+            className={styles.shareOption}
+            onClick={handleCopyLink}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={styles.shareIcon}>{copied ? '✓' : '🔗'}</span>
+            <span>{copied ? 'Copied!' : 'Copy Link'}</span>
+          </motion.button>
+
+          {/* WhatsApp */}
+          <motion.a
+            href={shareLinks.whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.whatsapp}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={styles.shareIcon}>💬</span>
+            <span>WhatsApp</span>
+          </motion.a>
+
+          {/* Facebook */}
+          <motion.a
+            href={shareLinks.facebook}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.facebook}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={styles.shareIcon}>📘</span>
+            <span>Facebook</span>
+          </motion.a>
+
+          {/* Twitter */}
+          <motion.a
+            href={shareLinks.twitter}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.twitter}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={styles.shareIcon}>🐦</span>
+            <span>Twitter</span>
+          </motion.a>
+
+          {/* Pinterest */}
+          <motion.a
+            href={shareLinks.pinterest}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.pinterest}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={styles.shareIcon}>📌</span>
+            <span>Pinterest</span>
+          </motion.a>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 // Rose Burst Animation Component
 function RoseBurstIntro({ onComplete }) {
@@ -10,12 +127,10 @@ function RoseBurstIntro({ onComplete }) {
   const [isBursting, setIsBursting] = useState(false);
 
   useEffect(() => {
-    // Start burst after 2 seconds
     const burstTimer = setTimeout(() => {
       setIsBursting(true);
     }, 2000);
 
-    // Remove rose after burst animation
     const removeTimer = setTimeout(() => {
       setShowRose(false);
       if (onComplete) onComplete();
@@ -27,7 +142,6 @@ function RoseBurstIntro({ onComplete }) {
     };
   }, [onComplete]);
 
-  // Create petal particles for burst effect
   const petalCount = 12;
   const petals = Array.from({ length: petalCount }, (_, i) => ({
     angle: (360 / petalCount) * i,
@@ -45,7 +159,6 @@ function RoseBurstIntro({ onComplete }) {
           transition={{ duration: 0.3 }}
         >
           <div className={styles.roseBurstContainer}>
-            {/* Main Rose */}
             <motion.div
               className={styles.mainRose}
               initial={{ scale: 0, rotate: -180, opacity: 0 }}
@@ -87,7 +200,6 @@ function RoseBurstIntro({ onComplete }) {
                 priority
               />
               
-              {/* Glow effect */}
               <motion.div
                 className={styles.roseGlow}
                 animate={{
@@ -102,7 +214,6 @@ function RoseBurstIntro({ onComplete }) {
               />
             </motion.div>
 
-            {/* Burst Petals */}
             {isBursting &&
               petals.map((petal, index) => (
                 <motion.div
@@ -138,7 +249,6 @@ function RoseBurstIntro({ onComplete }) {
                 </motion.div>
               ))}
 
-            {/* Sparkle particles */}
             {isBursting &&
               Array.from({ length: 20 }).map((_, i) => (
                 <motion.div
@@ -166,7 +276,6 @@ function RoseBurstIntro({ onComplete }) {
                 </motion.div>
               ))}
 
-            {/* Center flash effect */}
             {isBursting && (
               <motion.div
                 className={styles.burstFlash}
@@ -186,7 +295,6 @@ function RoseBurstIntro({ onComplete }) {
 function DecorativeShapes() {
   return (
     <>
-      {/* Floating Circles */}
       <motion.div
         className={styles.decorativeCircle}
         style={{ top: '10%', left: '5%' }}
@@ -214,8 +322,6 @@ function DecorativeShapes() {
           delay: 1
         }}
       />
-
-      {/* Blob Shapes */}
       <motion.div
         className={styles.blobShape}
         style={{ top: '30%', left: '10%' }}
@@ -242,8 +348,6 @@ function DecorativeShapes() {
           ease: "linear"
         }}
       />
-
-      {/* Sparkles */}
       <motion.div
         className={styles.sparkle}
         style={{ top: '20%', left: '15%' }}
@@ -291,8 +395,6 @@ function DecorativeShapes() {
       >
         ⭐
       </motion.div>
-
-      {/* Hearts */}
       <motion.div
         className={styles.floatingHeart}
         style={{ top: '40%', right: '10%' }}
@@ -582,10 +684,17 @@ const formatPrice = (price) => {
   return `₹${priceStr.replace(/[^\d]/g, '')}`;
 };
 
+// ================================================
+// UPDATED PRODUCT CARD WITH SHARE FUNCTIONALITY
+// ================================================
 function ProductCard({ product, index, onClick }) {
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const cardRef = useRef(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -593,6 +702,11 @@ function ProductCard({ product, index, onClick }) {
   const productImages = product.images && product.images.length > 0
     ? product.images
     : [product.image];
+
+  // Generate product URL
+  const productUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/product/${product._id}`
+    : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/product/${product._id}`;
 
   const handleMouseMove = (e) => {
     if (!cardRef.current || window.innerWidth < 768) return;
@@ -607,6 +721,7 @@ function ProductCard({ product, index, onClick }) {
     x.set(0);
     y.set(0);
     setCurrentImageIndex(0);
+    setIsZoomed(false);
   };
 
   const getBadge = () => {
@@ -620,7 +735,7 @@ function ProductCard({ product, index, onClick }) {
 
   useEffect(() => {
     if (!isHovered || productImages.length <= 1) return;
-
+    
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
     }, 2000);
@@ -628,156 +743,307 @@ function ProductCard({ product, index, onClick }) {
     return () => clearInterval(interval);
   }, [isHovered, productImages.length]);
 
-  return (
-    <motion.div
-      ref={cardRef}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{
-        duration: 0.6,
-        delay: index * 0.08,
-        ease: [0.25, 0.1, 0.25, 1]
-      }}
-      className={styles.productCard}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        handleMouseLeave();
-      }}
-      onMouseMove={handleMouseMove}
-      onClick={() => onClick(product)}
-      onKeyPress={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          onClick(product);
+  const handleWishlistToggle = (e) => {
+    e.stopPropagation();
+    setIsWishlisted(!isWishlisted);
+  };
+
+  // NEW: Handle share button click
+  const handleShare = async (e) => {
+    e.stopPropagation();
+    
+    const shareData = {
+      title: `${product.name} | Nidsscrochet`,
+      text: `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`,
+      url: productUrl,
+    };
+
+    // Try native share first (mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setShowShareModal(true);
         }
-      }}
-      style={{ rotateX: y, rotateY: x }}
-      role="button"
-      tabIndex={0}
-      aria-label={`View ${product.name}`}
-      whileHover={{ scale: 1.02 }}
-    >
-      <div className={styles.productImageWrapper}>
-        {badge && (
-          <motion.div
-            className={`${styles.productBadge} ${styles[`badge${badge.color}`]}`}
-            initial={{ scale: 0, rotate: -12 }}
-            animate={{ scale: 1, rotate: -12 }}
-            transition={{ delay: index * 0.1 + 0.3, type: "spring" }}
-            whileHover={{ scale: 1.1, rotate: 0 }}
-          >
-            {badge.text}
-          </motion.div>
-        )}
+      }
+    } else {
+      // Fallback to custom modal (desktop)
+      setShowShareModal(true);
+    }
+  };
 
-        {productImages.length > 1 && (
-          <div className={styles.imageIndicator}>
-            {productImages.map((_, idx) => (
-              <span 
-                key={idx} 
-                className={`${styles.dot} ${idx === currentImageIndex ? styles.activeDot : ''}`}
-              />
-            ))}
-          </div>
-        )}
+  // NEW: Navigate to product page
+  const handleCardClick = () => {
+    router.push(`/product/${product._id}`);
+  };
 
-        {imageLoading && (
-          <div className={styles.imageSkeleton} />
-        )}
-        
-        <motion.div
-          animate={{ scale: isHovered ? 1.08 : 1 }}
-          transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-          className={styles.imageContainer}
-        >
-          <AnimatePresence mode="wait">
+  return (
+    <>
+      <motion.div
+        ref={cardRef}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{
+          duration: 0.6,
+          delay: index * 0.08,
+          ease: [0.25, 0.1, 0.25, 1]
+        }}
+        className={styles.productCard}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          handleMouseLeave();
+        }}
+        onMouseMove={handleMouseMove}
+        onClick={handleCardClick}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            handleCardClick();
+          }
+        }}
+        style={{ rotateX: y, rotateY: x }}
+        role="button"
+        tabIndex={0}
+        aria-label={`View ${product.name}`}
+        whileHover={{ scale: 1.02 }}
+      >
+        <div className={styles.productImageWrapper}>
+          {/* Badge */}
+          {badge && (
             <motion.div
-              key={currentImageIndex}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
+              className={`${styles.productBadge} ${styles[`badge${badge.color}`]}`}
+              initial={{ scale: 0, rotate: -12 }}
+              animate={{ scale: 1, rotate: -12 }}
+              transition={{ delay: index * 0.1 + 0.3, type: "spring" }}
+              whileHover={{ scale: 1.1, rotate: 0 }}
             >
-              <Image 
-                src={productImages[currentImageIndex]} 
-                alt={`${product.name} - Image ${currentImageIndex + 1}`} 
-                width={340} 
-                height={340} 
-                className={styles.productImage}
-                loading="lazy" 
-                unoptimized 
-                onLoadingComplete={() => setImageLoading(false)}
-              />
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
-        
-        {isHovered && (
-          <motion.div
-            className={styles.shimmer}
-            initial={{ x: '-100%' }}
-            animate={{ x: '100%' }}
-            transition={{ duration: 1.2, ease: "easeInOut" }}
-          />
-        )}
-
-        <AnimatePresence>
-          {isHovered && (
-            <motion.div
-              className={styles.quickViewBtn}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.3 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              👁️ Quick View
+              {badge.text}
             </motion.div>
           )}
-        </AnimatePresence>
-      </div>
-      
-      <div className={styles.productInfo}>
-        <motion.span 
-          className={styles.productCategory}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 + 0.2 }}
-        >
-          {product.category}
-        </motion.span>
-        <h4 className={styles.productName}>{product.name}</h4>
-        <p className={styles.productDescription}>{product.description}</p>
-        
-        <div className={styles.productFooter}>
-          <motion.div
-            className={styles.productPrice}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            {formatPrice(product.price)}
-          </motion.div>
+
+          {/* Wishlist Button */}
+          <AnimatePresence>
+            {isHovered && (
+              <motion.button
+                className={`${styles.wishlistBtn} ${isWishlisted ? styles.wishlisted : ''}`}
+                onClick={handleWishlistToggle}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="Add to favorites"
+              >
+                <motion.span
+                  animate={{ scale: isWishlisted ? [1, 1.3, 1] : 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {isWishlisted ? '❤️' : '🤍'}
+                </motion.span>
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          {/* NEW: Share Button */}
+          <AnimatePresence>
+            {isHovered && (
+              <motion.button
+                className={styles.shareCardBtn}
+                onClick={handleShare}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ delay: 0.1 }}
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="Share product"
+              >
+                🔗
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          {/* Image Indicators */}
+          {productImages.length > 1 && (
+            <div className={styles.imageIndicator}>
+              {productImages.map((_, idx) => (
+                <span 
+                  key={idx} 
+                  className={`${styles.dot} ${idx === currentImageIndex ? styles.activeDot : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImageIndex(idx);
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {imageLoading && (
+            <div className={styles.imageSkeleton}>
+              <div className={styles.skeletonShimmer} />
+            </div>
+          )}
           
-          {product.stock !== undefined && (
-            <motion.div 
-              className={styles.stockBadge}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 + 0.3 }}
+          <div 
+            className={styles.imageContainer}
+            onMouseEnter={() => setIsZoomed(true)}
+            onMouseLeave={() => setIsZoomed(false)}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentImageIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className={styles.imageWrapper}
+              >
+                <Image 
+                  src={productImages[currentImageIndex]} 
+                  alt={`${product.name} - Image ${currentImageIndex + 1}`} 
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className={`${styles.productImage} ${isZoomed ? styles.zoomed : ''}`}
+                  loading="lazy" 
+                  unoptimized 
+                  onLoadingComplete={() => setImageLoading(false)}
+                  style={{ objectFit: 'cover', objectPosition: 'center' }}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          
+          {isHovered && (
+            <motion.div
+              className={styles.shimmer}
+              initial={{ x: '-100%' }}
+              animate={{ x: '100%' }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+            />
+          )}
+
+          {/* Quick View Button */}
+          <AnimatePresence>
+            {isHovered && (
+              <motion.div
+                className={styles.quickViewBtn}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.3 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className={styles.quickViewIcon}>👁️</span>
+                <span>Quick View</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        
+        <div className={styles.productInfo}>
+          <div className={styles.productHeader}>
+            <motion.span 
+              className={styles.productCategory}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 + 0.2 }}
             >
-              {product.stock > 0 ? (
-                <span className={styles.inStock}>✓ In Stock</span>
-              ) : (
-                <span className={styles.outOfStock}>Out of Stock</span>
+              {product.category}
+            </motion.span>
+
+            {/* Star Rating */}
+            <div className={styles.ratingStars}>
+              {[...Array(5)].map((_, i) => (
+                <motion.span 
+                  key={i} 
+                  className={i < (product.rating || 5) ? styles.starFilled : styles.starEmpty}
+                  whileHover={{ scale: 1.2, rotate: 15 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  ⭐
+                </motion.span>
+              ))}
+            </div>
+          </div>
+
+          <h4 className={styles.productName}>{product.name}</h4>
+          <p className={styles.productDescription}>{product.description}</p>
+
+          {/* Color Variants */}
+          {product.colors && product.colors.length > 0 && (
+            <motion.div 
+              className={styles.colorVariants}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 + 0.4 }}
+            >
+              <span className={styles.colorLabel}>Colors:</span>
+              {product.colors.slice(0, 5).map((color, idx) => (
+                <motion.span
+                  key={idx}
+                  className={styles.colorDot}
+                  style={{ backgroundColor: color }}
+                  whileHover={{ scale: 1.3, y: -3 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                />
+              ))}
+              {product.colors.length > 5 && (
+                <span className={styles.moreColors}>+{product.colors.length - 5}</span>
               )}
             </motion.div>
           )}
+          
+          <div className={styles.productFooter}>
+            <motion.div
+              className={styles.productPrice}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              whileHover={{ scale: 1.05 }}
+            >
+              <span className={styles.priceSymbol}>₹</span>
+              <span className={styles.priceAmount}>{product.price?.toString().replace(/[^\d]/g, '')}</span>
+            </motion.div>
+            
+            {product.stock !== undefined && (
+              <motion.div 
+                className={styles.stockBadge}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 + 0.3 }}
+              >
+                {product.stock > 0 ? (
+                  <span className={styles.inStock}>
+                    <span className={styles.stockIcon}>✓</span>
+                    In Stock
+                  </span>
+                ) : (
+                  <span className={styles.outOfStock}>
+                    <span className={styles.stockIcon}>✗</span>
+                    Out of Stock
+                  </span>
+                )}
+              </motion.div>
+            )}
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+
+      {/* NEW: Share Modal */}
+      <AnimatePresence>
+        {showShareModal && (
+          <ShareModalComponent
+            product={product}
+            productUrl={productUrl}
+            onClose={() => setShowShareModal(false)}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -889,11 +1155,11 @@ function ProductModal({ product, onClose }) {
                 <Image 
                   src={productImages[currentImageIndex]} 
                   alt={`${product.name} - Image ${currentImageIndex + 1}`} 
-                  width={500} 
-                  height={500} 
+                  fill
                   className={styles.modalImg}
                   unoptimized 
                   priority
+                  style={{ objectFit: 'cover', objectPosition: 'center' }}
                 />
               </motion.div>
             </AnimatePresence>
@@ -1067,7 +1333,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Show content after intro completes
     const timer = setTimeout(() => {
       setContentVisible(true);
     }, 2800);
@@ -1130,22 +1395,16 @@ export default function Home() {
         <meta name="twitter:description" content="Handcrafted Crochet Creations" />
       </Head>
 
-      {/* Rose Burst Intro Animation */}
       <RoseBurstIntro onComplete={() => setShowIntro(false)} />
 
-      {/* Main Content - Shows after intro */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: contentVisible ? 1 : 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Scroll Progress Indicator */}
         <ScrollProgress />
-        
-        {/* Scroll to Top Button */}
         <ScrollToTop />
 
-        {/* Navbar */}
         <motion.nav
           className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}
           initial={{ y: -100, opacity: 0 }}
@@ -1206,10 +1465,8 @@ export default function Home() {
         </motion.nav>
 
         <main className={styles.mainContainer}>
-          {/* Decorative Shapes */}
           <DecorativeShapes />
 
-          {/* Hero Section */}
           <section className={styles.hero}>
             <FloatingEmoji emoji="🧶" delay={0} duration={8} x={100} y={100} />
             <FloatingEmoji emoji="💕" delay={2} duration={10} x={300} y={150} />
@@ -1293,7 +1550,6 @@ export default function Home() {
             </motion.div>
           </section>
 
-          {/* Stats Section */}
           <section className={styles.statsSection}>
             <AnimatedSection>
               <div className={styles.statsGrid}>
@@ -1305,7 +1561,6 @@ export default function Home() {
             </AnimatedSection>
           </section>
 
-          {/* Products Section */}
           <section className={styles.productsSection} id="collections">
             <AnimatedSection>
               <div className={styles.sectionHeader}>
@@ -1413,7 +1668,6 @@ export default function Home() {
             )}
           </section>
 
-          {/* Process Section */}
           <section className={styles.processSection}>
             <AnimatedSection>
               <div className={styles.sectionHeader}>
@@ -1454,7 +1708,6 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Testimonials Section */}
           <section className={styles.testimonialsSection}>
             <AnimatedSection>
               <div className={styles.sectionHeader}>
@@ -1488,7 +1741,6 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Footer */}
           <AnimatedSection>
             <footer className={styles.footer}>
               <div className={styles.footerContent}>
@@ -1523,7 +1775,6 @@ export default function Home() {
           </AnimatedSection>
         </main>
 
-        {/* Product Modal */}
         <AnimatePresence mode="wait">
           {selectedProduct && (
             <ProductModal 

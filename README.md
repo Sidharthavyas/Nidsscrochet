@@ -1,40 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Nidsscrochet – Business Landing Page  
+A responsive landing page built with Next.js for showcasing a business brand.
 
-## Getting Started
+## 📋 Table of Contents  
+- [About](#about)  
+- [Tech Stack](#tech-stack)  
+- [Project Structure](#project-structure)  
+- [Getting Started](#getting-started)  
+- [Usage](#usage)  
+- [Customization](#customization)  
+- [Contributing](#contributing)  
+- [License](#license)  
+- [Contact](#contact)  
 
-First, run the development server:
+---
 
+## 🧐 About  
+This project serves as the landing site for “Nidsscrochet” — a business front-end showcasing products/services via a clean, modern interface. Deployed live at https://nidsscrochet-shopping.vercel.app (as per repo).  
+It’s built to be easily customizable and deployable with a production-ready stack.
+
+---
+
+## 🛠 Tech Stack  
+- **Framework:** Next.js — the repository mentions *“This is a Next.js project bootstrapped with create-next-app”*. :contentReference[oaicite:1]{index=1}  
+- **Language:** JavaScript (and CSS) — languages listed on the repo show ~66.2% JS, ~33.8% CSS. :contentReference[oaicite:2]{index=2}  
+- **Styling:** CSS, likely including global and module styles (`/styles` folder)  
+- **Linting/Config:** ESLint configuration present (`eslint.config.mjs`)  
+- **Path & Type Config:** `jsconfig.json` for path aliases or JS setup  
+- **Next.js Config:** `next.config.mjs` for customization  
+- **Deployment:** Vercel configuration (`vercel.json` present)  
+- **Assets & Public Files:** `/public` folder for static assets  
+- **Components:** Reusable UI components in `/components`  
+- **Lib / Utilities:** `/lib` folder for helper modules  
+
+---
+
+## 🗂 Project Structure  
+/components – Reusable UI components
+/lib – Utility functions, business logic helpers
+/pages – Next.js pages (e.g., index.js)
+/public – Static assets (images, favicon, etc)
+/styles – Styling files (global styles, modules)
+.gitignore
+eslint.config.mjs
+jsconfig.json
+next.config.mjs
+package.json
+package-lock.json
+vercel.json
+README.md
+
+yaml
+Copy code
+*(Based on the file listing in the repo) :contentReference[oaicite:3]{index=3}
+
+---
+
+## 🚀 Getting Started  
+### Clone the project  
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+git clone https://github.com/Sidharthavyas/Nidsscrochet.git  
+cd Nidsscrochet  
+Install dependencies
+bash
+Copy code
+npm install  
+# or  
+yarn install  
+Run the development server
+bash
+Copy code
+npm run dev  
+# or  
+yarn dev  
+Open http://localhost:3000 in your browser.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Build and start for production
+bash
+Copy code
+npm run build  
+npm run start  
+🎨 Customization
+Branding: Replace logo, colors, fonts in /public, /styles, and component files.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+Content: Modify pages under /pages (especially index.js) to update business copy, images, sections.
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+Components: Add or adjust components in /components for layout changes.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+Utilities: If you need extra business logic or helper functions, extend files in /lib.
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Deployment: Use vercel.json or update hosting config accordingly for production deployment.
 
-## Learn More
+🤝 Contributing
+Contributions are welcome!
 
-To learn more about Next.js, take a look at the following resources:
+Fork the repository
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+Create a new branch (git checkout -b feature/YourFeature)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Make your changes and commit (git commit -m "Add some feature")
 
-## Deploy on Vercel
+Push to your branch (git push origin feature/YourFeature)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Open a Pull Request for discussion and review
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+📄 License
+Specify the license under which this project is available (for example, MIT).
+
+yaml
+Copy code
+MIT License  
+© 2025 Nidsscrochet  
+📬 Contact
+Maintainer: Sidhartha (Software Engineer)
+GitHub: Sidharthavyas
+Project: Nidsscrochet
+For queries or suggestions: Please open an issue or pull request.

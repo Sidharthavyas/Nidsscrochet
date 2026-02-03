@@ -138,17 +138,17 @@ export default function ProductPage({ product, error }) {
       </Head>
 
       <main className={styles.mainContainer}>
-        {/* Back Button - Using Link for smooth client-side navigation */}
+        {/* Back Button - Using Next.js Link for fast client-side navigation */}
         <div style={{ padding: '6rem 2rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
-          <Link href="/#collections" scroll={false}>
-            <motion.span
+          <Link href="/#collections" prefetch={true}>
+            <motion.a
               className={styles.backButton}
+              style={{ display: 'inline-block', cursor: 'pointer', textDecoration: 'none' }}
               whileHover={{ x: -5 }}
               whileTap={{ scale: 0.95 }}
-              style={{ display: 'inline-block', cursor: 'pointer' }}
             >
               ← Back to Collections
-            </motion.span>
+            </motion.a>
           </Link>
         </div>
 

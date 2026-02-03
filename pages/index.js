@@ -1316,8 +1316,21 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showIntro, setShowIntro] = useState(true);
-  const [contentVisible, setContentVisible] = useState(false);
+
+  // Check if user has already seen the intro in this session
+  const [showIntro, setShowIntro] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('introSeen');
+    }
+    return true;
+  });
+  const [contentVisible, setContentVisible] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !!sessionStorage.getItem('introSeen');
+    }
+    return false;
+  });
+
   const [banner, setBanner] = useState({ text: '', active: false });
   const sliderRefs = useRef({});
 
@@ -1334,8 +1347,19 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    // Skip the intro animation if already seen in this session
+    if (typeof window !== 'undefined' && sessionStorage.getItem('introSeen')) {
+      setContentVisible(true);
+      setShowIntro(false);
+      return;
+    }
+
     const timer = setTimeout(() => {
       setContentVisible(true);
+      // Mark intro as seen in sessionStorage
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('introSeen', 'true');
+      }
     }, 2800);
 
     return () => clearTimeout(timer);

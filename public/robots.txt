@@ -7,4 +7,4 @@ Disallow: /admin/
 Disallow: /api/
 
 # Sitemap
-Sitemap: https://nidsscrochet.in/sitemap.xml
+Sitemap: https://www.nidsscrochet.in/sitemap.xml

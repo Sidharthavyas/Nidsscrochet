@@ -1397,7 +1397,7 @@ export default function Home() {
         <meta name="keywords" content="crochet, handmade crochet, crochet products India, handcrafted gifts, crochet bags, crochet flowers, crochet bouquet, custom crochet, Nidsscrochet, Nidhi Tripathi, handmade gifts India, crochet keychain, crochet accessories, buy crochet online India" />
 
         {/* Canonical URL */}
-        <link rel="canonical" href="https://nidsscrochet.in/" />
+        <link rel="canonical" href="https://www.nidsscrochet.in/" />
 
         {/* Author and Copyright */}
         <meta name="author" content="Nidhi Tripathi" />
@@ -1409,10 +1409,10 @@ export default function Home() {
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://nidsscrochet.in/" />
+        <meta property="og:url" content="https://www.nidsscrochet.in/" />
         <meta property="og:title" content="Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Creations" />
         <meta property="og:description" content="Shop beautiful handcrafted crochet products. Premium handmade crochet bags, flowers, keychains & custom gifts. Where Every Stitch Tells a Story!" />
-        <meta property="og:image" content="https://nidsscrochet.in/rose.png" />
+        <meta property="og:image" content="https://www.nidsscrochet.in/rose.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:site_name" content="Nidsscrochet" />
@@ -1420,10 +1420,10 @@ export default function Home() {
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content="https://nidsscrochet.in/" />
+        <meta name="twitter:url" content="https://www.nidsscrochet.in/" />
         <meta name="twitter:title" content="Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet" />
         <meta name="twitter:description" content="Shop beautiful handcrafted crochet products. Premium handmade bags, flowers & custom gifts!" />
-        <meta name="twitter:image" content="https://nidsscrochet.in/rose.png" />
+        <meta name="twitter:image" content="https://www.nidsscrochet.in/rose.png" />
 
         {/* Additional SEO */}
         <meta name="format-detection" content="telephone=yes" />
@@ -1439,10 +1439,10 @@ export default function Home() {
               "@graph": [
                 {
                   "@type": "Organization",
-                  "@id": "https://nidsscrochet.in/#organization",
+                  "@id": "https://www.nidsscrochet.in/#organization",
                   "name": "Nidsscrochet",
-                  "url": "https://nidsscrochet.in",
-                  "logo": "https://nidsscrochet.in/rose.png",
+                  "url": "https://www.nidsscrochet.in",
+                  "logo": "https://www.nidsscrochet.in/rose.png",
                   "description": "Handcrafted crochet creations by Nidhi Tripathi",
                   "founder": {
                     "@type": "Person",
@@ -1460,26 +1460,26 @@ export default function Home() {
                 },
                 {
                   "@type": "WebSite",
-                  "@id": "https://nidsscrochet.in/#website",
-                  "url": "https://nidsscrochet.in",
+                  "@id": "https://www.nidsscrochet.in/#website",
+                  "url": "https://www.nidsscrochet.in",
                   "name": "Nidsscrochet",
                   "description": "Handcrafted Crochet Creations",
                   "publisher": {
-                    "@id": "https://nidsscrochet.in/#organization"
+                    "@id": "https://www.nidsscrochet.in/#organization"
                   },
                   "potentialAction": {
                     "@type": "SearchAction",
-                    "target": "https://nidsscrochet.in/?search={search_term_string}",
+                    "target": "https://www.nidsscrochet.in/?search={search_term_string}",
                     "query-input": "required name=search_term_string"
                   }
                 },
                 {
                   "@type": "LocalBusiness",
-                  "@id": "https://nidsscrochet.in/#localbusiness",
+                  "@id": "https://www.nidsscrochet.in/#localbusiness",
                   "name": "Nidsscrochet",
-                  "image": "https://nidsscrochet.in/rose.png",
+                  "image": "https://www.nidsscrochet.in/rose.png",
                   "description": "Premium handcrafted crochet products including bags, flowers, keychains, and custom gifts",
-                  "url": "https://nidsscrochet.in",
+                  "url": "https://www.nidsscrochet.in",
                   "telephone": "+91-9029562156",
                   "priceRange": "₹₹",
                   "address": {

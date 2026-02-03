@@ -71,14 +71,14 @@ export default function ProductPage({ product, error }) {
         <meta name="keywords" content={`${product.name}, ${product.category}, crochet, handmade, Nidsscrochet, buy online India`} />
 
         {/* Canonical URL */}
-        <link rel="canonical" href={`https://nidsscrochet.in/product/${product._id}`} />
+        <link rel="canonical" href={`https://www.nidsscrochet.in/product/${product._id}`} />
 
         {/* Robots */}
         <meta name="robots" content="index, follow" />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="product" />
-        <meta property="og:url" content={`https://nidsscrochet.in/product/${product._id}`} />
+        <meta property="og:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
         <meta property="og:title" content={`${product.name} | Nidsscrochet`} />
         <meta property="og:description" content={product.description} />
         <meta property="og:image" content={productImages[0]} />
@@ -92,7 +92,7 @@ export default function ProductPage({ product, error }) {
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content={`https://nidsscrochet.in/product/${product._id}`} />
+        <meta name="twitter:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
         <meta name="twitter:title" content={`${product.name} | Nidsscrochet`} />
         <meta name="twitter:description" content={product.description} />
         <meta name="twitter:image" content={productImages[0]} />
@@ -114,11 +114,11 @@ export default function ProductPage({ product, error }) {
               "manufacturer": {
                 "@type": "Organization",
                 "name": "Nidsscrochet",
-                "url": "https://nidsscrochet.in"
+                "url": "https://www.nidsscrochet.in"
               },
               "offers": {
                 "@type": "Offer",
-                "url": `https://nidsscrochet.in/product/${product._id}`,
+                "url": `https://www.nidsscrochet.in/product/${product._id}`,
                 "priceCurrency": "INR",
                 "price": product.price.toString().replace(/[^0-9]/g, ''),
                 "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",

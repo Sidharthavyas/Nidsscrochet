@@ -49,9 +49,9 @@ function ShareModalComponent({ product, productUrl, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <button className={styles.shareModalClose} onClick={onClose}>✕</button>
-        
+
         <h3 className={styles.shareModalTitle}>Share this Product</h3>
-        
+
         <div className={styles.shareOptions}>
           {/* Copy Link */}
           <motion.button
@@ -165,30 +165,30 @@ function RoseBurstIntro({ onComplete }) {
               animate={
                 isBursting
                   ? {
-                      scale: [1, 1.3, 0],
-                      rotate: [0, 180, 360],
-                      opacity: [1, 0.8, 0],
-                    }
+                    scale: [1, 1.3, 0],
+                    rotate: [0, 180, 360],
+                    opacity: [1, 0.8, 0],
+                  }
                   : {
-                      scale: 1,
-                      rotate: 0,
-                      opacity: 1,
-                      y: [0, -20, 0],
-                    }
+                    scale: 1,
+                    rotate: 0,
+                    opacity: 1,
+                    y: [0, -20, 0],
+                  }
               }
               transition={
                 isBursting
                   ? { duration: 0.8, ease: "easeOut" }
                   : {
-                      scale: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
-                      rotate: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
-                      opacity: { duration: 0.8 },
-                      y: {
-                        duration: 1.5,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      },
-                    }
+                    scale: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
+                    rotate: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
+                    opacity: { duration: 0.8 },
+                    y: {
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    },
+                  }
               }
             >
               <Image
@@ -199,7 +199,7 @@ function RoseBurstIntro({ onComplete }) {
                 className={styles.roseMainImage}
                 priority
               />
-              
+
               <motion.div
                 className={styles.roseGlow}
                 animate={{
@@ -735,7 +735,7 @@ function ProductCard({ product, index, onClick }) {
 
   useEffect(() => {
     if (!isHovered || productImages.length <= 1) return;
-    
+
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
     }, 2000);
@@ -751,7 +751,7 @@ function ProductCard({ product, index, onClick }) {
   // NEW: Handle share button click
   const handleShare = async (e) => {
     e.stopPropagation();
-    
+
     const shareData = {
       title: `${product.name} | Nidsscrochet`,
       text: `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`,
@@ -868,8 +868,8 @@ function ProductCard({ product, index, onClick }) {
           {productImages.length > 1 && (
             <div className={styles.imageIndicator}>
               {productImages.map((_, idx) => (
-                <span 
-                  key={idx} 
+                <span
+                  key={idx}
                   className={`${styles.dot} ${idx === currentImageIndex ? styles.activeDot : ''}`}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -885,8 +885,8 @@ function ProductCard({ product, index, onClick }) {
               <div className={styles.skeletonShimmer} />
             </div>
           )}
-          
-          <div 
+
+          <div
             className={styles.imageContainer}
             onMouseEnter={() => setIsZoomed(true)}
             onMouseLeave={() => setIsZoomed(false)}
@@ -900,21 +900,21 @@ function ProductCard({ product, index, onClick }) {
                 transition={{ duration: 0.5 }}
                 className={styles.imageWrapper}
               >
-                <Image 
-                  src={productImages[currentImageIndex]} 
-                  alt={`${product.name} - Image ${currentImageIndex + 1}`} 
+                <Image
+                  src={productImages[currentImageIndex]}
+                  alt={`${product.name} - Image ${currentImageIndex + 1}`}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className={`${styles.productImage} ${isZoomed ? styles.zoomed : ''}`}
-                  loading="lazy" 
-                  unoptimized 
+                  loading="lazy"
+                  unoptimized
                   onLoadingComplete={() => setImageLoading(false)}
                   style={{ objectFit: 'cover', objectPosition: 'center' }}
                 />
               </motion.div>
             </AnimatePresence>
           </div>
-          
+
           {isHovered && (
             <motion.div
               className={styles.shimmer}
@@ -942,10 +942,10 @@ function ProductCard({ product, index, onClick }) {
             )}
           </AnimatePresence>
         </div>
-        
+
         <div className={styles.productInfo}>
           <div className={styles.productHeader}>
-            <motion.span 
+            <motion.span
               className={styles.productCategory}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -957,8 +957,8 @@ function ProductCard({ product, index, onClick }) {
             {/* Star Rating */}
             <div className={styles.ratingStars}>
               {[...Array(5)].map((_, i) => (
-                <motion.span 
-                  key={i} 
+                <motion.span
+                  key={i}
                   className={i < (product.rating || 5) ? styles.starFilled : styles.starEmpty}
                   whileHover={{ scale: 1.2, rotate: 15 }}
                   transition={{ duration: 0.2 }}
@@ -974,7 +974,7 @@ function ProductCard({ product, index, onClick }) {
 
           {/* Color Variants */}
           {product.colors && product.colors.length > 0 && (
-            <motion.div 
+            <motion.div
               className={styles.colorVariants}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -996,7 +996,7 @@ function ProductCard({ product, index, onClick }) {
               )}
             </motion.div>
           )}
-          
+
           <div className={styles.productFooter}>
             <motion.div
               className={styles.productPrice}
@@ -1008,9 +1008,9 @@ function ProductCard({ product, index, onClick }) {
               <span className={styles.priceSymbol}>₹</span>
               <span className={styles.priceAmount}>{product.price?.toString().replace(/[^\d]/g, '')}</span>
             </motion.div>
-            
+
             {product.stock !== undefined && (
-              <motion.div 
+              <motion.div
                 className={styles.stockBadge}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -1137,7 +1137,7 @@ function ProductModal({ product, onClose }) {
         </motion.button>
 
         <div className={styles.modalGrid}>
-          <div 
+          <div
             className={styles.modalImageCarousel}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -1152,12 +1152,12 @@ function ProductModal({ product, onClose }) {
                 transition={{ duration: 0.3 }}
                 className={styles.modalImage}
               >
-                <Image 
-                  src={productImages[currentImageIndex]} 
-                  alt={`${product.name} - Image ${currentImageIndex + 1}`} 
+                <Image
+                  src={productImages[currentImageIndex]}
+                  alt={`${product.name} - Image ${currentImageIndex + 1}`}
                   fill
                   className={styles.modalImg}
-                  unoptimized 
+                  unoptimized
                   priority
                   style={{ objectFit: 'cover', objectPosition: 'center' }}
                 />
@@ -1166,14 +1166,14 @@ function ProductModal({ product, onClose }) {
 
             {productImages.length > 1 && (
               <>
-                <button 
+                <button
                   className={`${styles.carouselBtn} ${styles.carouselBtnPrev}`}
                   onClick={prevImage}
                   disabled={currentImageIndex === 0}
                 >
                   ←
                 </button>
-                <button 
+                <button
                   className={`${styles.carouselBtn} ${styles.carouselBtnNext}`}
                   onClick={nextImage}
                   disabled={currentImageIndex === productImages.length - 1}
@@ -1200,9 +1200,9 @@ function ProductModal({ product, onClose }) {
               {currentImageIndex + 1} / {productImages.length}
             </div>
           </div>
-          
+
           <div className={styles.modalDetails}>
-            <motion.span 
+            <motion.span
               className={styles.modalCategory}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1210,8 +1210,8 @@ function ProductModal({ product, onClose }) {
             >
               {product.category}
             </motion.span>
-            
-            <motion.h2 
+
+            <motion.h2
               id="modal-title"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1219,8 +1219,8 @@ function ProductModal({ product, onClose }) {
             >
               {product.name}
             </motion.h2>
-            
-            <motion.p 
+
+            <motion.p
               className={styles.modalDescription}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1228,8 +1228,8 @@ function ProductModal({ product, onClose }) {
             >
               {product.description}
             </motion.p>
-            
-            <motion.div 
+
+            <motion.div
               className={styles.modalPriceSection}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1254,7 +1254,7 @@ function ProductModal({ product, onClose }) {
               </span>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               className={styles.productFeatures}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1273,16 +1273,16 @@ function ProductModal({ product, onClose }) {
                 <span>Gift Ready</span>
               </div>
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               className={styles.modalActions}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
             >
-              <motion.a 
-                href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3" 
-                target="_blank" 
+              <motion.a
+                href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+                target="_blank"
                 rel="noopener noreferrer"
                 className={`${styles.modalBtn} ${styles.modalBtnPrimary}`}
                 whileHover={{ scale: 1.02, y: -2 }}
@@ -1291,8 +1291,8 @@ function ProductModal({ product, onClose }) {
                 <span className={styles.btnIcon}>📷</span>
                 Order on Instagram
               </motion.a>
-              <motion.a 
-                href="tel:9029562156" 
+              <motion.a
+                href="tel:9029562156"
                 className={`${styles.modalBtn} ${styles.modalBtnSecondary}`}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
@@ -1318,6 +1318,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
   const [contentVisible, setContentVisible] = useState(false);
+  const [banner, setBanner] = useState({ text: '', active: false });
   const sliderRefs = useRef({});
 
   const { scrollYProgress } = useScroll();
@@ -1349,11 +1350,18 @@ export default function Home() {
       fetch('/api/products').then(r => {
         if (!r.ok) throw new Error('Failed to fetch products');
         return r.json();
+      }),
+      fetch('/api/banner').then(r => {
+        if (!r.ok) throw new Error('Failed to fetch banner');
+        return r.json();
       })
     ])
-      .then(([catData, prodData]) => {
+      .then(([catData, prodData, bannerData]) => {
         if (catData.success) setCategories(catData.data);
         if (prodData.success) setProducts(prodData.data);
+        if (bannerData.success && bannerData.data) {
+          setBanner(bannerData.data);
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -1389,7 +1397,7 @@ export default function Home() {
         <meta property="og:description" content="Handcrafted Crochet Creations - Where Every Stitch Tells a Story" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.nidsscrochet.com" />
-        
+
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Nidsscrochet by Nidhi Tripathi" />
         <meta name="twitter:description" content="Handcrafted Crochet Creations" />
@@ -1413,15 +1421,15 @@ export default function Home() {
         >
           <div className={styles.navWrapper}>
             <div className={styles.navContent}>
-              <motion.div 
+              <motion.div
                 className={styles.navBrand}
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.4 }}
               >
                 Nidsscrochet
               </motion.div>
-              
-              <motion.button 
+
+              <motion.button
                 className={styles.mobileMenuBtn}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
@@ -1432,17 +1440,17 @@ export default function Home() {
               </motion.button>
 
               <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''}`}>
-                <motion.a 
-                  href="#collections" 
+                <motion.a
+                  href="#collections"
                   whileHover={{ y: -2 }}
                   className={styles.navLink}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Collections
                 </motion.a>
-                <motion.a 
-                  href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3" 
-                  target="_blank" 
+                <motion.a
+                  href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+                  target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ y: -2 }}
                   className={styles.navLink}
@@ -1450,8 +1458,8 @@ export default function Home() {
                 >
                   Instagram
                 </motion.a>
-                <motion.a 
-                  href="tel:9029562156" 
+                <motion.a
+                  href="tel:9029562156"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className={styles.navCta}
@@ -1489,7 +1497,7 @@ export default function Home() {
               >
                 ✨ Handcrafted with Love ✨
               </motion.div>
-              
+
               <motion.h1
                 className={styles.brandName}
                 initial={{ opacity: 0, y: 20 }}
@@ -1498,7 +1506,7 @@ export default function Home() {
               >
                 Nidsscrochet
               </motion.h1>
-              
+
               <motion.p
                 className={styles.creatorName}
                 initial={{ opacity: 0 }}
@@ -1507,7 +1515,7 @@ export default function Home() {
               >
                 by Nidhi Tripathi
               </motion.p>
-              
+
               <motion.p
                 className={styles.tagline}
                 initial={{ opacity: 0 }}
@@ -1516,7 +1524,7 @@ export default function Home() {
               >
                 Where Every Stitch Tells a Story
               </motion.p>
-              
+
               <motion.div
                 className={styles.heroButtons}
                 initial={{ opacity: 0, y: 20 }}
@@ -1538,7 +1546,7 @@ export default function Home() {
                     transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1 }}
                   />
                 </MagneticButton>
-                
+
                 <MagneticButton
                   href="tel:9029562156"
                   className={`${styles.ctaButton} ${styles.ctaButtonSecondary}`}
@@ -1562,6 +1570,25 @@ export default function Home() {
           </section>
 
           <section className={styles.productsSection} id="collections">
+            {/* Sales Banner */}
+            {banner.active && banner.text && (
+              <motion.div
+                className={styles.salesBanner}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <div className={styles.marqueeContainer}>
+                  <div className={styles.marqueeContent}>
+                    <span className={styles.marqueeText}>{banner.text}</span>
+                    <span className={styles.marqueeText}>{banner.text}</span>
+                    <span className={styles.marqueeText}>{banner.text}</span>
+                    <span className={styles.marqueeText}>{banner.text}</span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             <AnimatedSection>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>Our Collections</h2>
@@ -1583,7 +1610,7 @@ export default function Home() {
             ) : error ? (
               <div className={styles.errorState}>
                 <p>😔 {error}</p>
-                <motion.button 
+                <motion.button
                   className={styles.retryButton}
                   onClick={() => window.location.reload()}
                   whileHover={{ scale: 1.05 }}
@@ -1601,7 +1628,7 @@ export default function Home() {
                     <div className={styles.categoryBlock}>
                       <div className={styles.categoryHeader}>
                         <h3 className={styles.categoryTitle}>
-                          <motion.span 
+                          <motion.span
                             className={styles.categoryIcon}
                             whileHover={{ rotate: [0, -10, 10, 0], scale: 1.2 }}
                             transition={{ duration: 0.5 }}
@@ -1610,7 +1637,7 @@ export default function Home() {
                           </motion.span>
                           {category.name}
                         </h3>
-                        
+
                         <div className={styles.sliderControls}>
                           <motion.button
                             className={styles.sliderBtn}
@@ -1636,22 +1663,22 @@ export default function Home() {
                       <div className={styles.sliderWrapper}>
                         <div className={`${styles.sliderFade} ${styles.sliderFadeLeft}`}></div>
                         <div className={`${styles.sliderFade} ${styles.sliderFadeRight}`}></div>
-                        
+
                         <div
                           className={styles.productsSlider}
                           ref={(el) => (sliderRefs.current[category.slug] = el)}
                         >
                           {categoryProducts.length > 0 ? (
                             categoryProducts.map((product, index) => (
-                              <ProductCard 
-                                key={product._id} 
-                                product={product} 
+                              <ProductCard
+                                key={product._id}
+                                product={product}
                                 index={index}
                                 onClick={setSelectedProduct}
                               />
                             ))
                           ) : (
-                            <motion.div 
+                            <motion.div
                               className={styles.emptyCategory}
                               animate={{ scale: [1, 1.05, 1] }}
                               transition={{ duration: 2, repeat: Infinity }}
@@ -1757,8 +1784,8 @@ export default function Home() {
                   >
                     📷 Instagram
                   </motion.a>
-                  <motion.a 
-                    href="tel:9029562156" 
+                  <motion.a
+                    href="tel:9029562156"
                     whileHover={{ y: -3, scale: 1.05 }}
                   >
                     📞 9029562156
@@ -1777,9 +1804,9 @@ export default function Home() {
 
         <AnimatePresence mode="wait">
           {selectedProduct && (
-            <ProductModal 
-              product={selectedProduct} 
-              onClose={() => setSelectedProduct(null)} 
+            <ProductModal
+              product={selectedProduct}
+              onClose={() => setSelectedProduct(null)}
             />
           )}
         </AnimatePresence>

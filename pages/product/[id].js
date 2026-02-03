@@ -29,8 +29,8 @@ export default function ProductPage({ product, error }) {
     ? product.images
     : [product.image];
 
-  const productUrl = typeof window !== 'undefined' 
-    ? window.location.href 
+  const productUrl = typeof window !== 'undefined'
+    ? window.location.href
     : `${process.env.NEXT_PUBLIC_SITE_URL}/product/${product._id}`;
 
   const handleShare = async () => {
@@ -66,7 +66,7 @@ export default function ProductPage({ product, error }) {
       <Head>
         <title>{product.name} | Nidsscrochet by Nidhi Tripathi</title>
         <meta name="description" content={product.description} />
-        
+
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="product" />
         <meta property="og:url" content={productUrl} />
@@ -77,14 +77,14 @@ export default function ProductPage({ product, error }) {
         <meta property="og:image:height" content="1200" />
         <meta property="product:price:amount" content={product.price} />
         <meta property="product:price:currency" content="INR" />
-        
+
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content={productUrl} />
         <meta name="twitter:title" content={`${product.name} | Nidsscrochet`} />
         <meta name="twitter:description" content={product.description} />
         <meta name="twitter:image" content={productImages[0]} />
-        
+
         {/* WhatsApp */}
         <meta property="og:site_name" content="Nidsscrochet" />
       </Head>
@@ -93,7 +93,14 @@ export default function ProductPage({ product, error }) {
         {/* Back Button */}
         <div style={{ padding: '6rem 2rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
           <motion.button
-            onClick={() => router.push('/')}
+            onClick={() => {
+              // Use back navigation if we have history, otherwise go home
+              if (typeof window !== 'undefined' && window.history.length > 2) {
+                router.back();
+              } else {
+                router.push('/');
+              }
+            }}
             className={styles.backButton}
             whileHover={{ x: -5 }}
             whileTap={{ scale: 0.95 }}
@@ -116,12 +123,12 @@ export default function ProductPage({ product, error }) {
                   transition={{ duration: 0.3 }}
                   className={styles.modalImage}
                 >
-                  <Image 
-                    src={productImages[currentImageIndex]} 
-                    alt={`${product.name} - Image ${currentImageIndex + 1}`} 
+                  <Image
+                    src={productImages[currentImageIndex]}
+                    alt={`${product.name} - Image ${currentImageIndex + 1}`}
                     fill
                     className={styles.modalImg}
-                    unoptimized 
+                    unoptimized
                     priority
                     style={{ objectFit: 'cover', objectPosition: 'center' }}
                   />
@@ -130,19 +137,19 @@ export default function ProductPage({ product, error }) {
 
               {productImages.length > 1 && (
                 <>
-                  <button 
+                  <button
                     className={`${styles.carouselBtn} ${styles.carouselBtnPrev}`}
                     onClick={prevImage}
                   >
                     ←
                   </button>
-                  <button 
+                  <button
                     className={`${styles.carouselBtn} ${styles.carouselBtnNext}`}
                     onClick={nextImage}
                   >
                     →
                   </button>
-                  
+
                   <div className={styles.carouselDots}>
                     {productImages.map((_, idx) => (
                       <button
@@ -159,15 +166,15 @@ export default function ProductPage({ product, error }) {
                 {currentImageIndex + 1} / {productImages.length}
               </div>
             </div>
-            
+
             {/* Product Details */}
             <div className={styles.modalDetails}>
               <span className={styles.modalCategory}>{product.category}</span>
-              
+
               <h1>{product.name}</h1>
-              
+
               <p className={styles.modalDescription}>{product.description}</p>
-              
+
               <div className={styles.modalPriceSection}>
                 <div className={styles.priceWrapper}>
                   <span className={styles.priceLabel}>Price</span>
@@ -202,7 +209,7 @@ export default function ProductPage({ product, error }) {
                   <span>Gift Ready</span>
                 </div>
               </div>
-              
+
               <div className={styles.modalActions}>
                 {/* Share Button */}
                 <motion.button
@@ -215,9 +222,9 @@ export default function ProductPage({ product, error }) {
                   Share this Product
                 </motion.button>
 
-                <motion.a 
-                  href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3" 
-                  target="_blank" 
+                <motion.a
+                  href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className={`${styles.modalBtn} ${styles.modalBtnPrimary}`}
                   whileHover={{ scale: 1.02, y: -2 }}
@@ -226,9 +233,9 @@ export default function ProductPage({ product, error }) {
                   <span className={styles.btnIcon}>📷</span>
                   Order on Instagram
                 </motion.a>
-                
-                <motion.a 
-                  href="tel:9029562156" 
+
+                <motion.a
+                  href="tel:9029562156"
                   className={`${styles.modalBtn} ${styles.modalBtnSecondary}`}
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
@@ -330,9 +337,9 @@ function ShareModal({ product, productUrl, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <button className={styles.shareModalClose} onClick={onClose}>✕</button>
-        
+
         <h3 className={styles.shareModalTitle}>Share this Product</h3>
-        
+
         <div className={styles.shareOptions}>
           {/* Copy Link */}
           <motion.button

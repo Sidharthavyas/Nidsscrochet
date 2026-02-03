@@ -13,7 +13,12 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null); // NEW: Track editing state
+  const [editingProduct, setEditingProduct] = useState(null);
+
+  // Banner state
+  const [bannerText, setBannerText] = useState('');
+  const [bannerActive, setBannerActive] = useState(false);
+  const [bannerLoading, setBannerLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     category: '',
@@ -66,10 +71,24 @@ function AdminDashboard() {
     }
   }, [formData.category]);
 
+  const fetchBanner = useCallback(async () => {
+    try {
+      const response = await fetch('/api/banner');
+      const data = await response.json();
+      if (data.success && data.data) {
+        setBannerText(data.data.text || '');
+        setBannerActive(data.data.active || false);
+      }
+    } catch (error) {
+      console.error('Error fetching banner:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, [fetchProducts, fetchCategories]);
+    fetchBanner();
+  }, [fetchProducts, fetchCategories, fetchBanner]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -90,14 +109,14 @@ function AdminDashboard() {
   // NEW: Handle multiple image selection (max 5)
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    
+
     if (files.length > 5) {
       setMessage({ type: 'error', text: 'Maximum 5 images allowed' });
       return;
     }
 
     setImageFiles(files);
-    
+
     // Create previews
     const previews = files.map(file => URL.createObjectURL(file));
     setImagePreviews(previews);
@@ -159,7 +178,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem('adminToken');
       const formDataToSend = new FormData();
-      
+
       formDataToSend.append('category', formData.category);
       formDataToSend.append('name', formData.name);
       formDataToSend.append('description', formData.description);
@@ -194,15 +213,15 @@ function AdminDashboard() {
       const data = await response.json();
 
       if (data.success) {
-        setMessage({ 
-          type: 'success', 
-          text: `✓ Product ${editingProduct ? 'updated' : 'added'} successfully!` 
+        setMessage({
+          type: 'success',
+          text: `✓ Product ${editingProduct ? 'updated' : 'added'} successfully!`
         });
-        
+
         resetForm();
         setEditingProduct(null);
         fetchProducts();
-        
+
         setTimeout(() => {
           setShowForm(false);
           setMessage({ type: '', text: '' });
@@ -222,7 +241,7 @@ function AdminDashboard() {
 
     try {
       const token = localStorage.getItem('adminToken');
-      
+
       const response = await fetch('/api/categories', {
         method: 'POST',
         headers: {
@@ -238,7 +257,7 @@ function AdminDashboard() {
         setMessage({ type: 'success', text: '✓ Category added successfully!' });
         setCategoryFormData({ name: '', icon: '🎨', order: 0 });
         fetchCategories();
-        
+
         setTimeout(() => {
           setShowCategoryForm(false);
           setMessage({ type: '', text: '' });
@@ -283,7 +302,7 @@ function AdminDashboard() {
 
     try {
       const token = localStorage.getItem('adminToken');
-      
+
       const response = await fetch(`/api/categories?id=${id}`, {
         method: 'DELETE',
         headers: {
@@ -308,6 +327,41 @@ function AdminDashboard() {
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     router.push('/admin');
+  };
+
+  const handleBannerSubmit = async (e) => {
+    e.preventDefault();
+    setBannerLoading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      const token = localStorage.getItem('adminToken');
+
+      const response = await fetch('/api/banner', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          text: bannerText,
+          active: bannerActive,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMessage({ type: 'success', text: '✓ Banner updated successfully!' });
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to update banner' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error updating banner' });
+    } finally {
+      setBannerLoading(false);
+    }
   };
 
   return (
@@ -368,6 +422,14 @@ function AdminDashboard() {
               whileTap={{ scale: 0.98 }}
             >
               📁 Categories
+            </motion.button>
+            <motion.button
+              className={`${styles.tabBtn} ${activeTab === 'banner' ? styles.active : ''}`}
+              onClick={() => setActiveTab('banner')}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              🎉 Banner
             </motion.button>
           </div>
 
@@ -490,16 +552,16 @@ function AdminDashboard() {
                         required={!editingProduct && imagePreviews.length === 0}
                       />
                       <small>Upload up to 5 images for your product</small>
-                      
+
                       {/* Image Previews */}
                       {imagePreviews.length > 0 && (
                         <div className={styles.imagePreviewGrid}>
                           {imagePreviews.map((preview, index) => (
                             <div key={index} className={styles.imagePreviewItem}>
-                              <Image 
-                                src={preview} 
-                                alt={`Preview ${index + 1}`} 
-                                width={150} 
+                              <Image
+                                src={preview}
+                                alt={`Preview ${index + 1}`}
+                                width={150}
                                 height={150}
                                 style={{ objectFit: 'cover' }}
                                 unoptimized
@@ -530,7 +592,7 @@ function AdminDashboard() {
                       >
                         {uploading ? '⏳ Processing...' : editingProduct ? '✓ Update Product' : '✓ Add Product'}
                       </motion.button>
-                      
+
                       {editingProduct && (
                         <motion.button
                           type="button"
@@ -549,7 +611,7 @@ function AdminDashboard() {
 
               <div className={styles.productsSection}>
                 <h2>All Products ({products.length})</h2>
-                
+
                 {loading ? (
                   <div className={styles.loading}>🧶 Loading products...</div>
                 ) : products.length === 0 ? (
@@ -696,7 +758,7 @@ function AdminDashboard() {
 
               <div className={styles.categoriesSection}>
                 <h2>All Categories ({categories.length})</h2>
-                
+
                 {categories.length === 0 ? (
                   <div className={styles.emptyState}>
                     <p>No categories yet. Add your first category!</p>
@@ -733,6 +795,64 @@ function AdminDashboard() {
                 )}
               </div>
             </>
+          )}
+
+          {/* Banner Tab */}
+          {activeTab === 'banner' && (
+            <div className={styles.bannerSection}>
+              <motion.div
+                className={styles.bannerFormCard}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <h2>📢 Manage Sales Banner</h2>
+                <form onSubmit={handleBannerSubmit} className={styles.bannerForm}>
+                  <div className={styles.formGroup}>
+                    <label>Banner Text</label>
+                    <textarea
+                      className={styles.bannerTextarea}
+                      value={bannerText}
+                      onChange={(e) => setBannerText(e.target.value)}
+                      placeholder="🎉 Sale! 50% off on all products! Limited time offer! 🎉"
+                      maxLength={500}
+                    />
+                    <div className={`${styles.charCount} ${bannerText.length > 400 ? (bannerText.length > 480 ? styles.error : styles.warning) : ''}`}>
+                      {bannerText.length}/500 characters
+                    </div>
+                  </div>
+
+                  <div className={styles.toggleContainer}>
+                    <span className={styles.toggleLabel}>Banner Active:</span>
+                    <div
+                      className={`${styles.toggleSwitch} ${bannerActive ? styles.active : ''}`}
+                      onClick={() => setBannerActive(!bannerActive)}
+                    >
+                      <div className={styles.toggleKnob}></div>
+                    </div>
+                    <span>{bannerActive ? '✅ Visible on site' : '❌ Hidden'}</span>
+                  </div>
+
+                  {bannerText && (
+                    <div className={styles.bannerPreview}>
+                      <div className={styles.bannerPreviewLabel}>📺 Preview:</div>
+                      <div className={styles.bannerPreviewText}>
+                        {bannerText} &nbsp;&nbsp;&nbsp; {bannerText} &nbsp;&nbsp;&nbsp; {bannerText}
+                      </div>
+                    </div>
+                  )}
+
+                  <motion.button
+                    type="submit"
+                    className={styles.submitBtn}
+                    disabled={bannerLoading}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {bannerLoading ? '⏳ Saving...' : '✓ Save Banner'}
+                  </motion.button>
+                </form>
+              </motion.div>
+            </div>
           )}
         </div>
       </div>

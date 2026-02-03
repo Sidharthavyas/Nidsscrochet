@@ -909,7 +909,7 @@ function ProductCard({ product, index, onClick }) {
                   loading="lazy"
                   unoptimized
                   onLoadingComplete={() => setImageLoading(false)}
-                  style={{ objectFit: 'cover', objectPosition: 'center' }}
+                  style={{ objectFit: 'contain', objectPosition: 'center' }}
                 />
               </motion.div>
             </AnimatePresence>
@@ -999,14 +999,35 @@ function ProductCard({ product, index, onClick }) {
 
           <div className={styles.productFooter}>
             <motion.div
-              className={styles.productPrice}
+              className={styles.priceContainer}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
-              whileHover={{ scale: 1.05 }}
             >
-              <span className={styles.priceSymbol}>₹</span>
-              <span className={styles.priceAmount}>{product.price?.toString().replace(/[^\d]/g, '')}</span>
+              {/* Sale Price Section */}
+              {product.salePrice ? (
+                <>
+                  <motion.div
+                    className={styles.productPriceSale}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <span className={styles.priceSymbol}>₹</span>
+                    <span className={styles.priceAmount}>{product.salePrice?.toString().replace(/[^\d]/g, '')}</span>
+                    <span className={styles.saleBadge}>SALE</span>
+                  </motion.div>
+                  <div className={styles.productPriceOriginal}>
+                    <span>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>
+                  </div>
+                </>
+              ) : (
+                <motion.div
+                  className={styles.productPrice}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <span className={styles.priceSymbol}>₹</span>
+                  <span className={styles.priceAmount}>{product.price?.toString().replace(/[^\d]/g, '')}</span>
+                </motion.div>
+              )}
             </motion.div>
 
             {product.stock !== undefined && (

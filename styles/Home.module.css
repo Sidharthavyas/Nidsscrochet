@@ -817,7 +817,7 @@
   box-shadow: var(--shadow);
   cursor: pointer;
   transition: var(--transition-smooth);
-  border: 2px solid transparent;
+  border: 2px solid rgba(255, 182, 193, 0.25);
   position: relative;
 }
 
@@ -849,7 +849,9 @@
   width: 100%;
   height: 250px;
   overflow: hidden;
-  background: var(--gray);
+  background: linear-gradient(135deg, rgba(255, 240, 245, 0.5), rgba(230, 245, 255, 0.5));
+  padding: 10px;
+  
 }
 
 .imageSkeleton {
@@ -996,6 +998,68 @@
 .productCard:hover .productPrice {
   transform: scale(1.05);
   filter: drop-shadow(0 3px 10px rgba(245, 87, 108, 0.35));
+}
+
+/* ================================================
+   SALE PRICE STYLES
+   ================================================ */
+
+.priceContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.productPriceSale {
+  font-size: 1.4rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #10b981, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.3px;
+  filter: drop-shadow(0 2px 5px rgba(16, 185, 129, 0.25));
+  transition: var(--transition);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  position: relative;
+}
+
+.saleBadge {
+  display: inline-block;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  font-size: 0.5rem;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.5px;
+  margin-left: 6px;
+  animation: pulseBadge 2s ease-in-out infinite;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+@keyframes pulseBadge {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.productPriceOriginal {
+  font-size: 0.95rem;
+  color: var(--text-gray);
+  font-weight: 600;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: #ef4444;
+  opacity: 0.8;
 }
 
 .stockBadge {

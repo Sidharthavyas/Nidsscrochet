@@ -40,7 +40,7 @@ const ProductSchema = new mongoose.Schema(
     // NEW: Support both single image (backward compatibility) and multiple images
     image: {
       type: String,
-      required: function() {
+      required: function () {
         return !this.images || this.images.length === 0;
       },
     },
@@ -60,6 +60,20 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Price is required'],
       trim: true,
+    },
+    salePrice: {
+      type: String,
+      trim: true,
+      default: null,
+      validate: {
+        validator: function (v) {
+          if (!v) return true; // Allow null/empty
+          const regularPrice = parseFloat(this.price?.replace(/[^0-9.]/g, '') || '0');
+          const sale = parseFloat(v.replace(/[^0-9.]/g, '') || '0');
+          return sale < regularPrice;
+        },
+        message: 'Sale price must be less than regular price'
+      }
     },
     featured: {
       type: Boolean,
@@ -289,7 +303,7 @@ export default async function handler(req, res) {
 
         // NEW: Handle multiple images
         const imageFiles = files.images ? (Array.isArray(files.images) ? files.images : [files.images]) : [];
-        
+
         if (imageFiles.length === 0) {
           return res.status(400).json({
             success: false,
@@ -343,7 +357,7 @@ export default async function handler(req, res) {
         });
       } catch (error) {
         console.error('❌ POST Error:', error);
-        
+
         // Cleanup temp files on error
         for (const path of tempFilePaths) {
           await cleanupTempFile(path);
@@ -405,7 +419,7 @@ export default async function handler(req, res) {
 
         // NEW: Handle image updates
         const imageFiles = files.images ? (Array.isArray(files.images) ? files.images : [files.images]) : [];
-        
+
         if (imageFiles.length > 0) {
           if (imageFiles.length > 5) {
             return res.status(400).json({
@@ -444,7 +458,7 @@ export default async function handler(req, res) {
           const imagesToDelete = (existingProduct.cloudinaryIds || []).filter(
             id => !allIds.includes(id)
           );
-          
+
           for (const publicId of imagesToDelete) {
             await deleteFromCloudinary(publicId);
           }
@@ -473,7 +487,7 @@ export default async function handler(req, res) {
         });
       } catch (error) {
         console.error('❌ PUT Error:', error);
-        
+
         for (const path of tempFilePaths) {
           await cleanupTempFile(path);
         }
@@ -513,8 +527,8 @@ export default async function handler(req, res) {
 
       if (permanent === 'true') {
         // Delete all images from Cloudinary
-        const idsToDelete = product.cloudinaryIds && product.cloudinaryIds.length > 0 
-          ? product.cloudinaryIds 
+        const idsToDelete = product.cloudinaryIds && product.cloudinaryIds.length > 0
+          ? product.cloudinaryIds
           : [product.cloudinaryId];
 
         for (const publicId of idsToDelete) {

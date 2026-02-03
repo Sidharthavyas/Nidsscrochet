@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/Home.module.css';
@@ -17,9 +18,11 @@ export default function ProductPage({ product, error }) {
       <div className={styles.mainContainer}>
         <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>
           <h1>Product Not Found</h1>
-          <button onClick={() => router.push('/')} className={styles.retryButton}>
-            Go Back Home
-          </button>
+          <Link href="/">
+            <span className={styles.retryButton} style={{ cursor: 'pointer' }}>
+              Go Back Home
+            </span>
+          </Link>
         </div>
       </div>
     );
@@ -135,23 +138,18 @@ export default function ProductPage({ product, error }) {
       </Head>
 
       <main className={styles.mainContainer}>
-        {/* Back Button */}
+        {/* Back Button - Using Link for smooth client-side navigation */}
         <div style={{ padding: '6rem 2rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
-          <motion.button
-            onClick={() => {
-              // Use back navigation if we have history, otherwise go home
-              if (typeof window !== 'undefined' && window.history.length > 2) {
-                router.back();
-              } else {
-                router.push('/');
-              }
-            }}
-            className={styles.backButton}
-            whileHover={{ x: -5 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            ← Back to Collections
-          </motion.button>
+          <Link href="/#collections" scroll={false}>
+            <motion.span
+              className={styles.backButton}
+              whileHover={{ x: -5 }}
+              whileTap={{ scale: 0.95 }}
+              style={{ display: 'inline-block', cursor: 'pointer' }}
+            >
+              ← Back to Collections
+            </motion.span>
+          </Link>
         </div>
 
         {/* Product Content */}

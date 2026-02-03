@@ -67,26 +67,71 @@ export default function ProductPage({ product, error }) {
         <title>{product.name} | Nidsscrochet by Nidhi Tripathi</title>
         <meta name="description" content={product.description} />
 
+        {/* Keywords */}
+        <meta name="keywords" content={`${product.name}, ${product.category}, crochet, handmade, Nidsscrochet, buy online India`} />
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={`https://nidsscrochet.in/product/${product._id}`} />
+
+        {/* Robots */}
+        <meta name="robots" content="index, follow" />
+
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="product" />
-        <meta property="og:url" content={productUrl} />
+        <meta property="og:url" content={`https://nidsscrochet.in/product/${product._id}`} />
         <meta property="og:title" content={`${product.name} | Nidsscrochet`} />
         <meta property="og:description" content={product.description} />
         <meta property="og:image" content={productImages[0]} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="1200" />
+        <meta property="og:site_name" content="Nidsscrochet" />
+        <meta property="og:locale" content="en_IN" />
         <meta property="product:price:amount" content={product.price} />
         <meta property="product:price:currency" content="INR" />
+        <meta property="product:availability" content={product.stock > 0 ? "in stock" : "out of stock"} />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content={productUrl} />
+        <meta name="twitter:url" content={`https://nidsscrochet.in/product/${product._id}`} />
         <meta name="twitter:title" content={`${product.name} | Nidsscrochet`} />
         <meta name="twitter:description" content={product.description} />
         <meta name="twitter:image" content={productImages[0]} />
 
-        {/* WhatsApp */}
-        <meta property="og:site_name" content="Nidsscrochet" />
+        {/* JSON-LD Product Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Product",
+              "name": product.name,
+              "description": product.description,
+              "image": productImages,
+              "brand": {
+                "@type": "Brand",
+                "name": "Nidsscrochet"
+              },
+              "manufacturer": {
+                "@type": "Organization",
+                "name": "Nidsscrochet",
+                "url": "https://nidsscrochet.in"
+              },
+              "offers": {
+                "@type": "Offer",
+                "url": `https://nidsscrochet.in/product/${product._id}`,
+                "priceCurrency": "INR",
+                "price": product.price.toString().replace(/[^0-9]/g, ''),
+                "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                "seller": {
+                  "@type": "Organization",
+                  "name": "Nidsscrochet"
+                }
+              },
+              "category": product.category,
+              "isHandmade": true
+            })
+          }}
+        />
       </Head>
 
       <main className={styles.mainContainer}>

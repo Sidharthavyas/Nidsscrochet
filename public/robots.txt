@@ -1,0 +1,10 @@
+# Robots.txt for Nidsscrochet
+# https://nidsscrochet.in/
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://nidsscrochet.in/sitemap.xml

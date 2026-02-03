@@ -1389,18 +1389,121 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Creations</title>
-        <meta name="description" content="Explore beautiful handcrafted crochet products by Nidhi Tripathi. Custom-made crochet items with love and care." />
+        <title>Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Creations India</title>
+        <meta name="description" content="Shop beautiful handcrafted crochet products by Nidhi Tripathi. Premium handmade crochet bags, flowers, keychains, bouquets & custom gifts. Free delivery in India. Order via Instagram or WhatsApp!" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
 
-        <meta property="og:title" content="Nidsscrochet by Nidhi Tripathi" />
-        <meta property="og:description" content="Handcrafted Crochet Creations - Where Every Stitch Tells a Story" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.nidsscrochet.com" />
+        {/* Keywords for SEO */}
+        <meta name="keywords" content="crochet, handmade crochet, crochet products India, handcrafted gifts, crochet bags, crochet flowers, crochet bouquet, custom crochet, Nidsscrochet, Nidhi Tripathi, handmade gifts India, crochet keychain, crochet accessories, buy crochet online India" />
 
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://nidsscrochet.in/" />
+
+        {/* Author and Copyright */}
+        <meta name="author" content="Nidhi Tripathi" />
+        <meta name="copyright" content="Nidsscrochet" />
+
+        {/* Robots */}
+        <meta name="robots" content="index, follow" />
+        <meta name="googlebot" content="index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1" />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://nidsscrochet.in/" />
+        <meta property="og:title" content="Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Creations" />
+        <meta property="og:description" content="Shop beautiful handcrafted crochet products. Premium handmade crochet bags, flowers, keychains & custom gifts. Where Every Stitch Tells a Story!" />
+        <meta property="og:image" content="https://nidsscrochet.in/rose.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="Nidsscrochet" />
+        <meta property="og:locale" content="en_IN" />
+
+        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Nidsscrochet by Nidhi Tripathi" />
-        <meta name="twitter:description" content="Handcrafted Crochet Creations" />
+        <meta name="twitter:url" content="https://nidsscrochet.in/" />
+        <meta name="twitter:title" content="Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet" />
+        <meta name="twitter:description" content="Shop beautiful handcrafted crochet products. Premium handmade bags, flowers & custom gifts!" />
+        <meta name="twitter:image" content="https://nidsscrochet.in/rose.png" />
+
+        {/* Additional SEO */}
+        <meta name="format-detection" content="telephone=yes" />
+        <meta name="geo.region" content="IN" />
+        <meta name="geo.placename" content="India" />
+
+        {/* JSON-LD Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://nidsscrochet.in/#organization",
+                  "name": "Nidsscrochet",
+                  "url": "https://nidsscrochet.in",
+                  "logo": "https://nidsscrochet.in/rose.png",
+                  "description": "Handcrafted crochet creations by Nidhi Tripathi",
+                  "founder": {
+                    "@type": "Person",
+                    "name": "Nidhi Tripathi"
+                  },
+                  "contactPoint": {
+                    "@type": "ContactPoint",
+                    "telephone": "+91-9029562156",
+                    "contactType": "customer service",
+                    "availableLanguage": ["English", "Hindi"]
+                  },
+                  "sameAs": [
+                    "https://www.instagram.com/nidsscrochet"
+                  ]
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://nidsscrochet.in/#website",
+                  "url": "https://nidsscrochet.in",
+                  "name": "Nidsscrochet",
+                  "description": "Handcrafted Crochet Creations",
+                  "publisher": {
+                    "@id": "https://nidsscrochet.in/#organization"
+                  },
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://nidsscrochet.in/?search={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                  }
+                },
+                {
+                  "@type": "LocalBusiness",
+                  "@id": "https://nidsscrochet.in/#localbusiness",
+                  "name": "Nidsscrochet",
+                  "image": "https://nidsscrochet.in/rose.png",
+                  "description": "Premium handcrafted crochet products including bags, flowers, keychains, and custom gifts",
+                  "url": "https://nidsscrochet.in",
+                  "telephone": "+91-9029562156",
+                  "priceRange": "₹₹",
+                  "address": {
+                    "@type": "PostalAddress",
+                    "addressCountry": "IN"
+                  },
+                  "geo": {
+                    "@type": "GeoCoordinates",
+                    "addressCountry": "IN"
+                  },
+                  "openingHoursSpecification": {
+                    "@type": "OpeningHoursSpecification",
+                    "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                    "opens": "09:00",
+                    "closes": "21:00"
+                  },
+                  "sameAs": [
+                    "https://www.instagram.com/nidsscrochet"
+                  ]
+                }
+              ]
+            })
+          }}
+        />
       </Head>
 
       <RoseBurstIntro onComplete={() => setShowIntro(false)} />

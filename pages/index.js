@@ -1553,7 +1553,8 @@ export default function Home() {
         />
       </Head>
 
-      <RoseBurstIntro onComplete={() => setShowIntro(false)} />
+      {/* Only show intro animation if showIntro is true (first visit in session) */}
+      {showIntro && <RoseBurstIntro onComplete={() => setShowIntro(false)} />}
 
       <motion.div
         initial={{ opacity: 0 }}

@@ -173,7 +173,7 @@ export default function ProductPage({ product, error }) {
                     className={styles.modalImg}
                     unoptimized
                     priority
-                    style={{ objectFit: 'cover', objectPosition: 'center' }}
+                    style={{ objectFit: 'contain', objectPosition: 'center' }}
                   />
                 </motion.div>
               </AnimatePresence>

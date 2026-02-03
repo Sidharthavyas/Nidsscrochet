@@ -1390,11 +1390,11 @@ export default function Home() {
     <>
       <Head>
         <title>Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Creations India</title>
-        <meta name="description" content="Shop beautiful handcrafted crochet products by Nidhi Tripathi. Premium handmade crochet bags, flowers, keychains, bouquets & custom gifts. Free delivery in India. Order via Instagram or WhatsApp!" />
+        <meta name="description" content="Nidsscrochet by Nidhi Tripathi - Premium handcrafted crochet creations in Mumbai, India. Shop luxury amigurumi, forever flowers, crochet bouquets, bag charms, keychains, custom AirPod cases & personalized gifts. Perfect for weddings, return gifts, corporate gifting & Diwali hampers. Handmade with love, delivered across Mumbai. Order via Instagram or WhatsApp!" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
 
-        {/* Keywords for SEO */}
-        <meta name="keywords" content="crochet, handmade crochet, crochet products India, handcrafted gifts, crochet bags, crochet flowers, crochet bouquet, custom crochet, Nidsscrochet, Nidhi Tripathi, handmade gifts India, crochet keychain, crochet accessories, buy crochet online India" />
+        {/* Comprehensive Keywords for SEO */}
+        <meta name="keywords" content="Nidsscrochet, Nidhi Tripathi, crochet, handmade crochet, amigurumi, fiber art, handcrafted, sustainable living, slow fashion, makersgonnamake, crochet flowers, forever flowers, handcrafted rose bouquet, sustainable florals, crochet lily, crochet sunflower, allergy-friendly flowers, luxury crochet wedding centerpieces, bag charms, crochet keychain, aesthetic keychains, kawaii accessories, lily of the valley bag charm, fruit themed crochet accessories, soft toys, luxury amigurumi, collectible plushies, handmade nursery decor, crochet panda, crochet penguin, crochet cat, eco-friendly cotton toys, crochet AirPod case, custom mobile cover, aesthetic tech case, tomato design AirPod case, strawberry crochet earphone holder, cottagecore, kawaii aesthetic, cozy home, handmade gifts, support small business, fiber artist, Mumbai made, Mumbai artisans, handmade in India, vocal for local India, Mumbai gifts, return gifts Mumbai, return gifts for birthday party, wedding return gifts Mumbai, luxury giveaways, customized gift hampers Mumbai, birthday hampers, corporate gift boxes, Diwali hampers, personalized anniversary gift baskets, high-end corporate gifts Mumbai, employee appreciation gifts, sustainable B2B gifts, luxury home decor India, handcrafted interior accessories, modern Indian handicrafts, crochet table decor Mumbai, handmade gifts Mumbai, crochet studio Mumbai, customized hampers Mumbai, gift shop Bandra, bespoke hampers Juhu, artisan gifts South Mumbai, corporate gifting services Andheri, same day gift delivery Mumbai, bulk return gifts Mumbai, custom crochet commissions Mumbai, personalized gifts, eco-friendly crochet gift hampers, handmade luxury gifts for her, contemporary fiber art, textile sculpture, artisan-made interior accents, limited edition, one-of-a-kind, bespoke commission, heirloom quality, crochet bouquet, buy crochet online India" />
 
         {/* Canonical URL */}
         <link rel="canonical" href="https://www.nidsscrochet.in/" />
@@ -1410,8 +1410,8 @@ export default function Home() {
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.nidsscrochet.in/" />
-        <meta property="og:title" content="Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Creations" />
-        <meta property="og:description" content="Shop beautiful handcrafted crochet products. Premium handmade crochet bags, flowers, keychains & custom gifts. Where Every Stitch Tells a Story!" />
+        <meta property="og:title" content="Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Mumbai" />
+        <meta property="og:description" content="Premium handcrafted crochet in Mumbai - Luxury amigurumi, forever flowers, crochet bouquets, bag charms & custom gifts. Perfect for weddings, return gifts & corporate gifting!" />
         <meta property="og:image" content="https://www.nidsscrochet.in/rose.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -1421,8 +1421,8 @@ export default function Home() {
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content="https://www.nidsscrochet.in/" />
-        <meta name="twitter:title" content="Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet" />
-        <meta name="twitter:description" content="Shop beautiful handcrafted crochet products. Premium handmade bags, flowers & custom gifts!" />
+        <meta name="twitter:title" content="Nidsscrochet | Handcrafted Crochet Mumbai" />
+        <meta name="twitter:description" content="Luxury amigurumi, forever flowers, crochet bouquets & custom gifts. Handmade in Mumbai with love!" />
         <meta name="twitter:image" content="https://www.nidsscrochet.in/rose.png" />
 
         {/* Additional SEO */}
@@ -1477,18 +1477,40 @@ export default function Home() {
                   "@type": "LocalBusiness",
                   "@id": "https://www.nidsscrochet.in/#localbusiness",
                   "name": "Nidsscrochet",
+                  "alternateName": "Nidsscrochet by Nidhi Tripathi",
                   "image": "https://www.nidsscrochet.in/rose.png",
-                  "description": "Premium handcrafted crochet products including bags, flowers, keychains, and custom gifts",
+                  "description": "Premium handcrafted crochet studio in Mumbai, India. Specializing in luxury amigurumi, forever flowers, crochet bouquets, bag charms, keychains, custom AirPod cases, and personalized gifts. Perfect for weddings, return gifts, corporate gifting, and Diwali hampers.",
                   "url": "https://www.nidsscrochet.in",
                   "telephone": "+91-9029562156",
                   "priceRange": "₹₹",
                   "address": {
                     "@type": "PostalAddress",
+                    "addressLocality": "Mumbai",
+                    "addressRegion": "Maharashtra",
                     "addressCountry": "IN"
                   },
                   "geo": {
                     "@type": "GeoCoordinates",
                     "addressCountry": "IN"
+                  },
+                  "areaServed": [
+                    { "@type": "City", "name": "Mumbai" },
+                    { "@type": "City", "name": "Bandra" },
+                    { "@type": "City", "name": "Andheri" },
+                    { "@type": "City", "name": "Juhu" },
+                    { "@type": "Country", "name": "India" }
+                  ],
+                  "hasOfferCatalog": {
+                    "@type": "OfferCatalog",
+                    "name": "Handcrafted Crochet Products",
+                    "itemListElement": [
+                      { "@type": "OfferCatalog", "name": "Crochet Flowers & Bouquets" },
+                      { "@type": "OfferCatalog", "name": "Amigurumi Soft Toys" },
+                      { "@type": "OfferCatalog", "name": "Bag Charms & Keychains" },
+                      { "@type": "OfferCatalog", "name": "Tech Accessories" },
+                      { "@type": "OfferCatalog", "name": "Return Gifts" },
+                      { "@type": "OfferCatalog", "name": "Corporate Gift Hampers" }
+                    ]
                   },
                   "openingHoursSpecification": {
                     "@type": "OpeningHoursSpecification",
@@ -1498,7 +1520,8 @@ export default function Home() {
                   },
                   "sameAs": [
                     "https://www.instagram.com/nidsscrochet"
-                  ]
+                  ],
+                  "keywords": "handmade gifts Mumbai, crochet studio Mumbai, return gifts Mumbai, wedding gifts Mumbai, corporate gifting Mumbai, Diwali hampers Mumbai, amigurumi India, crochet flowers India"
                 }
               ]
             })

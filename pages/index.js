@@ -1781,14 +1781,32 @@ export default function Home() {
                     target="_blank"
                     rel="noopener noreferrer"
                     whileHover={{ y: -3, scale: 1.05 }}
+                    className={styles.footerLink}
                   >
                     📷 Instagram
                   </motion.a>
                   <motion.a
                     href="tel:9029562156"
                     whileHover={{ y: -3, scale: 1.05 }}
+                    className={styles.footerLink}
                   >
                     📞 9029562156
+                  </motion.a>
+                  <motion.a
+                    href="https://wa.me/919029562156?text=Hey%2C%20I%20would%20like%20to%20order%20from%20Nidsscrochet%21%20%F0%9F%A7%B6"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ y: -3, scale: 1.05 }}
+                    className={`${styles.footerLink} ${styles.whatsappLink}`}
+                  >
+                    <Image
+                      src="/whatsapp.svg"
+                      alt="WhatsApp"
+                      width={20}
+                      height={20}
+                      className={styles.whatsappIcon}
+                    />
+                    WhatsApp
                   </motion.a>
                 </div>
                 <div className={styles.footerLove}>

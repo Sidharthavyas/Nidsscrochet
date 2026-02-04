@@ -950,8 +950,13 @@
 }
 
 @keyframes marqueePreview {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .charCount {
@@ -967,4 +972,37 @@
 
 .charCount.error {
   color: #ff4444;
+}
+
+/* ================================================
+   ADMIN LOGO STYLES
+   ================================================ */
+
+.headerBrand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.adminBadge {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  padding: 0.7rem 1.5rem;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 700;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .headerBrand {
+    justify-content: center;
+  }
+
+  .headerBrand img {
+    max-width: 140px !important;
+  }
 }

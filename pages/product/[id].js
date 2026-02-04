@@ -138,6 +138,60 @@ export default function ProductPage({ product, error }) {
       </Head>
 
       <main className={styles.mainContainer}>
+        {/* Navigation Bar */}
+        <nav className={`${styles.navbar} ${styles.scrolled}`}>
+          <div className={styles.navWrapper}>
+            <div className={styles.navContent}>
+              <Link href="/">
+                <motion.a
+                  className={styles.navBrand}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.4 }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Image
+                    src="/logo-light.png"
+                    alt="Nidsscrochet Logo"
+                    width={180}
+                    height={60}
+                    className={styles.navLogo}
+                    priority
+                  />
+                </motion.a>
+              </Link>
+
+              <div className={styles.navLinks}>
+                <Link href="/#collections">
+                  <motion.a
+                    whileHover={{ y: -2 }}
+                    className={styles.navLink}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    Collections
+                  </motion.a>
+                </Link>
+                <motion.a
+                  href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ y: -2 }}
+                  className={styles.navLink}
+                >
+                  Instagram
+                </motion.a>
+                <motion.a
+                  href="tel:9029562156"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={styles.navCta}
+                >
+                  📞 Call Us
+                </motion.a>
+              </div>
+            </div>
+          </div>
+        </nav>
+
         {/* Back Button - Using Next.js Link for fast client-side navigation */}
         <div style={{ padding: '6rem 2rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
           <Link href="/#collections" prefetch={true}>
@@ -151,6 +205,7 @@ export default function ProductPage({ product, error }) {
             </motion.a>
           </Link>
         </div>
+
 
         {/* Product Content */}
         <div className={styles.productPageContainer}>

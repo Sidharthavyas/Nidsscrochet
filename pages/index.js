@@ -924,23 +924,7 @@ function ProductCard({ product, index, onClick }) {
             />
           )}
 
-          {/* Quick View Button */}
-          <AnimatePresence>
-            {isHovered && (
-              <motion.div
-                className={styles.quickViewBtn}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className={styles.quickViewIcon}>👁️</span>
-                <span>Quick View</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+
         </div>
 
         <div className={styles.productInfo}>
@@ -1593,13 +1577,21 @@ export default function Home() {
         >
           <div className={styles.navWrapper}>
             <div className={styles.navContent}>
-              <motion.div
+              <motion.a
+                href="#"
                 className={styles.navBrand}
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.4 }}
               >
-                Nidsscrochet
-              </motion.div>
+                <Image
+                  src="/logo-light.png"
+                  alt="Nidsscrochet Logo"
+                  width={180}
+                  height={60}
+                  className={styles.navLogo}
+                  priority
+                />
+              </motion.a>
 
               <motion.button
                 className={styles.mobileMenuBtn}
@@ -1944,7 +1936,13 @@ export default function Home() {
             <footer className={styles.footer}>
               <div className={styles.footerContent}>
                 <div className={styles.footerBrand}>
-                  <h3>Nidsscrochet</h3>
+                  <Image
+                    src="/logo-light.png"
+                    alt="Nidsscrochet Logo"
+                    width={200}
+                    height={67}
+                    className={styles.footerLogo}
+                  />
                   <p>Crafting happiness, one stitch at a time</p>
                 </div>
                 <div className={styles.footerLinks}>

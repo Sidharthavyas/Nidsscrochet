@@ -374,13 +374,21 @@ function AdminDashboard() {
       <div className={styles.dashboard}>
         <header className={styles.dashboardHeader}>
           <div className={styles.headerContent}>
-            <motion.h1
+            <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
+              className={styles.headerBrand}
             >
-              📦 Admin Dashboard
-            </motion.h1>
+              <Image
+                src="/logo-light.png"
+                alt="Nidsscrochet Logo"
+                width={180}
+                height={60}
+                style={{ objectFit: 'contain' }}
+              />
+              <span className={styles.adminBadge}>📦 Admin</span>
+            </motion.div>
             <div className={styles.headerActions}>
               <motion.button
                 onClick={handleLogout}

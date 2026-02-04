@@ -1577,21 +1577,13 @@ export default function Home() {
         >
           <div className={styles.navWrapper}>
             <div className={styles.navContent}>
-              <motion.a
-                href="#"
+              <motion.div
                 className={styles.navBrand}
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.4 }}
               >
-                <Image
-                  src="/logo-light.png"
-                  alt="Nidsscrochet Logo"
-                  width={180}
-                  height={60}
-                  className={styles.navLogo}
-                  priority
-                />
-              </motion.a>
+                Nidsscrochet
+              </motion.div>
 
               <motion.button
                 className={styles.mobileMenuBtn}
@@ -1936,13 +1928,7 @@ export default function Home() {
             <footer className={styles.footer}>
               <div className={styles.footerContent}>
                 <div className={styles.footerBrand}>
-                  <Image
-                    src="/logo-light.png"
-                    alt="Nidsscrochet Logo"
-                    width={200}
-                    height={67}
-                    className={styles.footerLogo}
-                  />
+                  <h3>Nidsscrochet</h3>
                   <p>Crafting happiness, one stitch at a time</p>
                 </div>
                 <div className={styles.footerLinks}>

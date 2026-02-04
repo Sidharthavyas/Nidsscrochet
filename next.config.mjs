@@ -17,6 +17,8 @@ const nextConfig = {
     // Enable image optimization (remove unoptimized for better performance)
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60 * 60 * 24, // 24 hours
+    // Configure quality levels to prevent Next.js 16 warning
+    qualities: [75, 80, 85, 90, 100],
   },
 
   env: {
@@ -26,7 +28,7 @@ const nextConfig = {
 
   // Compiler optimizations
   compiler: {
-    // Remove console.log in production
+    // Removes console.log in production
     removeConsole: process.env.NODE_ENV === 'production',
   },
 

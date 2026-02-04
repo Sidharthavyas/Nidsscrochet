@@ -8,7 +8,7 @@ import styles from '../styles/Home.module.css';
 // ================================================
 // SHARE MODAL COMPONENT
 // ================================================
-function ShareModalComponent({ product, productUrl, onClose }) {
+function ShareModalComponent({ product, productUrl, onClose }) {      
   const [copied, setCopied] = useState(false);
 
   const handleCopyLink = async () => {
@@ -192,12 +192,13 @@ function RoseBurstIntro({ onComplete }) {
               }
             >
               <Image
-                src="/rose.png"
+                src="/rose.webp"
                 alt="Crochet Rose"
                 width={200}
                 height={200}
                 className={styles.roseMainImage}
                 priority
+                quality={85}
               />
 
               <motion.div
@@ -240,11 +241,13 @@ function RoseBurstIntro({ onComplete }) {
                   }}
                 >
                   <Image
-                    src="/rose.png"
+                    src="/rose.webp"
                     alt=""
                     width={60}
                     height={60}
                     className={styles.petalImage}
+                    loading="lazy"
+                    quality={80}
                   />
                 </motion.div>
               ))}
@@ -1441,7 +1444,7 @@ export default function Home() {
         <meta property="og:url" content="https://www.nidsscrochet.in/" />
         <meta property="og:title" content="Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Mumbai" />
         <meta property="og:description" content="Premium handcrafted crochet in Mumbai - Luxury amigurumi, forever flowers, crochet bouquets, bag charms & custom gifts. Perfect for weddings, return gifts & corporate gifting!" />
-        <meta property="og:image" content="https://www.nidsscrochet.in/rose.png" />
+        <meta property="og:image" content="https://www.nidsscrochet.in/rose.webp" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:site_name" content="Nidsscrochet" />
@@ -1452,7 +1455,7 @@ export default function Home() {
         <meta name="twitter:url" content="https://www.nidsscrochet.in/" />
         <meta name="twitter:title" content="Nidsscrochet | Handcrafted Crochet Mumbai" />
         <meta name="twitter:description" content="Luxury amigurumi, forever flowers, crochet bouquets & custom gifts. Handmade in Mumbai with love!" />
-        <meta name="twitter:image" content="https://www.nidsscrochet.in/rose.png" />
+        <meta name="twitter:image" content="https://www.nidsscrochet.in/rose.webp" />
 
         {/* Additional SEO */}
         <meta name="format-detection" content="telephone=yes" />
@@ -1471,7 +1474,7 @@ export default function Home() {
                   "@id": "https://www.nidsscrochet.in/#organization",
                   "name": "Nidsscrochet",
                   "url": "https://www.nidsscrochet.in",
-                  "logo": "https://www.nidsscrochet.in/rose.png",
+                  "logo": "https://www.nidsscrochet.in/rose.webp",
                   "description": "Handcrafted crochet creations by Nidhi Tripathi",
                   "founder": {
                     "@type": "Person",
@@ -1507,7 +1510,7 @@ export default function Home() {
                   "@id": "https://www.nidsscrochet.in/#localbusiness",
                   "name": "Nidsscrochet",
                   "alternateName": "Nidsscrochet by Nidhi Tripathi",
-                  "image": "https://www.nidsscrochet.in/rose.png",
+                  "image": "https://www.nidsscrochet.in/rose.webp",
                   "description": "Premium handcrafted crochet studio in Mumbai, India. Specializing in luxury amigurumi, forever flowers, crochet bouquets, bag charms, keychains, custom AirPod cases, and personalized gifts. Perfect for weddings, return gifts, corporate gifting, and Diwali hampers.",
                   "url": "https://www.nidsscrochet.in",
                   "telephone": "+91-9029562156",

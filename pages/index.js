@@ -1418,7 +1418,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Creations India</title>
+        <title>nidsscrochet</title>
         <meta name="description" content="Nidsscrochet by Nidhi Tripathi - Premium handcrafted crochet creations in Mumbai, India. Shop luxury amigurumi, forever flowers, crochet bouquets, bag charms, keychains, custom AirPod cases & personalized gifts. Perfect for weddings, return gifts, corporate gifting & Diwali hampers. Handmade with love, delivered across Mumbai. Order via Instagram or WhatsApp!" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
 

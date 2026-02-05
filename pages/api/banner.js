@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 import { verifyToken } from '../../lib/authMiddleware';
 import connectDB from '../../lib/mongodb';
+import { validateBannerData, rateLimit } from '../../lib/security';
+
+// Rate limiter: 30 requests per minute
+const limiter = rateLimit({ windowMs: 60 * 1000, maxRequests: 30 });
 
 // ===== MONGOOSE SCHEMA FOR BANNER =====
 const BannerSchema = new mongoose.Schema(
@@ -61,12 +65,26 @@ export default async function handler(req, res) {
 
         // ===== PUT: Update banner =====
         if (method === 'PUT') {
+            // Rate limiting check
+            const rateLimitResult = limiter(req);
+            if (!rateLimitResult.allowed) {
+                return res.status(429).json({
+                    success: false,
+                    message: 'Too many requests. Please try again later.',
+                    retryAfter: rateLimitResult.retryAfter,
+                });
+            }
+
             const { text, active } = req.body;
 
-            if (text !== undefined && text.length > 500) {
+            // Validate and sanitize input
+            const validation = validateBannerData({ text, active });
+
+            if (!validation.valid) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Banner text cannot exceed 500 characters',
+                    message: 'Validation failed',
+                    errors: validation.errors,
                 });
             }
 
@@ -74,15 +92,15 @@ export default async function handler(req, res) {
             let banner = await Banner.findOne();
 
             if (banner) {
-                // Update existing banner
-                if (text !== undefined) banner.text = text;
-                if (active !== undefined) banner.active = active;
+                // Update existing banner with sanitized data
+                if (validation.data.text !== undefined) banner.text = validation.data.text;
+                if (validation.data.active !== undefined) banner.active = validation.data.active;
                 await banner.save();
             } else {
-                // Create new banner
+                // Create new banner with sanitized data
                 banner = await Banner.create({
-                    text: text || '',
-                    active: active !== undefined ? active : true,
+                    text: validation.data.text || '',
+                    active: validation.data.active !== undefined ? validation.data.active : true,
                 });
             }
 

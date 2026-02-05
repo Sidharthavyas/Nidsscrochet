@@ -20,11 +20,13 @@ function AdminDashboard() {
   const [bannerActive, setBannerActive] = useState(false);
   const [bannerLoading, setBannerLoading] = useState(false);
 
+
   const [formData, setFormData] = useState({
     category: '',
     name: '',
     description: '',
     price: '',
+    salePrice: '', // Sale price field
     stock: '0',
     featured: false,
   });
@@ -136,6 +138,7 @@ function AdminDashboard() {
       name: product.name,
       description: product.description,
       price: product.price,
+      salePrice: product.salePrice || '', // Include sale price
       stock: product.stock.toString(),
       featured: product.featured,
     });
@@ -156,6 +159,7 @@ function AdminDashboard() {
       name: '',
       description: '',
       price: '',
+      salePrice: '', // Reset sale price
       stock: '0',
       featured: false,
     });
@@ -183,6 +187,7 @@ function AdminDashboard() {
       formDataToSend.append('name', formData.name);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('price', formData.price);
+      formDataToSend.append('salePrice', formData.salePrice || ''); // Add sale price
       formDataToSend.append('stock', formData.stock);
       formDataToSend.append('featured', formData.featured);
 
@@ -512,6 +517,7 @@ function AdminDashboard() {
                       />
                     </div>
 
+
                     <div className={styles.formRow}>
                       <div className={styles.formGroup}>
                         <label>Price (₹) *</label>
@@ -526,6 +532,19 @@ function AdminDashboard() {
                       </div>
 
                       <div className={styles.formGroup}>
+                        <label>Sale Price (₹)</label>
+                        <input
+                          type="text"
+                          name="salePrice"
+                          value={formData.salePrice}
+                          onChange={handleInputChange}
+                          placeholder="₹199 (optional)"
+                        />
+                      </div>
+                    </div>
+
+                    <div className={styles.formRow}>
+                      <div className={styles.formGroup}>
                         <label>Stock</label>
                         <input
                           type="number"
@@ -536,6 +555,7 @@ function AdminDashboard() {
                         />
                       </div>
                     </div>
+
 
                     <div className={styles.formGroup}>
                       <label className={styles.checkboxLabel}>

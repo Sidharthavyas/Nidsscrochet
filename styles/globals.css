@@ -57,6 +57,7 @@ img {
 button {
   font-family: inherit;
 }
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 12px;
@@ -92,6 +93,7 @@ button {
 
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

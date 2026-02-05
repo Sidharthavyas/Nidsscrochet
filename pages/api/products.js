@@ -67,9 +67,13 @@ const ProductSchema = new mongoose.Schema(
       default: null,
       validate: {
         validator: function (v) {
-          if (!v) return true; // Allow null/empty
-          const regularPrice = parseFloat(this.price?.replace(/[^0-9.]/g, '') || '0');
-          const sale = parseFloat(v.replace(/[^0-9.]/g, '') || '0');
+          if (!v || v === '') return true; // Allow null/empty
+          // Skip validation if price is not available (during partial updates)
+          if (!this.price) return true;
+          const regularPrice = parseFloat(this.price?.toString().replace(/[^0-9.]/g, '') || '0');
+          const sale = parseFloat(v.toString().replace(/[^0-9.]/g, '') || '0');
+          // Only validate if both prices are valid numbers
+          if (regularPrice === 0) return true;
           return sale < regularPrice;
         },
         message: 'Sale price must be less than regular price'

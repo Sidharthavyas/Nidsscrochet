@@ -1325,6 +1325,10 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Search functionality
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchActive, setSearchActive] = useState(false);
+
   // Check if user has already seen the intro in this session
   const [showIntro, setShowIntro] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -1406,6 +1410,18 @@ export default function Home() {
   const getProductsByCategory = useMemo(() => {
     return (category) => products.filter((p) => p.category === category.name);
   }, [products]);
+
+  // Filter products based on search query
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery.trim()) return products;
+
+    const query = searchQuery.toLowerCase().trim();
+    return products.filter((product) =>
+      product.name?.toLowerCase().includes(query) ||
+      product.description?.toLowerCase().includes(query) ||
+      product.category?.toLowerCase().includes(query)
+    );
+  }, [products, searchQuery]);
 
   const scrollSlider = (categorySlug, direction) => {
     const slider = sliderRefs.current[categorySlug];
@@ -1587,6 +1603,38 @@ export default function Home() {
               >
                 Nidsscrochet
               </motion.div>
+
+              {/* Search Bar */}
+              <div className={`${styles.searchContainer} ${searchActive ? styles.searchActive : ''}`}>
+                <button
+                  className={styles.searchIcon}
+                  onClick={() => setSearchActive(!searchActive)}
+                  aria-label="Toggle search"
+                >
+                  🔍
+                </button>
+                <input
+                  type="text"
+                  className={styles.searchInput}
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setSearchActive(true)}
+                  aria-label="Search products"
+                />
+                {searchQuery && (
+                  <button
+                    className={styles.searchClear}
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSearchActive(false);
+                    }}
+                    aria-label="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
 
               <motion.button
                 className={styles.mobileMenuBtn}

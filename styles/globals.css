@@ -31,9 +31,19 @@
 }
 
 html {
-  scroll-behavior: auto;
+  scroll-behavior: smooth;
+  /* Butter-smooth hardware-accelerated scrolling */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Safe area for notched devices (iPhone X+) */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
@@ -42,6 +52,18 @@ body {
   color: var(--black);
   overflow-x: hidden;
   line-height: 1.6;
+  /* Better touch interactions on mobile */
+  -webkit-tap-highlight-color: rgba(255, 107, 157, 0.2);
+  /* Optimize touch scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Increase font size on small mobile devices for better readability */
+@media (max-width: 480px) {
+  body {
+    font-size: 16px;
+    /* Prevents zoom on input focus on iOS */
+  }
 }
 
 a {
@@ -56,6 +78,16 @@ img {
 
 button {
   font-family: inherit;
+}
+
+/* Ensure minimum touch target size for mobile (44x44px per Apple/Google guidelines) */
+button,
+a,
+input,
+select,
+textarea {
+  min-height: 44px;
+  min-width: 44px;
 }
 
 /* Custom Scrollbar */
@@ -91,7 +123,7 @@ button {
   border-radius: 8px;
 }
 
-/* Accessibility */
+/* Accessibility - Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
 
   *,
@@ -100,8 +132,9 @@ button {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
+
+  /* Scroll behavior is handled in html rule above */
 }
 
 /* Utility Classes */

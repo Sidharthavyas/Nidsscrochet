@@ -8,7 +8,7 @@ import styles from '../styles/Home.module.css';
 // ================================================
 // SHARE MODAL COMPONENT
 // ================================================
-function ShareModalComponent({ product, productUrl, onClose }) {      
+function ShareModalComponent({ product, productUrl, onClose }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyLink = async () => {
@@ -1000,7 +1000,7 @@ function ProductCard({ product, index, onClick }) {
                   >
                     <span className={styles.priceSymbol}>₹</span>
                     <span className={styles.priceAmount}>{product.salePrice?.toString().replace(/[^\d]/g, '')}</span>
-                    <span className={styles.saleBadge}>SALE</span>
+                    <span className={styles.saleBadge}>{Math.round(((parseFloat(product.price.replace(/[^\d.]/g, '')) - parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) / parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100)}% OFF</span>
                   </motion.div>
                   <div className={styles.productPriceOriginal}>
                     <span>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>

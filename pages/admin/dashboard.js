@@ -683,7 +683,7 @@ function AdminDashboard() {
                                   {product.salePrice}
                                 </span>
                                 <span style={{ background: '#e91e63', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', marginLeft: '0.5rem' }}>
-                                  SALE
+                                  {Math.round(((parseFloat(product.price.replace(/[^\d.]/g, '')) - parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) / parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100)}% OFF
                                 </span>
                               </span>
                             ) : (

@@ -274,7 +274,7 @@ export default function ProductPage({ product, error }) {
                       <span className={styles.modalPrice} style={{ color: '#e91e63' }}>₹{product.salePrice}</span>
                       <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '1.2rem' }}>₹{product.price}</span>
                       <span style={{ background: '#e91e63', color: 'white', padding: '4px 10px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                        SALE
+                        {Math.round(((parseFloat(product.price.replace(/[^\d.]/g, '')) - parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) / parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100)}% OFF
                       </span>
                     </div>
                   ) : (

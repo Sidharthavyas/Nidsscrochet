@@ -13,12 +13,12 @@
       "type": "image/x-icon"
     },
     {
-      "src": "/rose.png",
+      "src": "/rose.webp",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/rose.png",
+      "src": "/rose.webp",
       "sizes": "512x512",
       "type": "image/png"
     }

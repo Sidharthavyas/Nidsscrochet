@@ -1,10 +1,6 @@
 import mongoose from 'mongoose';
 import { verifyToken } from '../../lib/authMiddleware';
 import connectDB from '../../lib/mongodb';
-import { validateBannerData, rateLimit } from '../../lib/security';
-
-// Rate limiter: 30 requests per minute
-const limiter = rateLimit({ windowMs: 60 * 1000, maxRequests: 30 });
 
 // ===== MONGOOSE SCHEMA FOR BANNER =====
 const BannerSchema = new mongoose.Schema(

@@ -269,7 +269,17 @@ export default function ProductPage({ product, error }) {
               <div className={styles.modalPriceSection}>
                 <div className={styles.priceWrapper}>
                   <span className={styles.priceLabel}>Price</span>
-                  <span className={styles.modalPrice}>₹{product.price}</span>
+                  {product.salePrice ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                      <span className={styles.modalPrice} style={{ color: '#e91e63' }}>₹{product.salePrice}</span>
+                      <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '1.2rem' }}>₹{product.price}</span>
+                      <span style={{ background: '#e91e63', color: 'white', padding: '4px 10px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                        SALE
+                      </span>
+                    </div>
+                  ) : (
+                    <span className={styles.modalPrice}>₹{product.price}</span>
+                  )}
                 </div>
                 <span className={styles.modalStock}>
                   {product.stock > 0 ? (

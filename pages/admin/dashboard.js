@@ -674,7 +674,21 @@ function AdminDashboard() {
                           <h3>{product.name}</h3>
                           <p>{product.description}</p>
                           <div className={styles.productMeta}>
-                            <span className={styles.price}>{product.price}</span>
+                            {product.salePrice ? (
+                              <span className={styles.price}>
+                                <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.9em', marginRight: '0.5rem' }}>
+                                  {product.price}
+                                </span>
+                                <span style={{ color: '#e91e63', fontWeight: 'bold' }}>
+                                  {product.salePrice}
+                                </span>
+                                <span style={{ background: '#e91e63', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', marginLeft: '0.5rem' }}>
+                                  SALE
+                                </span>
+                              </span>
+                            ) : (
+                              <span className={styles.price}>{product.price}</span>
+                            )}
                             <span className={styles.stock}>Stock: {product.stock}</span>
                           </div>
                         </div>

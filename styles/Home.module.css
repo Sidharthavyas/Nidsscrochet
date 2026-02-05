@@ -776,7 +776,6 @@
   display: flex;
   gap: 1.5rem;
   overflow-x: auto;
-  scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
   padding: 1.2rem 0.5rem 1.5rem;
   -webkit-overflow-scrolling: touch;
@@ -1910,6 +1909,16 @@
 @media (max-width: 768px) {
   .navContent {
     padding: 0.8rem 1.5rem;
+  }
+
+  /* Reduce heavy animations on mobile for smoother scroll */
+  .blobShape,
+  .brandName,
+  .salesBanner,
+  .heroBadge,
+  .loader,
+  .emptyCategory {
+    animation: none;
   }
 
   .productDetailGrid {

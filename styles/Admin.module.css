@@ -557,8 +557,8 @@
 
 .cardOverlay {
   position: absolute;
-  top: 0.8rem;
   right: 0.8rem;
+  bottom: 0.8rem;
   display: flex;
   gap: 0.5rem;
   z-index: 5;

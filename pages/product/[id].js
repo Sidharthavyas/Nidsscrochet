@@ -199,10 +199,20 @@ export default function ProductPage({ product, error }) {
           </Link>
         </div>
 
+        {/* Breadcrumbs */}
+        <div className={styles.productPageContainer}>
+          <div className={styles.breadcrumbs}>
+            <Link href="/#collections" className={styles.breadcrumbLink}>Collections</Link>
+            <span className={styles.breadcrumbSeparator}>/</span>
+            <span className={styles.breadcrumbLink}>{product.category}</span>
+            <span className={styles.breadcrumbSeparator}>/</span>
+            <span className={styles.breadcrumbCurrent}>{product.name}</span>
+          </div>
+        </div>
 
         {/* Product Content */}
         <div className={styles.productPageContainer}>
-          <div className={styles.modalGrid}>
+          <div className={styles.productDetailGrid}>
             {/* Image Gallery */}
             <div className={styles.modalImageCarousel}>
               <AnimatePresence mode="wait">
@@ -251,6 +261,27 @@ export default function ProductPage({ product, error }) {
                     ))}
                   </div>
                 </>
+              )}
+
+              {productImages.length > 1 && (
+                <div className={styles.thumbnailRow}>
+                  {productImages.map((img, idx) => (
+                    <button
+                      key={idx}
+                      className={`${styles.thumbnailButton} ${idx === currentImageIndex ? styles.thumbnailActive : ''}`}
+                      onClick={() => setCurrentImageIndex(idx)}
+                    >
+                      <Image
+                        src={img}
+                        alt={`${product.name} thumbnail ${idx + 1}`}
+                        width={70}
+                        height={70}
+                        style={{ objectFit: 'cover' }}
+                        unoptimized
+                      />
+                    </button>
+                  ))}
+                </div>
               )}
 
               <div className={styles.imageCounter}>
@@ -347,6 +378,18 @@ export default function ProductPage({ product, error }) {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Sticky mobile CTA */}
+        <div className={styles.stickyCta}>
+          <a
+            href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.stickyCtaButton}
+          >
+            📷 Order on Instagram
+          </a>
         </div>
 
         {/* Share Modal */}

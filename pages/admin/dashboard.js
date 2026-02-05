@@ -11,9 +11,10 @@ function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Banner state
   const [bannerText, setBannerText] = useState('');
@@ -144,13 +145,14 @@ function AdminDashboard() {
     });
     setImagePreviews(product.images || [product.image]); // Show existing images
     setImageFiles([]);
-    setShowForm(true);
+    setDrawerOpen(true);
   };
 
   // NEW: Cancel editing
   const cancelEdit = () => {
     setEditingProduct(null);
     resetForm();
+    setDrawerOpen(false);
   };
 
   const resetForm = () => {
@@ -165,6 +167,7 @@ function AdminDashboard() {
     });
     setImageFiles([]);
     setImagePreviews([]);
+    setDrawerOpen(false);
   };
 
   const handleSubmit = async (e) => {
@@ -228,7 +231,7 @@ function AdminDashboard() {
         fetchProducts();
 
         setTimeout(() => {
-          setShowForm(false);
+          setDrawerOpen(false);
           setMessage({ type: '', text: '' });
         }, 2000);
       } else {
@@ -369,6 +372,10 @@ function AdminDashboard() {
     }
   };
 
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <>
       <Head>
@@ -444,14 +451,25 @@ function AdminDashboard() {
           {activeTab === 'products' && (
             <>
               <div className={styles.sectionActions}>
+                <div className={styles.searchBar}>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search products by name..."
+                    className={styles.searchInput}
+                  />
+                  <span className={styles.searchIcon}>🔍</span>
+                </div>
+
                 <motion.button
                   onClick={() => {
-                    if (showForm && editingProduct) {
+                    if (drawerOpen && editingProduct) {
                       cancelEdit();
-                      setShowForm(false);
+                      setDrawerOpen(false);
                     } else {
-                      setShowForm(!showForm);
-                      if (!showForm) {
+                      setDrawerOpen(!drawerOpen);
+                      if (!drawerOpen) {
                         setEditingProduct(null);
                         resetForm();
                       }
@@ -461,18 +479,25 @@ function AdminDashboard() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {showForm ? '✕ Close' : '+ Add Product'}
+                  {drawerOpen ? '✕ Close' : '+ Add Product'}
                 </motion.button>
               </div>
 
-              {showForm && (
-                <motion.div
-                  className={styles.formCard}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <h2>{editingProduct ? '✏️ Edit Product' : 'Add New Product'}</h2>
-                  <form onSubmit={handleSubmit} className={styles.productForm}>
+              {drawerOpen && (
+                <div className={styles.drawerOverlay} onClick={() => setDrawerOpen(false)}>
+                  <motion.div
+                    className={styles.drawerPanel}
+                    initial={{ opacity: 0, x: 80 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className={styles.drawerHeader}>
+                      <h2>{editingProduct ? '✏️ Edit Product' : 'Add New Product'}</h2>
+                      <button className={styles.drawerClose} onClick={() => setDrawerOpen(false)}>✕</button>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className={styles.productForm}>
                     <div className={styles.formRow}>
                       <div className={styles.formGroup}>
                         <label>Category *</label>
@@ -629,10 +654,11 @@ function AdminDashboard() {
                     </div>
                   </form>
                 </motion.div>
+              </div>
               )}
 
               <div className={styles.productsSection}>
-                <h2>All Products ({products.length})</h2>
+                <h2>All Products ({filteredProducts.length || products.length})</h2>
 
                 {loading ? (
                   <div className={styles.loading}>🧶 Loading products...</div>
@@ -640,9 +666,13 @@ function AdminDashboard() {
                   <div className={styles.emptyState}>
                     <p>No products yet. Add your first product!</p>
                   </div>
+                ) : filteredProducts.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <p>No products match that search. Try another name.</p>
+                  </div>
                 ) : (
                   <div className={styles.productsGrid}>
-                    {products.map((product, index) => (
+                    {filteredProducts.map((product, index) => (
                       <motion.div
                         key={product._id}
                         className={styles.productItem}
@@ -659,6 +689,24 @@ function AdminDashboard() {
                             style={{ objectFit: 'cover' }}
                             unoptimized
                           />
+                          <div className={styles.cardOverlay}>
+                            <motion.button
+                              onClick={() => handleEdit(product)}
+                              className={styles.cardIconBtn}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              ✏️
+                            </motion.button>
+                            <motion.button
+                              onClick={() => handleDelete(product._id)}
+                              className={`${styles.cardIconBtn} ${styles.deleteGhost}`}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              🗑️
+                            </motion.button>
+                          </div>
                           {product.featured && (
                             <span className={styles.featuredBadge}>⭐ Featured</span>
                           )}
@@ -691,25 +739,6 @@ function AdminDashboard() {
                             )}
                             <span className={styles.stock}>Stock: {product.stock}</span>
                           </div>
-                        </div>
-                        <div className={styles.productActions}>
-                          {/* NEW: Edit Button */}
-                          <motion.button
-                            onClick={() => handleEdit(product)}
-                            className={styles.editBtn}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            ✏️ Edit
-                          </motion.button>
-                          <motion.button
-                            onClick={() => handleDelete(product._id)}
-                            className={styles.deleteBtn}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            🗑️ Delete
-                          </motion.button>
                         </div>
                       </motion.div>
                     ))}

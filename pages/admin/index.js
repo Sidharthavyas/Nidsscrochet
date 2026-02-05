@@ -55,9 +55,9 @@ export default function AdminLogin() {
         >
           <div className={styles.loginHeader}>
             <motion.h1
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: [6, -6, 6] }}
+              transition={{ delay: 0.2, duration: 4, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
             >
               🔐 Admin Login
             </motion.h1>
@@ -119,7 +119,11 @@ export default function AdminLogin() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              {loading ? '⏳ Logging in...' : '✓ Login'}
+              {loading ? (
+                <span className={styles.buttonSpinner} aria-label="Loading"></span>
+              ) : (
+                '✓ Login'
+              )}
             </motion.button>
 
             <Link href="/" className={styles.backLink}>

@@ -334,6 +334,7 @@ export default async function handler(req, res) {
           name: getFieldValue(fields.name),
           description: getFieldValue(fields.description),
           price: getFieldValue(fields.price),
+          salePrice: getFieldValue(fields.salePrice) || null, // Add sale price
           image: uploadedImages[0], // Primary image (backward compatibility)
           images: uploadedImages, // All images
           cloudinaryId: cloudinaryIds[0], // Primary ID
@@ -407,6 +408,9 @@ export default async function handler(req, res) {
         if (fields.name) updates.name = getFieldValue(fields.name);
         if (fields.description) updates.description = getFieldValue(fields.description);
         if (fields.price) updates.price = getFieldValue(fields.price);
+        if (fields.salePrice !== undefined) {
+          updates.salePrice = getFieldValue(fields.salePrice) || null; // Add/update/remove sale price
+        }
         if (fields.featured !== undefined) {
           updates.featured = getFieldValue(fields.featured) === 'true';
         }

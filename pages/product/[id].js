@@ -149,14 +149,7 @@ export default function ProductPage({ product, error }) {
                   transition={{ duration: 0.4 }}
                   style={{ cursor: 'pointer' }}
                 >
-                  <Image
-                    src="/logo-light.png"
-                    alt="Nidsscrochet Logo"
-                    width={180}
-                    height={60}
-                    className={styles.navLogo}
-                    priority
-                  />
+                  Nidsscrochet
                 </motion.a>
               </Link>
 

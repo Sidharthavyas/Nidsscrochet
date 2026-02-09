@@ -342,6 +342,7 @@ function RoseBurstIntro({ onComplete }) {
                 priority
                 fetchPriority="high"
                 quality={85}
+                unoptimized
               />
               <motion.div
                 className={styles.roseGlow}

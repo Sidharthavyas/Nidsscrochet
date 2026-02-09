@@ -490,6 +490,215 @@ function ScrollProgress() {
   );
 }
 
+
+
+// ================================================
+// IMAGE LIGHTBOX COMPONENT
+// ================================================
+function ImageLightbox({ images, currentIndex, onClose, onNext, onPrev }) {
+  const [activeIndex, setActiveIndex] = useState(currentIndex || 0);
+  const [scale, setScale] = useState(1);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  // Lock body scroll when open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') handleNext();
+      if (e.key === 'ArrowLeft') handlePrev();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeIndex]);
+
+  const handleNext = () => {
+    if (images.length > 1) {
+      setActiveIndex((prev) => (prev + 1) % images.length);
+      setScale(1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (images.length > 1) {
+      setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
+      setScale(1);
+    }
+  };
+
+  const toggleZoom = () => {
+    setScale((prev) => (prev === 1 ? 2 : 1));
+  };
+
+  // Swipe support
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (distance > 60) handleNext();
+    if (distance < -60) handlePrev();
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
+  return (
+    <motion.div
+      className={styles.lightboxOverlay}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      onClick={onClose}
+    >
+      {/* Top bar */}
+      <div className={styles.lightboxTopBar} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.lightboxCounter}>
+          {activeIndex + 1} / {images.length}
+        </div>
+        <div className={styles.lightboxActions}>
+          <motion.button
+            className={styles.lightboxActionBtn}
+            onClick={toggleZoom}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Toggle zoom"
+          >
+            {scale === 1 ? '🔍' : '🔎'}
+          </motion.button>
+          <motion.button
+            className={styles.lightboxCloseBtn}
+            onClick={onClose}
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Close lightbox"
+          >
+            ✕
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Main image area */}
+      <div
+        className={styles.lightboxContent}
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Previous button */}
+        {images.length > 1 && (
+          <motion.button
+            className={`${styles.lightboxNavBtn} ${styles.lightboxNavPrev}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrev();
+            }}
+            whileHover={{ scale: 1.1, x: -3 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Previous image"
+          >
+            ‹
+          </motion.button>
+        )}
+
+        {/* Image */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeIndex}
+            className={styles.lightboxImageWrapper}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            onClick={toggleZoom}
+            style={{ cursor: scale === 1 ? 'zoom-in' : 'zoom-out' }}
+          >
+            <motion.div
+              animate={{ scale }}
+              transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+              className={styles.lightboxImageContainer}
+            >
+              <Image
+                src={images[activeIndex]}
+                alt={`Image ${activeIndex + 1}`}
+                fill
+                className={styles.lightboxImage}
+                unoptimized
+                priority
+                style={{
+                  objectFit: 'contain',
+                  objectPosition: 'center',
+                }}
+              />
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Next button */}
+        {images.length > 1 && (
+          <motion.button
+            className={`${styles.lightboxNavBtn} ${styles.lightboxNavNext}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext();
+            }}
+            whileHover={{ scale: 1.1, x: 3 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Next image"
+          >
+            ›
+          </motion.button>
+        )}
+      </div>
+
+      {/* Thumbnail strip */}
+      {images.length > 1 && (
+        <div
+          className={styles.lightboxThumbnails}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {images.map((img, idx) => (
+            <motion.button
+              key={idx}
+              className={`${styles.lightboxThumb} ${idx === activeIndex ? styles.lightboxThumbActive : ''
+                }`}
+              onClick={() => {
+                setActiveIndex(idx);
+                setScale(1);
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Image
+                src={img}
+                alt={`Thumbnail ${idx + 1}`}
+                width={60}
+                height={60}
+                style={{ objectFit: 'cover', borderRadius: '8px' }}
+                unoptimized
+              />
+            </motion.button>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
 // ================================================
 // SCROLL TO TOP
 // ================================================

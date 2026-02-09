@@ -1,6 +1,6 @@
 // pages/product/[id].js
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -8,10 +8,449 @@ import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/Home.module.css';
 
+// ================================================
+// IMAGE LIGHTBOX COMPONENT
+// ================================================
+function ImageLightbox({ images, currentIndex, onClose }) {
+  const [activeIndex, setActiveIndex] = useState(currentIndex || 0);
+  const [scale, setScale] = useState(1);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const imageContainerRef = useRef(null);
+
+  // Lock body scroll when lightbox is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      switch (e.key) {
+        case 'Escape':
+          onClose();
+          break;
+        case 'ArrowRight':
+          handleNext();
+          break;
+        case 'ArrowLeft':
+          handlePrev();
+          break;
+        case '+':
+        case '=':
+          zoomIn();
+          break;
+        case '-':
+          zoomOut();
+          break;
+        case '0':
+          resetZoom();
+          break;
+        default:
+          break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeIndex, scale]);
+
+  const handleNext = useCallback(() => {
+    if (images.length > 1) {
+      setActiveIndex((prev) => (prev + 1) % images.length);
+      resetZoom();
+    }
+  }, [images.length]);
+
+  const handlePrev = useCallback(() => {
+    if (images.length > 1) {
+      setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
+      resetZoom();
+    }
+  }, [images.length]);
+
+  const zoomIn = () => {
+    setScale((prev) => Math.min(prev + 0.5, 4));
+  };
+
+  const zoomOut = () => {
+    setScale((prev) => {
+      const newScale = Math.max(prev - 0.5, 1);
+      if (newScale === 1) setDragOffset({ x: 0, y: 0 });
+      return newScale;
+    });
+  };
+
+  const resetZoom = () => {
+    setScale(1);
+    setDragOffset({ x: 0, y: 0 });
+  };
+
+  const toggleZoom = () => {
+    if (scale === 1) {
+      setScale(2.5);
+    } else {
+      resetZoom();
+    }
+  };
+
+  // Double tap/click to zoom
+  const lastTapRef = useRef(0);
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      toggleZoom();
+    }
+    lastTapRef.current = now;
+  };
+
+  // Swipe support for mobile
+  const handleTouchStartLB = (e) => {
+    if (scale > 1) return;
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMoveLB = (e) => {
+    if (scale > 1) return;
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEndLB = () => {
+    if (scale > 1) return;
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (distance > 60) handleNext();
+    if (distance < -60) handlePrev();
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
+  // Pan when zoomed
+  const handleMouseDown = () => {
+    if (scale > 1) setIsDragging(true);
+  };
+
+  const handleMouseMove = (e) => {
+    if (scale > 1 && isDragging) {
+      setDragOffset((prev) => ({
+        x: prev.x + (e.movementX || 0),
+        y: prev.y + (e.movementY || 0),
+      }));
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  return (
+    <motion.div
+      className={styles.lightboxOverlay}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      onClick={onClose}
+    >
+      {/* Top bar */}
+      <div className={styles.lightboxTopBar} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.lightboxCounter}>
+          {activeIndex + 1} / {images.length}
+        </div>
+        <div className={styles.lightboxActions}>
+          <motion.button
+            className={styles.lightboxActionBtn}
+            onClick={zoomOut}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Zoom out"
+            disabled={scale <= 1}
+            style={{ opacity: scale <= 1 ? 0.4 : 1 }}
+          >
+            −
+          </motion.button>
+          <span className={styles.lightboxZoomLevel}>
+            {Math.round(scale * 100)}%
+          </span>
+          <motion.button
+            className={styles.lightboxActionBtn}
+            onClick={zoomIn}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Zoom in"
+            disabled={scale >= 4}
+            style={{ opacity: scale >= 4 ? 0.4 : 1 }}
+          >
+            +
+          </motion.button>
+          <motion.button
+            className={styles.lightboxActionBtn}
+            onClick={resetZoom}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Reset zoom"
+            style={{ fontSize: '0.85rem' }}
+          >
+            ↺
+          </motion.button>
+          <motion.button
+            className={styles.lightboxCloseBtn}
+            onClick={onClose}
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Close lightbox"
+          >
+            ✕
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Main image area */}
+      <div
+        className={styles.lightboxContent}
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleTouchStartLB}
+        onTouchMove={handleTouchMoveLB}
+        onTouchEnd={handleTouchEndLB}
+      >
+        {/* Previous button */}
+        {images.length > 1 && (
+          <motion.button
+            className={`${styles.lightboxNavBtn} ${styles.lightboxNavPrev}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrev();
+            }}
+            whileHover={{ scale: 1.1, x: -3 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Previous image"
+          >
+            ‹
+          </motion.button>
+        )}
+
+        {/* Image */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeIndex}
+            className={styles.lightboxImageWrapper}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            onClick={handleDoubleTap}
+            style={{
+              cursor: scale === 1 ? 'zoom-in' : isDragging ? 'grabbing' : 'grab',
+            }}
+            ref={imageContainerRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          >
+            <motion.div
+              animate={{
+                scale,
+                x: dragOffset.x,
+                y: dragOffset.y,
+              }}
+              transition={{
+                scale: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] },
+                x: { duration: 0 },
+                y: { duration: 0 },
+              }}
+              className={styles.lightboxImageContainer}
+            >
+              <Image
+                src={images[activeIndex]}
+                alt={`Product image ${activeIndex + 1}`}
+                fill
+                className={styles.lightboxImage}
+                unoptimized
+                priority
+                style={{
+                  objectFit: 'contain',
+                  objectPosition: 'center',
+                }}
+                draggable={false}
+              />
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Next button */}
+        {images.length > 1 && (
+          <motion.button
+            className={`${styles.lightboxNavBtn} ${styles.lightboxNavNext}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext();
+            }}
+            whileHover={{ scale: 1.1, x: 3 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Next image"
+          >
+            ›
+          </motion.button>
+        )}
+      </div>
+
+      {/* Thumbnail strip */}
+      {images.length > 1 && (
+        <div className={styles.lightboxThumbnails} onClick={(e) => e.stopPropagation()}>
+          {images.map((img, idx) => (
+            <motion.button
+              key={idx}
+              className={`${styles.lightboxThumb} ${
+                idx === activeIndex ? styles.lightboxThumbActive : ''
+              }`}
+              onClick={() => {
+                setActiveIndex(idx);
+                resetZoom();
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Image
+                src={img}
+                alt={`Thumbnail ${idx + 1}`}
+                width={60}
+                height={60}
+                style={{ objectFit: 'cover', borderRadius: '8px' }}
+                unoptimized
+              />
+            </motion.button>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+// ================================================
+// SHARE MODAL COMPONENT
+// ================================================
+function ShareModal({ product, productUrl, onClose }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(productUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      const textArea = document.createElement('textarea');
+      textArea.value = productUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const shareText = `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`;
+  const encodedText = encodeURIComponent(shareText);
+  const encodedUrl = encodeURIComponent(productUrl);
+
+  const shareLinks = {
+    whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+    twitter: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+    pinterest: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&media=${encodeURIComponent(product.images?.[0] || product.image)}&description=${encodeURIComponent(product.description)}`,
+  };
+
+  return (
+    <motion.div
+      className={styles.shareModalOverlay}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className={styles.shareModalContent}
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button className={styles.shareModalClose} onClick={onClose}>✕</button>
+        <h3 className={styles.shareModalTitle}>Share this Product</h3>
+        <div className={styles.shareOptions}>
+          <motion.button
+            className={styles.shareOption}
+            onClick={handleCopyLink}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={styles.shareIcon}>{copied ? '✓' : '🔗'}</span>
+            <span>{copied ? 'Copied!' : 'Copy Link'}</span>
+          </motion.button>
+          <motion.a
+            href={shareLinks.whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.whatsapp}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={styles.shareIcon}>💬</span>
+            <span>WhatsApp</span>
+          </motion.a>
+          <motion.a
+            href={shareLinks.facebook}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.facebook}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={styles.shareIcon}>📘</span>
+            <span>Facebook</span>
+          </motion.a>
+          <motion.a
+            href={shareLinks.twitter}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.twitter}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={styles.shareIcon}>🐦</span>
+            <span>Twitter</span>
+          </motion.a>
+          <motion.a
+            href={shareLinks.pinterest}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.pinterest}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={styles.shareIcon}>📌</span>
+            <span>Pinterest</span>
+          </motion.a>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ================================================
+// PRODUCT PAGE
+// ================================================
 export default function ProductPage({ product, error }) {
   const router = useRouter();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   if (error || !product) {
     return (
@@ -64,22 +503,20 @@ export default function ProductPage({ product, error }) {
     setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
   };
 
+  // Open lightbox when clicking on the main image
+  const handleImageClick = (index) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
   return (
     <>
       <Head>
         <title>{product.name} | Nidsscrochet by Nidhi Tripathi</title>
         <meta name="description" content={product.description} />
-
-        {/* Keywords */}
         <meta name="keywords" content={`${product.name}, ${product.category}, crochet, handmade, Nidsscrochet, buy online India`} />
-
-        {/* Canonical URL */}
         <link rel="canonical" href={`https://www.nidsscrochet.in/product/${product._id}`} />
-
-        {/* Robots */}
         <meta name="robots" content="index, follow" />
-
-        {/* Open Graph / Facebook */}
         <meta property="og:type" content="product" />
         <meta property="og:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
         <meta property="og:title" content={`${product.name} | Nidsscrochet`} />
@@ -92,15 +529,11 @@ export default function ProductPage({ product, error }) {
         <meta property="product:price:amount" content={product.price} />
         <meta property="product:price:currency" content="INR" />
         <meta property="product:availability" content={product.stock > 0 ? "in stock" : "out of stock"} />
-
-        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
         <meta name="twitter:title" content={`${product.name} | Nidsscrochet`} />
         <meta name="twitter:description" content={product.description} />
         <meta name="twitter:image" content={productImages[0]} />
-
-        {/* JSON-LD Product Structured Data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -185,7 +618,7 @@ export default function ProductPage({ product, error }) {
           </div>
         </nav>
 
-        {/* Back Button - Using Next.js Link for fast client-side navigation */}
+        {/* Back Button */}
         <div style={{ padding: '6rem 2rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
           <Link href="/#collections" prefetch={true}>
             <motion.a
@@ -215,6 +648,16 @@ export default function ProductPage({ product, error }) {
           <div className={styles.productDetailGrid}>
             {/* Image Gallery */}
             <div className={styles.modalImageCarousel}>
+              {/* ===== ZOOM HINT OVERLAY ===== */}
+              <motion.div
+                className={styles.zoomHintOverlay}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.2, duration: 0.5 }}
+              >
+                <span>🔍</span> Tap image to zoom
+              </motion.div>
+
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentImageIndex}
@@ -223,6 +666,8 @@ export default function ProductPage({ product, error }) {
                   exit={{ opacity: 0, x: -100 }}
                   transition={{ duration: 0.3 }}
                   className={styles.modalImage}
+                  onClick={() => handleImageClick(currentImageIndex)}
+                  style={{ cursor: 'zoom-in' }}
                 >
                   <Image
                     src={productImages[currentImageIndex]}
@@ -240,13 +685,19 @@ export default function ProductPage({ product, error }) {
                 <>
                   <button
                     className={`${styles.carouselBtn} ${styles.carouselBtnPrev}`}
-                    onClick={prevImage}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      prevImage();
+                    }}
                   >
                     ←
                   </button>
                   <button
                     className={`${styles.carouselBtn} ${styles.carouselBtnNext}`}
-                    onClick={nextImage}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      nextImage();
+                    }}
                   >
                     →
                   </button>
@@ -256,7 +707,10 @@ export default function ProductPage({ product, error }) {
                       <button
                         key={idx}
                         className={`${styles.carouselDot} ${idx === currentImageIndex ? styles.carouselDotActive : ''}`}
-                        onClick={() => setCurrentImageIndex(idx)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentImageIndex(idx);
+                        }}
                       />
                     ))}
                   </div>
@@ -343,7 +797,6 @@ export default function ProductPage({ product, error }) {
               </div>
 
               <div className={styles.modalActions}>
-                {/* Share Button */}
                 <motion.button
                   onClick={handleShare}
                   className={`${styles.modalBtn} ${styles.modalBtnShare}`}
@@ -393,13 +846,26 @@ export default function ProductPage({ product, error }) {
         </div>
 
         {/* Share Modal */}
-        {showShareModal && (
-          <ShareModal
-            product={product}
-            productUrl={productUrl}
-            onClose={() => setShowShareModal(false)}
-          />
-        )}
+        <AnimatePresence>
+          {showShareModal && (
+            <ShareModal
+              product={product}
+              productUrl={productUrl}
+              onClose={() => setShowShareModal(false)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* ===== IMAGE LIGHTBOX ===== */}
+        <AnimatePresence>
+          {lightboxOpen && (
+            <ImageLightbox
+              images={productImages}
+              currentIndex={lightboxIndex}
+              onClose={() => setLightboxOpen(false)}
+            />
+          )}
+        </AnimatePresence>
       </main>
     </>
   );
@@ -438,117 +904,4 @@ export async function getServerSideProps({ params }) {
       },
     };
   }
-}
-
-// Share Modal Component
-function ShareModal({ product, productUrl, onClose }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(productUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
-  const shareText = `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`;
-  const encodedText = encodeURIComponent(shareText);
-  const encodedUrl = encodeURIComponent(productUrl);
-
-  const shareLinks = {
-    whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-    twitter: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
-    pinterest: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&media=${encodeURIComponent(product.images?.[0] || product.image)}&description=${encodeURIComponent(product.description)}`,
-  };
-
-  return (
-    <motion.div
-      className={styles.shareModalOverlay}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-    >
-      <motion.div
-        className={styles.shareModalContent}
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button className={styles.shareModalClose} onClick={onClose}>✕</button>
-
-        <h3 className={styles.shareModalTitle}>Share this Product</h3>
-
-        <div className={styles.shareOptions}>
-          {/* Copy Link */}
-          <motion.button
-            className={styles.shareOption}
-            onClick={handleCopyLink}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className={styles.shareIcon}>{copied ? '✓' : '🔗'}</span>
-            <span>{copied ? 'Copied!' : 'Copy Link'}</span>
-          </motion.button>
-
-          {/* WhatsApp */}
-          <motion.a
-            href={shareLinks.whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.whatsapp}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className={styles.shareIcon}>💬</span>
-            <span>WhatsApp</span>
-          </motion.a>
-
-          {/* Facebook */}
-          <motion.a
-            href={shareLinks.facebook}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.facebook}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className={styles.shareIcon}>📘</span>
-            <span>Facebook</span>
-          </motion.a>
-
-          {/* Twitter */}
-          <motion.a
-            href={shareLinks.twitter}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.twitter}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className={styles.shareIcon}>🐦</span>
-            <span>Twitter</span>
-          </motion.a>
-
-          {/* Pinterest */}
-          <motion.a
-            href={shareLinks.pinterest}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.pinterest}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className={styles.shareIcon}>📌</span>
-            <span>Pinterest</span>
-          </motion.a>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
 }

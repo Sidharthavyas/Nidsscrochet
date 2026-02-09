@@ -4470,3 +4470,394 @@
         break-inside: avoid;
     }
 }
+
+
+
+/* ================================================
+   ZOOM HINT OVERLAY (on product page carousel)
+   ================================================ */
+
+.zoomHintOverlay {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: white;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.3px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+}
+
+.modalImageCarousel:hover .zoomHintOverlay {
+  opacity: 0 !important;
+  transition: opacity 0.3s ease;
+}
+
+/* ================================================
+   IMAGE LIGHTBOX
+   ================================================ */
+
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.93);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Top bar */
+.lightboxTopBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  z-index: 10;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0.3) 60%,
+    transparent 100%
+  );
+}
+
+.lightboxCounter {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.lightboxActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lightboxActionBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.lightboxActionBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.lightboxActionBtn:disabled {
+  cursor: not-allowed;
+}
+
+.lightboxZoomLevel {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.78rem;
+  font-weight: 500;
+  min-width: 48px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.lightboxCloseBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  margin-left: 4px;
+}
+
+.lightboxCloseBtn:hover {
+  background: rgba(255, 70, 70, 0.45);
+  border-color: rgba(255, 70, 70, 0.65);
+}
+
+/* Main content area */
+.lightboxContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 80px 100px;
+}
+
+/* Navigation buttons */
+.lightboxNavBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  font-size: 2.2rem;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.25s ease;
+  line-height: 1;
+}
+
+.lightboxNavBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.lightboxNavPrev {
+  left: 20px;
+}
+
+.lightboxNavNext {
+  right: 20px;
+}
+
+/* Image wrapper */
+.lightboxImageWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 900px;
+  max-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.lightboxImageContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.lightboxImage {
+  border-radius: 14px;
+  pointer-events: none;
+}
+
+/* Thumbnail strip */
+.lightboxThumbnails {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 24px 22px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.3) 60%,
+    transparent 100%
+  );
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.lightboxThumbnails::-webkit-scrollbar {
+  display: none;
+}
+
+.lightboxThumb {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+  transition: all 0.25s ease;
+  opacity: 0.55;
+}
+
+.lightboxThumb:hover {
+  opacity: 0.9;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.lightboxThumbActive {
+  opacity: 1;
+  border-color: #ff6b9d;
+  box-shadow: 0 0 14px rgba(255, 107, 157, 0.45);
+  transform: scale(1.08);
+}
+
+/* ================================================
+   LIGHTBOX — RESPONSIVE
+   ================================================ */
+
+@media (max-width: 768px) {
+  .lightboxTopBar {
+    padding: 12px 14px;
+  }
+
+  .lightboxCounter {
+    font-size: 0.78rem;
+    padding: 5px 11px;
+  }
+
+  .lightboxCloseBtn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+
+  .lightboxActionBtn {
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+  }
+
+  .lightboxZoomLevel {
+    display: none;
+  }
+
+  .lightboxContent {
+    padding: 60px 12px 92px;
+  }
+
+  .lightboxNavBtn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+  }
+
+  .lightboxNavPrev {
+    left: 8px;
+  }
+
+  .lightboxNavNext {
+    right: 8px;
+  }
+
+  .lightboxImageWrapper {
+    max-height: 70vh;
+    border-radius: 10px;
+  }
+
+  .lightboxImage {
+    border-radius: 10px;
+  }
+
+  .lightboxThumbnails {
+    gap: 8px;
+    padding: 12px 14px 16px;
+  }
+
+  .lightboxThumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+  }
+
+  .zoomHintOverlay {
+    font-size: 0.72rem;
+    padding: 5px 14px;
+    bottom: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .lightboxNavBtn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.3rem;
+  }
+
+  .lightboxNavPrev {
+    left: 4px;
+  }
+
+  .lightboxNavNext {
+    right: 4px;
+  }
+
+  .lightboxContent {
+    padding: 56px 6px 85px;
+  }
+
+  .lightboxThumb {
+    width: 42px;
+    height: 42px;
+  }
+
+  .lightboxTopBar {
+    padding: 10px 10px;
+  }
+
+  .lightboxActionBtn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+
+  .lightboxCloseBtn {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+  }
+
+  .zoomHintOverlay {
+    font-size: 0.68rem;
+    padding: 4px 12px;
+    bottom: 10px;
+  }
+}

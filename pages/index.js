@@ -2108,7 +2108,8 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                           "applicableCountry": "IN",
                           "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
                           "merchantReturnDays": 7,
-                          "returnMethod": "https://schema.org/ReturnByMail"
+                          "returnMethod": "https://schema.org/ReturnByMail",
+                          "returnFees": "https://schema.org/ReturnFeesCustomerResponsibility"
                         }
                       }
                     }

@@ -5,6 +5,12 @@ import { useRouter } from 'next/router';
 import { motion, useScroll, useTransform, useMotionValue, AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
 
+// SSG Imports
+import connectDB from '../lib/mongodb';
+import Product from '../models/Product';
+import Category from '../models/Category';
+import Banner from '../models/Banner';
+
 // ================================================
 // SHARE MODAL COMPONENT
 // ================================================
@@ -1582,11 +1588,11 @@ function ProductModal({ product, onClose }) {
 // ================================================
 // HOME PAGE
 // ================================================
-export default function Home() {
+export default function Home({ initialProducts, initialCategories, initialBanner }) {
   const router = useRouter();
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(initialProducts || []);
+  const [categories, setCategories] = useState(initialCategories || []);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [scrolled, setScrolled] = useState(false);
@@ -1614,7 +1620,7 @@ export default function Home() {
     return false;
   });
 
-  const [banner, setBanner] = useState({ text: '', active: false });
+  const [banner, setBanner] = useState(initialBanner || { text: '', active: false });
   const sliderRefs = useRef({});
 
   const { scrollYProgress } = useScroll();
@@ -1657,36 +1663,8 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Fetch data
-  useEffect(() => {
-    Promise.all([
-      fetch('/api/categories').then(r => {
-        if (!r.ok) throw new Error('Failed to fetch categories');
-        return r.json();
-      }),
-      fetch('/api/products').then(r => {
-        if (!r.ok) throw new Error('Failed to fetch products');
-        return r.json();
-      }),
-      fetch('/api/banner').then(r => {
-        if (!r.ok) throw new Error('Failed to fetch banner');
-        return r.json();
-      })
-    ])
-      .then(([catData, prodData, bannerData]) => {
-        if (catData.success) setCategories(catData.data);
-        if (prodData.success) setProducts(prodData.data);
-        if (bannerData.success && bannerData.data) {
-          setBanner(bannerData.data);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error fetching data:', err);
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+  // Data is now provided via getStaticProps (SSG)
+  // No client-side fetching needed - improves SEO and performance
 
   const getProductsByCategory = useMemo(() => {
     return (category) => products.filter((p) => p.category === category.name);
@@ -2583,4 +2561,64 @@ export default function Home() {
       </motion.div>
     </>
   );
+}
+
+// ================================================
+// STATIC SITE GENERATION (SSG)
+// ================================================
+export async function getStaticProps() {
+  try {
+    await connectDB();
+
+    // Cloudinary optimization helper - request smaller images
+    const optimizeImage = (url) => {
+      if (!url || !url.includes('cloudinary')) return url;
+      return url.replace('/upload/', '/upload/w_500,q_auto,f_auto/');
+    };
+
+    // Fetch data from database
+    const [productsRaw, categoriesRaw, bannerRaw] = await Promise.all([
+      Product.find({ active: true }).sort({ createdAt: -1 }).limit(20).lean(),
+      Category.find({ active: true }).sort({ order: 1 }).lean(),
+      Banner.findOne().sort({ updatedAt: -1 }).lean(),
+    ]);
+
+    // Serialize MongoDB documents and optimize images
+    const serialize = (doc) => ({
+      ...doc,
+      _id: doc._id.toString(),
+      createdAt: doc.createdAt?.toISOString() || null,
+      updatedAt: doc.updatedAt?.toISOString() || null,
+    });
+
+    const products = productsRaw.map((p) => {
+      const serialized = serialize(p);
+      if (serialized.image) serialized.image = optimizeImage(serialized.image);
+      if (serialized.images) serialized.images = serialized.images.map(optimizeImage);
+      return serialized;
+    });
+
+    const categories = categoriesRaw.map(serialize);
+    const banner = bannerRaw ? serialize(bannerRaw) : { text: '', active: false };
+
+    return {
+      props: {
+        initialProducts: JSON.parse(JSON.stringify(products)),
+        initialCategories: JSON.parse(JSON.stringify(categories)),
+        initialBanner: JSON.parse(JSON.stringify(banner)),
+      },
+      // Revalidate once per hour (3600s) - ultra-safe for free tier
+      revalidate: 3600,
+    };
+  } catch (error) {
+    console.error('getStaticProps error:', error);
+    return {
+      props: {
+        initialProducts: [],
+        initialCategories: [],
+        initialBanner: { text: '', active: false },
+      },
+      revalidate: 60, // Retry sooner if there's an error
+    };
+  }
 }

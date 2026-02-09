@@ -10,6 +10,9 @@ export default function Document() {
         <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
 
+        {/* Canonical URL for SEO */}
+        <link rel="canonical" href="https://www.nidsscrochet.in" />
+
         {/* Google Search Console */}
         <meta name="google-site-verification" content="googleaf9e83b16acc72ba" />
 
@@ -44,9 +47,9 @@ export default function Document() {
         <noscript>
           <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'sans-serif' }}>
             <h1>Nidsscrochet - Handcrafted Crochet by Nidhi Tripathi</h1>
-            <p>Please enable JavaScript to browse our handcrafted crochet collections. 
-               Visit us on <a href="https://www.instagram.com/nidsscrochet">Instagram</a> 
-               or call <a href="tel:9029562156">9029562156</a>.</p>
+            <p>Please enable JavaScript to browse our handcrafted crochet collections.
+              Visit us on <a href="https://www.instagram.com/nidsscrochet">Instagram</a>
+              or call <a href="tel:9029562156">9029562156</a>.</p>
           </div>
         </noscript>
         <Main />

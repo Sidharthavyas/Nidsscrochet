@@ -1,27 +1,8 @@
 import mongoose from 'mongoose';
 import { verifyToken } from '../../lib/authMiddleware';
 import connectDB from '../../lib/mongodb';
+import Banner from '../../models/Banner';
 
-// ===== MONGOOSE SCHEMA FOR BANNER =====
-const BannerSchema = new mongoose.Schema(
-    {
-        text: {
-            type: String,
-            required: [true, 'Banner text is required'],
-            trim: true,
-            maxlength: [500, 'Banner text cannot exceed 500 characters'],
-        },
-        active: {
-            type: Boolean,
-            default: true,
-        },
-    },
-    {
-        timestamps: true,
-    }
-);
-
-const Banner = mongoose.models.Banner || mongoose.model('Banner', BannerSchema);
 
 // ===== API HANDLER =====
 export default async function handler(req, res) {

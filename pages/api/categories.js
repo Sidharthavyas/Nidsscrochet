@@ -1,38 +1,8 @@
 import mongoose from 'mongoose';
 import { verifyToken } from '../../lib/authMiddleware';
 import connectDB from '../../lib/mongodb';
+import Category from '../../models/Category';
 
-// ===== CATEGORY SCHEMA =====
-const CategorySchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, 'Category name is required'],
-      unique: true,
-      trim: true,
-    },
-    slug: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    icon: {
-      type: String,
-      default: '🎨',
-    },
-    order: {
-      type: Number,
-      default: 0,
-    },
-    active: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  { timestamps: true }
-);
-
-const Category = mongoose.models.Category || mongoose.model('Category', CategorySchema);
 
 // ===== MAIN API HANDLER =====
 export default async function handler(req, res) {
@@ -53,7 +23,7 @@ export default async function handler(req, res) {
     // ===== GET: Fetch categories (PUBLIC) =====
     if (method === 'GET') {
       const categories = await Category.find({ active: true }).sort({ order: 1, name: 1 });
-      
+
       return res.status(200).json({
         success: true,
         count: categories.length,
@@ -89,8 +59,8 @@ export default async function handler(req, res) {
         .replace(/\s+/g, '-');
 
       // Check if category already exists
-      const existingCategory = await Category.findOne({ 
-        $or: [{ name }, { slug }] 
+      const existingCategory = await Category.findOne({
+        $or: [{ name }, { slug }]
       });
 
       if (existingCategory) {
@@ -126,7 +96,7 @@ export default async function handler(req, res) {
       }
 
       const updates = {};
-      
+
       if (name) {
         updates.name = name.trim();
         updates.slug = name

@@ -2,6 +2,7 @@
 // Enhanced dynamic sitemap with image sitemap support
 import connectDB from '../lib/mongodb';
 import Product from '../models/Product';
+import Category from '../models/Category';
 
 const SITE_URL = 'https://www.nidsscrochet.in';
 

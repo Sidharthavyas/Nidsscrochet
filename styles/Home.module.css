@@ -470,11 +470,9 @@
 
 .suggestionItem:hover,
 .suggestionItemActive {
-    background: linear-gradient(
-        135deg,
-        rgba(255, 107, 157, 0.06),
-        rgba(168, 218, 255, 0.04)
-    );
+    background: linear-gradient(135deg,
+            rgba(255, 107, 157, 0.06),
+            rgba(168, 218, 255, 0.04));
 }
 
 .suggestionItemActive {
@@ -612,7 +610,8 @@
        the dropdown becomes a panel below the search bar */
     .searchActive .suggestionsDropdown {
         position: fixed;
-        top: 54px; /* height of the mobile search bar */
+        top: 54px;
+        /* height of the mobile search bar */
         left: 0;
         right: 0;
         border-radius: 0 0 20px 20px;
@@ -761,6 +760,7 @@
         padding: 1rem 0.8rem;
     }
 }
+
 .noSuggestions {
     position: absolute;
     top: calc(100% + 8px);
@@ -3966,6 +3966,85 @@
 }
 
 /* ================================================
+   FAQ SECTION
+   ================================================ */
+
+.faqSection {
+    padding: 4rem 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+}
+
+.faqGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.faqItem {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.faqItem:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(236, 72, 153, 0.1);
+    border-color: rgba(236, 72, 153, 0.3);
+}
+
+.faqQuestion {
+    width: 100%;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #374151;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.faqQuestion:hover {
+    color: #ec4899;
+}
+
+.faqToggle {
+    font-size: 1.5rem;
+    color: #ec4899;
+    font-weight: 300;
+}
+
+.faqAnswer {
+    overflow: hidden;
+}
+
+.faqAnswer p {
+    padding: 0 1.5rem 1.5rem;
+    color: #6b7280;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    .faqGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ================================================
    SMALL MOBILE (480px)
    ================================================ */
 
@@ -4478,31 +4557,31 @@
    ================================================ */
 
 .zoomHintOverlay {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: white;
-  padding: 6px 18px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  z-index: 5;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  letter-spacing: 0.3px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  white-space: nowrap;
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: white;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    z-index: 5;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.3px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    white-space: nowrap;
 }
 
 .modalImageCarousel:hover .zoomHintOverlay {
-  opacity: 0 !important;
-  transition: opacity 0.3s ease;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease;
 }
 
 /* ================================================
@@ -4510,234 +4589,230 @@
    ================================================ */
 
 .lightboxOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  background: rgba(0, 0, 0, 0.93);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-  -webkit-user-select: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.93);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* Top bar */
 .lightboxTopBar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
-  z-index: 10;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.65) 0%,
-    rgba(0, 0, 0, 0.3) 60%,
-    transparent 100%
-  );
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    z-index: 10;
+    background: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0.65) 0%,
+            rgba(0, 0, 0, 0.3) 60%,
+            transparent 100%);
 }
 
 .lightboxCounter {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.88rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 7px 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.88rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .lightboxActions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 .lightboxActionBtn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 1.2rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
 }
 
 .lightboxActionBtn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
 .lightboxActionBtn:disabled {
-  cursor: not-allowed;
+    cursor: not-allowed;
 }
 
 .lightboxZoomLevel {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.78rem;
-  font-weight: 500;
-  min-width: 48px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.78rem;
+    font-weight: 500;
+    min-width: 48px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
 }
 
 .lightboxCloseBtn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 1.3rem;
-  font-weight: 300;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  margin-left: 4px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 300;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    margin-left: 4px;
 }
 
 .lightboxCloseBtn:hover {
-  background: rgba(255, 70, 70, 0.45);
-  border-color: rgba(255, 70, 70, 0.65);
+    background: rgba(255, 70, 70, 0.45);
+    border-color: rgba(255, 70, 70, 0.65);
 }
 
 /* Main content area */
 .lightboxContent {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 72px 80px 100px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 72px 80px 100px;
 }
 
 /* Navigation buttons */
 .lightboxNavBtn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
-  font-size: 2.2rem;
-  font-weight: 300;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  transition: all 0.25s ease;
-  line-height: 1;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    font-size: 2.2rem;
+    font-weight: 300;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.25s ease;
+    line-height: 1;
 }
 
 .lightboxNavBtn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
 }
 
 .lightboxNavPrev {
-  left: 20px;
+    left: 20px;
 }
 
 .lightboxNavNext {
-  right: 20px;
+    right: 20px;
 }
 
 /* Image wrapper */
 .lightboxImageWrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  max-width: 900px;
-  max-height: 80vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border-radius: 14px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 900px;
+    max-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 14px;
 }
 
 .lightboxImageContainer {
-  position: relative;
-  width: 100%;
-  height: 100%;
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 .lightboxImage {
-  border-radius: 14px;
-  pointer-events: none;
+    border-radius: 14px;
+    pointer-events: none;
 }
 
 /* Thumbnail strip */
 .lightboxThumbnails {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 16px 24px 22px;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.7) 0%,
-    rgba(0, 0, 0, 0.3) 60%,
-    transparent 100%
-  );
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 24px 22px;
+    background: linear-gradient(to top,
+            rgba(0, 0, 0, 0.7) 0%,
+            rgba(0, 0, 0, 0.3) 60%,
+            transparent 100%);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .lightboxThumbnails::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 .lightboxThumb {
-  flex-shrink: 0;
-  width: 60px;
-  height: 60px;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-  background: transparent;
-  padding: 0;
-  transition: all 0.25s ease;
-  opacity: 0.55;
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    background: transparent;
+    padding: 0;
+    transition: all 0.25s ease;
+    opacity: 0.55;
 }
 
 .lightboxThumb:hover {
-  opacity: 0.9;
-  border-color: rgba(255, 255, 255, 0.5);
+    opacity: 0.9;
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .lightboxThumbActive {
-  opacity: 1;
-  border-color: #ff6b9d;
-  box-shadow: 0 0 14px rgba(255, 107, 157, 0.45);
-  transform: scale(1.08);
+    opacity: 1;
+    border-color: #ff6b9d;
+    box-shadow: 0 0 14px rgba(255, 107, 157, 0.45);
+    transform: scale(1.08);
 }
 
 /* ================================================
@@ -4745,119 +4820,313 @@
    ================================================ */
 
 @media (max-width: 768px) {
-  .lightboxTopBar {
-    padding: 12px 14px;
-  }
+    .lightboxTopBar {
+        padding: 12px 14px;
+    }
 
-  .lightboxCounter {
-    font-size: 0.78rem;
-    padding: 5px 11px;
-  }
+    .lightboxCounter {
+        font-size: 0.78rem;
+        padding: 5px 11px;
+    }
 
-  .lightboxCloseBtn {
-    width: 40px;
-    height: 40px;
-    font-size: 1.1rem;
-  }
+    .lightboxCloseBtn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
 
-  .lightboxActionBtn {
-    width: 34px;
-    height: 34px;
-    font-size: 1rem;
-  }
+    .lightboxActionBtn {
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
+    }
 
-  .lightboxZoomLevel {
-    display: none;
-  }
+    .lightboxZoomLevel {
+        display: none;
+    }
 
-  .lightboxContent {
-    padding: 60px 12px 92px;
-  }
+    .lightboxContent {
+        padding: 60px 12px 92px;
+    }
 
-  .lightboxNavBtn {
-    width: 40px;
-    height: 40px;
-    font-size: 1.5rem;
-  }
+    .lightboxNavBtn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.5rem;
+    }
 
-  .lightboxNavPrev {
-    left: 8px;
-  }
+    .lightboxNavPrev {
+        left: 8px;
+    }
 
-  .lightboxNavNext {
-    right: 8px;
-  }
+    .lightboxNavNext {
+        right: 8px;
+    }
 
-  .lightboxImageWrapper {
-    max-height: 70vh;
-    border-radius: 10px;
-  }
+    .lightboxImageWrapper {
+        max-height: 70vh;
+        border-radius: 10px;
+    }
 
-  .lightboxImage {
-    border-radius: 10px;
-  }
+    .lightboxImage {
+        border-radius: 10px;
+    }
 
-  .lightboxThumbnails {
-    gap: 8px;
-    padding: 12px 14px 16px;
-  }
+    .lightboxThumbnails {
+        gap: 8px;
+        padding: 12px 14px 16px;
+    }
 
-  .lightboxThumb {
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-  }
+    .lightboxThumb {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+    }
 
-  .zoomHintOverlay {
-    font-size: 0.72rem;
-    padding: 5px 14px;
-    bottom: 12px;
-  }
+    .zoomHintOverlay {
+        font-size: 0.72rem;
+        padding: 5px 14px;
+        bottom: 12px;
+    }
 }
 
 @media (max-width: 480px) {
-  .lightboxNavBtn {
-    width: 36px;
-    height: 36px;
-    font-size: 1.3rem;
-  }
+    .lightboxNavBtn {
+        width: 36px;
+        height: 36px;
+        font-size: 1.3rem;
+    }
 
-  .lightboxNavPrev {
-    left: 4px;
-  }
+    .lightboxNavPrev {
+        left: 4px;
+    }
 
-  .lightboxNavNext {
-    right: 4px;
-  }
+    .lightboxNavNext {
+        right: 4px;
+    }
 
-  .lightboxContent {
-    padding: 56px 6px 85px;
-  }
+    .lightboxContent {
+        padding: 56px 6px 85px;
+    }
 
-  .lightboxThumb {
-    width: 42px;
-    height: 42px;
-  }
+    .lightboxThumb {
+        width: 42px;
+        height: 42px;
+    }
 
-  .lightboxTopBar {
-    padding: 10px 10px;
-  }
+    .lightboxTopBar {
+        padding: 10px 10px;
+    }
 
-  .lightboxActionBtn {
+    .lightboxActionBtn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
+    .lightboxCloseBtn {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+    }
+
+    .zoomHintOverlay {
+        font-size: 0.68rem;
+        padding: 4px 12px;
+        bottom: 10px;
+    }
+}
+
+
+
+/* ================================================
+   FAQ SECTION
+   ================================================ */
+
+.faqSection {
+    padding: 4rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.faqGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.faqItem {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.faqItem:hover {
+    border-color: rgba(236, 72, 153, 0.2);
+    box-shadow: 0 4px 20px rgba(236, 72, 153, 0.06);
+}
+
+.faqQuestion {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    background: none;
+    border: none;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1f2937;
+    text-align: left;
+    cursor: pointer;
+    line-height: 1.5;
+    transition: color 0.2s ease;
+}
+
+.faqQuestion:hover {
+    color: #be185d;
+}
+
+.faqToggle {
+    flex-shrink: 0;
     width: 32px;
     height: 32px;
-    font-size: 0.9rem;
-  }
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(168, 85, 247, 0.1));
+    color: #be185d;
+    font-size: 1.3rem;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-  .lightboxCloseBtn {
-    width: 38px;
-    height: 38px;
+.faqAnswer {
+    overflow: hidden;
+}
+
+.faqAnswer p {
+    padding: 0 24px 20px;
+    font-size: 0.95rem;
+    color: #6b7280;
+    line-height: 1.7;
+    margin: 0;
+}
+
+/* ================================================
+   404 ERROR PAGE
+   ================================================ */
+
+.errorPageContainer {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 50%, #fff1f2 100%);
+    padding: 24px;
+}
+
+.errorPageContent {
+    text-align: center;
+    max-width: 500px;
+}
+
+.errorPageEmoji {
+    font-size: 5rem;
+    margin-bottom: 24px;
+    display: block;
+}
+
+.errorPageTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #1f2937, #6b7280);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.errorPageText {
+    font-size: 1.05rem;
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 32px;
+}
+
+.errorPageActions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+}
+
+.errorPageBtn {
+    padding: 14px 28px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ec4899, #be185d);
+    color: white;
     font-size: 1rem;
-  }
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
+}
 
-  .zoomHintOverlay {
-    font-size: 0.68rem;
-    padding: 4px 12px;
-    bottom: 10px;
-  }
+.errorPageBtnOutline {
+    padding: 14px 28px;
+    border-radius: 14px;
+    border: 2px solid rgba(236, 72, 153, 0.3);
+    background: rgba(255, 255, 255, 0.6);
+    color: #be185d;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.errorPageContact {
+    font-size: 0.9rem;
+    color: #9ca3af;
+}
+
+.errorPageLink {
+    color: #ec4899;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.errorPageLink:hover {
+    color: #be185d;
+}
+
+@media (max-width: 768px) {
+    .faqQuestion {
+        font-size: 0.95rem;
+        padding: 16px 18px;
+    }
+
+    .faqAnswer p {
+        padding: 0 18px 16px;
+        font-size: 0.88rem;
+    }
+
+    .errorPageTitle {
+        font-size: 1.5rem;
+    }
+
+    .errorPageEmoji {
+        font-size: 4rem;
+    }
 }

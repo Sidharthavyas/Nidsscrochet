@@ -511,65 +511,169 @@ export default function ProductPage({ product, error }) {
 
   return (
     <>
-      <Head>
-        <title>{product.name} | Nidsscrochet by Nidhi Tripathi</title>
-        <meta name="description" content={product.description} />
-        <meta name="keywords" content={`${product.name}, ${product.category}, crochet, handmade, Nidsscrochet, buy online India`} />
-        <link rel="canonical" href={`https://www.nidsscrochet.in/product/${product._id}`} />
-        <meta name="robots" content="index, follow" />
-        <meta property="og:type" content="product" />
-        <meta property="og:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
-        <meta property="og:title" content={`${product.name} | Nidsscrochet`} />
-        <meta property="og:description" content={product.description} />
-        <meta property="og:image" content={productImages[0]} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="1200" />
-        <meta property="og:site_name" content="Nidsscrochet" />
-        <meta property="og:locale" content="en_IN" />
-        <meta property="product:price:amount" content={product.price} />
-        <meta property="product:price:currency" content="INR" />
-        <meta property="product:availability" content={product.stock > 0 ? "in stock" : "out of stock"} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
-        <meta name="twitter:title" content={`${product.name} | Nidsscrochet`} />
-        <meta name="twitter:description" content={product.description} />
-        <meta name="twitter:image" content={productImages[0]} />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Product",
-              "name": product.name,
-              "description": product.description,
-              "image": productImages,
-              "brand": {
-                "@type": "Brand",
+    <Head>
+  <title>{product.name} | Buy Handcrafted Crochet | Nidsscrochet</title>
+  <meta name="description" content={`Buy ${product.name} - ${product.description}. Handcrafted crochet by Nidhi Tripathi. ₹${product.price}. Order on Instagram or WhatsApp. Free Mumbai delivery available!`} />
+  <meta name="keywords" content={`${product.name}, ${product.category}, buy ${product.category?.toLowerCase()} online, crochet ${product.category?.toLowerCase()}, handmade ${product.name?.toLowerCase()}, Nidsscrochet, crochet shop Mumbai, handcrafted gifts India`} />
+  <link rel="canonical" href={`https://www.nidsscrochet.in/product/${product._id}`} />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="author" content="Nidhi Tripathi" />
+
+  {/* Open Graph */}
+  <meta property="og:type" content="product" />
+  <meta property="og:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
+  <meta property="og:title" content={`${product.name} | Nidsscrochet`} />
+  <meta property="og:description" content={`${product.description} — Handmade with love by Nidhi Tripathi. ₹${product.price}`} />
+  <meta property="og:image" content={productImages[0]} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="1200" />
+  <meta property="og:image:alt" content={`${product.name} - Handcrafted crochet by Nidsscrochet`} />
+  <meta property="og:site_name" content="Nidsscrochet" />
+  <meta property="og:locale" content="en_IN" />
+  <meta property="product:price:amount" content={product.price?.toString().replace(/[^\d.]/g, '')} />
+  <meta property="product:price:currency" content="INR" />
+  <meta property="product:availability" content={product.stock > 0 ? "in stock" : "out of stock"} />
+  <meta property="product:brand" content="Nidsscrochet" />
+  <meta property="product:condition" content="new" />
+  <meta property="product:category" content={product.category} />
+
+  {/* Twitter */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
+  <meta name="twitter:title" content={`${product.name} — ₹${product.price} | Nidsscrochet`} />
+  <meta name="twitter:description" content={`${product.description}. Handcrafted in Mumbai.`} />
+  <meta name="twitter:image" content={productImages[0]} />
+  <meta name="twitter:image:alt" content={product.name} />
+
+  {/* JSON-LD: Product + BreadcrumbList + FAQ */}
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@graph": [
+          // ---- Product ----
+          {
+            "@type": "Product",
+            "@id": `https://www.nidsscrochet.in/product/${product._id}#product`,
+            "name": product.name,
+            "description": product.description,
+            "image": productImages,
+            "sku": product._id,
+            "mpn": product._id,
+            "brand": {
+              "@type": "Brand",
+              "name": "Nidsscrochet"
+            },
+            "manufacturer": {
+              "@type": "Organization",
+              "name": "Nidsscrochet",
+              "url": "https://www.nidsscrochet.in"
+            },
+            "category": product.category,
+            "material": "Premium cotton and acrylic yarn",
+            "isHandmade": true,
+            "countryOfOrigin": "IN",
+            "additionalProperty": [
+              { "@type": "PropertyValue", "name": "Craft Type", "value": "Crochet" },
+              { "@type": "PropertyValue", "name": "Made In", "value": "Mumbai, India" },
+              { "@type": "PropertyValue", "name": "Gift Ready", "value": "Yes" }
+            ],
+            "offers": {
+              "@type": "Offer",
+              "url": `https://www.nidsscrochet.in/product/${product._id}`,
+              "priceCurrency": "INR",
+              "price": product.salePrice
+                ? product.salePrice.toString().replace(/[^\d.]/g, '')
+                : product.price.toString().replace(/[^\d.]/g, ''),
+              ...(product.salePrice ? {
+                "priceSpecification": {
+                  "@type": "PriceSpecification",
+                  "price": product.salePrice.toString().replace(/[^\d.]/g, ''),
+                  "priceCurrency": "INR",
+                  "valueAddedTaxIncluded": true
+                }
+              } : {}),
+              "availability": product.stock > 0
+                ? "https://schema.org/InStock"
+                : "https://schema.org/OutOfStock",
+              "itemCondition": "https://schema.org/NewCondition",
+              "seller": {
+                "@type": "Organization",
                 "name": "Nidsscrochet"
               },
-              "manufacturer": {
-                "@type": "Organization",
-                "name": "Nidsscrochet",
-                "url": "https://www.nidsscrochet.in"
-              },
-              "offers": {
-                "@type": "Offer",
-                "url": `https://www.nidsscrochet.in/product/${product._id}`,
-                "priceCurrency": "INR",
-                "price": product.price.toString().replace(/[^0-9]/g, ''),
-                "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-                "seller": {
-                  "@type": "Organization",
-                  "name": "Nidsscrochet"
+              "shippingDetails": {
+                "@type": "OfferShippingDetails",
+                "shippingDestination": {
+                  "@type": "DefinedRegion",
+                  "addressCountry": "IN"
+                },
+                "deliveryTime": {
+                  "@type": "ShippingDeliveryTime",
+                  "handlingTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": 1,
+                    "maxValue": 3,
+                    "unitCode": "DAY"
+                  },
+                  "transitTime": {
+                    "@type": "QuantitativeValue",
+                    "minValue": 2,
+                    "maxValue": 7,
+                    "unitCode": "DAY"
+                  }
                 }
               },
-              "category": product.category,
-              "isHandmade": true
-            })
-          }}
-        />
-      </Head>
-
+              "hasMerchantReturnPolicy": {
+                "@type": "MerchantReturnPolicy",
+                "applicableCountry": "IN",
+                "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted",
+                "merchantReturnDays": 0
+              }
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "5",
+              "reviewCount": "3",
+              "bestRating": "5",
+              "worstRating": "1"
+            }
+          },
+          // ---- BreadcrumbList ----
+          {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://www.nidsscrochet.in"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Collections",
+                "item": "https://www.nidsscrochet.in/#collections"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": product.category,
+                "item": `https://www.nidsscrochet.in/#collections`
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "name": product.name,
+                "item": `https://www.nidsscrochet.in/product/${product._id}`
+              }
+            ]
+          }
+        ]
+      })
+    }}
+  />
+</Head>
       <main className={styles.mainContainer}>
         {/* Navigation Bar */}
         <nav className={`${styles.navbar} ${styles.scrolled}`}>

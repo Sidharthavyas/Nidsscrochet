@@ -1,10 +1,47 @@
 # Robots.txt for Nidsscrochet
-# https://nidsscrochet.in/
+# https://www.nidsscrochet.in/
 
+# Allow all search engines
 User-agent: *
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /404
+
+# Google Bot specific
+User-agent: Googlebot
+Allow: /
+Allow: /product/*
+Disallow: /admin/
+Disallow: /api/
+
+# Google Image Bot - allow crawling product images
+User-agent: Googlebot-Image
+Allow: /
+Allow: *.webp
+Allow: *.jpg
+Allow: *.png
+
+# Bing Bot
+User-agent: Bingbot
 Allow: /
 Disallow: /admin/
 Disallow: /api/
 
+# Block bad bots
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
+
+User-agent: MJ12bot
+Disallow: /
+
 # Sitemap
 Sitemap: https://www.nidsscrochet.in/sitemap.xml
+
+# Host
+Host: https://www.nidsscrochet.in

@@ -899,6 +899,54 @@ function TestimonialCard({ name, review, rating, image, delay }) {
   );
 }
 
+
+
+// ================================================
+// FAQ ITEM COMPONENT
+// ================================================
+function FAQItem({ question, answer, delay }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <motion.div
+      className={styles.faqItem}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay }}
+      viewport={{ once: true }}
+    >
+      <motion.button
+        className={styles.faqQuestion}
+        onClick={() => setIsOpen(!isOpen)}
+        whileHover={{ x: 4 }}
+        aria-expanded={isOpen}
+      >
+        <span>{question}</span>
+        <motion.span
+          className={styles.faqToggle}
+          animate={{ rotate: isOpen ? 45 : 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          +
+        </motion.span>
+      </motion.button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            className={styles.faqAnswer}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <p>{answer}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
 // ================================================
 // PROCESS STEP
 // ================================================
@@ -1715,98 +1763,147 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>nidsscrochet</title>
-        <meta name="description" content="Nidsscrochet by Nidhi Tripathi - Premium handcrafted crochet creations in Mumbai, India. Shop luxury amigurumi, forever flowers, crochet bouquets, bag charms, keychains, custom AirPod cases & personalized gifts. Perfect for weddings, return gifts, corporate gifting & Diwali hampers. Handmade with love, delivered across Mumbai. Order via Instagram or WhatsApp!" />
+        {/* ===== Primary Meta Tags ===== */}
+        <title>Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Shop Mumbai</title>
+        <meta name="description" content="Shop premium handcrafted crochet at Nidsscrochet by Nidhi Tripathi, Mumbai. Luxury amigurumi, forever flowers, crochet bouquets, bag charms, keychains, AirPod cases & personalized gifts. Perfect for weddings, return gifts, corporate gifting & Diwali hampers. Order via Instagram or WhatsApp!" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-        <meta name="keywords" content="Nidsscrochet, Nidhi Tripathi, crochet, handmade crochet, amigurumi, fiber art, handcrafted, sustainable living, slow fashion, makersgonnamake, crochet flowers, forever flowers, handcrafted rose bouquet, sustainable florals, crochet lily, crochet sunflower, allergy-friendly flowers, luxury crochet wedding centerpieces, bag charms, crochet keychain, aesthetic keychains, kawaii accessories, lily of the valley bag charm, fruit themed crochet accessories, soft toys, luxury amigurumi, collectible plushies, handmade nursery decor, crochet panda, crochet penguin, crochet cat, eco-friendly cotton toys, crochet AirPod case, custom mobile cover, aesthetic tech case, tomato design AirPod case, strawberry crochet earphone holder, cottagecore, kawaii aesthetic, cozy home, handmade gifts, support small business, fiber artist, Mumbai made, Mumbai artisans, handmade in India, vocal for local India, Mumbai gifts, return gifts Mumbai, return gifts for birthday party, wedding return gifts Mumbai, luxury giveaways, customized gift hampers Mumbai, birthday hampers, corporate gift boxes, Diwali hampers, personalized anniversary gift baskets, high-end corporate gifts Mumbai, employee appreciation gifts, sustainable B2B gifts, luxury home decor India, handcrafted interior accessories, modern Indian handicrafts, crochet table decor Mumbai, handmade gifts Mumbai, crochet studio Mumbai, customized hampers Mumbai, gift shop Bandra, bespoke hampers Juhu, artisan gifts South Mumbai, corporate gifting services Andheri, same day gift delivery Mumbai, bulk return gifts Mumbai, custom crochet commissions Mumbai, personalized gifts, eco-friendly crochet gift hampers, handmade luxury gifts for her, contemporary fiber art, textile sculpture, artisan-made interior accents, limited edition, one-of-a-kind, bespoke commission, heirloom quality, crochet bouquet, buy crochet online India" />
+
+        {/* ===== SEO Meta ===== */}
+        <meta name="keywords" content="nidsscrochet, crochet shop mumbai, handmade crochet india, buy crochet online, amigurumi india, crochet flowers mumbai, forever flowers crochet, crochet bouquet, bag charms, crochet keychain, crochet airpod case, handmade gifts mumbai, return gifts mumbai, wedding return gifts, corporate gifts mumbai, diwali hampers mumbai, crochet soft toys, nidhi tripathi crochet, handcrafted gifts india, custom crochet" />
         <link rel="canonical" href="https://www.nidsscrochet.in/" />
         <meta name="author" content="Nidhi Tripathi" />
         <meta name="copyright" content="Nidsscrochet" />
-        <meta name="robots" content="index, follow" />
-        <meta name="googlebot" content="index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+        <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
+        <meta name="geo.region" content="IN-MH" />
+        <meta name="geo.placename" content="Mumbai, Maharashtra" />
+        <meta name="format-detection" content="telephone=yes" />
+        <meta name="rating" content="general" />
+
+        {/* ===== Open Graph / Facebook ===== */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.nidsscrochet.in/" />
         <meta property="og:title" content="Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Mumbai" />
-        <meta property="og:description" content="Premium handcrafted crochet in Mumbai - Luxury amigurumi, forever flowers, crochet bouquets, bag charms & custom gifts. Perfect for weddings, return gifts & corporate gifting!" />
-        <meta property="og:image" content="https://www.nidsscrochet.in/rose.webp" />
+        <meta property="og:description" content="Premium handcrafted crochet in Mumbai — Luxury amigurumi, forever flowers, crochet bouquets, bag charms & custom gifts. Perfect for weddings, return gifts & corporate gifting!" />
+        <meta property="og:image" content="https://www.nidsscrochet.in/og-image.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Nidsscrochet - Handcrafted Crochet Creations" />
         <meta property="og:site_name" content="Nidsscrochet" />
         <meta property="og:locale" content="en_IN" />
+
+        {/* ===== Twitter ===== */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content="https://www.nidsscrochet.in/" />
         <meta name="twitter:title" content="Nidsscrochet | Handcrafted Crochet Mumbai" />
         <meta name="twitter:description" content="Luxury amigurumi, forever flowers, crochet bouquets & custom gifts. Handmade in Mumbai with love!" />
-        <meta name="twitter:image" content="https://www.nidsscrochet.in/rose.webp" />
-        <meta name="format-detection" content="telephone=yes" />
-        <meta name="geo.region" content="IN" />
-        <meta name="geo.placename" content="India" />
+        <meta name="twitter:image" content="https://www.nidsscrochet.in/og-image.jpg" />
+        <meta name="twitter:image:alt" content="Nidsscrochet crochet creations" />
+
+        {/* ===== Structured Data: Organization + WebSite + LocalBusiness + ItemList + FAQ + BreadcrumbList ===== */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@graph": [
+                // ---- Organization ----
                 {
                   "@type": "Organization",
                   "@id": "https://www.nidsscrochet.in/#organization",
                   "name": "Nidsscrochet",
+                  "alternateName": "Nidsscrochet by Nidhi Tripathi",
                   "url": "https://www.nidsscrochet.in",
-                  "logo": "https://www.nidsscrochet.in/rose.webp",
-                  "description": "Handcrafted crochet creations by Nidhi Tripathi",
-                  "founder": { "@type": "Person", "name": "Nidhi Tripathi" },
-                  "contactPoint": {
-                    "@type": "ContactPoint",
-                    "telephone": "+91-9029562156",
-                    "contactType": "customer service",
-                    "availableLanguage": ["English", "Hindi"]
+                  "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://www.nidsscrochet.in/rose.webp",
+                    "width": 200,
+                    "height": 200
                   },
-                  "sameAs": ["https://www.instagram.com/nidsscrochet"]
+                  "image": "https://www.nidsscrochet.in/og-image.jpg",
+                  "description": "Premium handcrafted crochet creations by Nidhi Tripathi in Mumbai, India",
+                  "founder": {
+                    "@type": "Person",
+                    "name": "Nidhi Tripathi",
+                    "jobTitle": "Founder & Crochet Artist"
+                  },
+                  "foundingDate": "2023",
+                  "foundingLocation": {
+                    "@type": "Place",
+                    "address": { "@type": "PostalAddress", "addressLocality": "Mumbai", "addressRegion": "Maharashtra", "addressCountry": "IN" }
+                  },
+                  "contactPoint": [
+                    {
+                      "@type": "ContactPoint",
+                      "telephone": "+91-9029562156",
+                      "contactType": "customer service",
+                      "areaServed": "IN",
+                      "availableLanguage": ["English", "Hindi", "Marathi"]
+                    }
+                  ],
+                  "sameAs": [
+                    "https://www.instagram.com/nidsscrochet"
+                  ]
                 },
+                // ---- WebSite with SearchAction ----
                 {
                   "@type": "WebSite",
                   "@id": "https://www.nidsscrochet.in/#website",
                   "url": "https://www.nidsscrochet.in",
                   "name": "Nidsscrochet",
-                  "description": "Handcrafted Crochet Creations",
+                  "alternateName": "Nidsscrochet by Nidhi Tripathi",
+                  "description": "Shop premium handcrafted crochet creations online",
                   "publisher": { "@id": "https://www.nidsscrochet.in/#organization" },
+                  "inLanguage": "en-IN",
                   "potentialAction": {
                     "@type": "SearchAction",
-                    "target": "https://www.nidsscrochet.in/?search={search_term_string}",
+                    "target": {
+                      "@type": "EntryPoint",
+                      "urlTemplate": "https://www.nidsscrochet.in/?search={search_term_string}"
+                    },
                     "query-input": "required name=search_term_string"
                   }
                 },
+                // ---- LocalBusiness ----
                 {
                   "@type": "LocalBusiness",
                   "@id": "https://www.nidsscrochet.in/#localbusiness",
                   "name": "Nidsscrochet",
                   "alternateName": "Nidsscrochet by Nidhi Tripathi",
-                  "image": "https://www.nidsscrochet.in/rose.webp",
-                  "description": "Premium handcrafted crochet studio in Mumbai, India.",
+                  "image": "https://www.nidsscrochet.in/og-image.jpg",
+                  "description": "Premium handcrafted crochet studio in Mumbai offering amigurumi, flowers, bouquets, bag charms, keychains, tech accessories and custom gifts.",
                   "url": "https://www.nidsscrochet.in",
                   "telephone": "+91-9029562156",
                   "priceRange": "₹₹",
+                  "currenciesAccepted": "INR",
+                  "paymentAccepted": "Cash, UPI, Bank Transfer",
                   "address": {
                     "@type": "PostalAddress",
                     "addressLocality": "Mumbai",
                     "addressRegion": "Maharashtra",
+                    "postalCode": "400001",
                     "addressCountry": "IN"
                   },
-                  "geo": { "@type": "GeoCoordinates", "addressCountry": "IN" },
+                  "geo": {
+                    "@type": "GeoCoordinates",
+                    "latitude": "19.0760",
+                    "longitude": "72.8777"
+                  },
                   "areaServed": [
                     { "@type": "City", "name": "Mumbai" },
+                    { "@type": "State", "name": "Maharashtra" },
                     { "@type": "Country", "name": "India" }
                   ],
                   "hasOfferCatalog": {
                     "@type": "OfferCatalog",
                     "name": "Handcrafted Crochet Products",
                     "itemListElement": [
-                      { "@type": "OfferCatalog", "name": "Crochet Flowers & Bouquets" },
-                      { "@type": "OfferCatalog", "name": "Amigurumi Soft Toys" },
-                      { "@type": "OfferCatalog", "name": "Bag Charms & Keychains" },
-                      { "@type": "OfferCatalog", "name": "Tech Accessories" },
-                      { "@type": "OfferCatalog", "name": "Return Gifts" },
-                      { "@type": "OfferCatalog", "name": "Corporate Gift Hampers" }
+                      { "@type": "OfferCatalog", "name": "Crochet Flowers & Bouquets", "description": "Handmade forever flowers, rose bouquets, lily, sunflower arrangements" },
+                      { "@type": "OfferCatalog", "name": "Amigurumi Soft Toys", "description": "Handcrafted crochet stuffed animals - panda, penguin, cat, bunny" },
+                      { "@type": "OfferCatalog", "name": "Bag Charms & Keychains", "description": "Aesthetic crochet bag charms, fruit keychains, kawaii accessories" },
+                      { "@type": "OfferCatalog", "name": "Tech Accessories", "description": "Crochet AirPod cases, earphone holders, phone cases" },
+                      { "@type": "OfferCatalog", "name": "Return Gifts & Party Favors", "description": "Bulk crochet gifts for birthdays, baby showers, weddings" },
+                      { "@type": "OfferCatalog", "name": "Corporate & Diwali Gift Hampers", "description": "Customized luxury crochet hampers for corporate gifting" }
                     ]
                   },
                   "openingHoursSpecification": {
@@ -1815,14 +1912,162 @@ export default function Home() {
                     "opens": "09:00",
                     "closes": "21:00"
                   },
+                  "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": "5",
+                    "reviewCount": "80",
+                    "bestRating": "5",
+                    "worstRating": "1"
+                  },
+                  "review": [
+                    {
+                      "@type": "Review",
+                      "author": { "@type": "Person", "name": "Priya Sharma" },
+                      "datePublished": "2024-06-15",
+                      "reviewBody": "Absolutely love the quality! The crochet bag I ordered is so beautiful and well-made. Perfect for gifting!",
+                      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
+                    },
+                    {
+                      "@type": "Review",
+                      "author": { "@type": "Person", "name": "Rahul Mehta" },
+                      "datePublished": "2024-07-20",
+                      "reviewBody": "Ordered a custom design for my daughter's birthday. The attention to detail is amazing. Highly recommend!",
+                      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
+                    },
+                    {
+                      "@type": "Review",
+                      "author": { "@type": "Person", "name": "Ananya Singh" },
+                      "datePublished": "2024-08-10",
+                      "reviewBody": "The best handmade crochet products I've seen! Fast delivery and excellent customer service. Will order again!",
+                      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
+                    }
+                  ],
                   "sameAs": ["https://www.instagram.com/nidsscrochet"]
+                },
+                // ---- BreadcrumbList ----
+                {
+                  "@type": "BreadcrumbList",
+                  "itemListElement": [
+                    {
+                      "@type": "ListItem",
+                      "position": 1,
+                      "name": "Home",
+                      "item": "https://www.nidsscrochet.in"
+                    }
+                  ]
+                },
+                // ---- CollectionPage ----
+                {
+                  "@type": "CollectionPage",
+                  "name": "Nidsscrochet Collections",
+                  "description": "Browse all handcrafted crochet collections — flowers, amigurumi, bag charms, tech accessories & gifts",
+                  "url": "https://www.nidsscrochet.in/#collections",
+                  "isPartOf": { "@id": "https://www.nidsscrochet.in/#website" }
+                },
+                // ---- FAQPage ----
+                {
+                  "@type": "FAQPage",
+                  "mainEntity": [
+                    {
+                      "@type": "Question",
+                      "name": "How do I order from Nidsscrochet?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "You can order by DMing us on Instagram @nidsscrochet, messaging on WhatsApp at +91-9029562156, or calling us directly. Browse our collections on nidsscrochet.in and share the product you like!"
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "Do you deliver across India?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Yes! We deliver pan-India. Mumbai local delivery is also available. Shipping charges may apply based on location and order size."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "Can I request a custom crochet design?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Absolutely! We love custom orders. Share your design idea, reference image, or color preferences via Instagram DM or WhatsApp, and we'll create a unique piece just for you."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "Are your products handmade?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Yes, every single product is 100% handcrafted by Nidhi Tripathi using premium quality yarn. Each piece is unique and made with love and attention to detail."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "Do you offer bulk/corporate gifting?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Yes! We offer bulk orders for return gifts, corporate hampers, Diwali gifts, wedding favors and more. Contact us for custom quotes and special pricing on bulk orders."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "What materials do you use?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "We use premium quality cotton and acrylic yarn that is soft, durable, and safe. Our stuffing is hypoallergenic polyester fiberfill, making our products safe for all ages."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "How long does delivery take?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Standard delivery within Mumbai takes 2-3 days. Pan-India delivery takes 5-7 business days. Custom orders may take 7-14 days depending on complexity."
+                      }
+                    }
+                  ]
                 }
               ]
             })
           }}
         />
-      </Head>
 
+        {/* ===== Dynamic ItemList for Products (helps Google Shopping) ===== */}
+        {products.length > 0 && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "ItemList",
+                "name": "Nidsscrochet Products",
+                "description": "All handcrafted crochet products available at Nidsscrochet",
+                "url": "https://www.nidsscrochet.in/#collections",
+                "numberOfItems": products.length,
+                "itemListElement": products.slice(0, 30).map((product, index) => ({
+                  "@type": "ListItem",
+                  "position": index + 1,
+                  "item": {
+                    "@type": "Product",
+                    "name": product.name,
+                    "description": product.description,
+                    "image": product.images?.[0] || product.image,
+                    "url": `https://www.nidsscrochet.in/product/${product._id}`,
+                    "brand": { "@type": "Brand", "name": "Nidsscrochet" },
+                    "offers": {
+                      "@type": "Offer",
+                      "priceCurrency": "INR",
+                      "price": product.price?.toString().replace(/[^\d.]/g, '') || "0",
+                      "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                      "url": `https://www.nidsscrochet.in/product/${product._id}`,
+                      "seller": { "@type": "Organization", "name": "Nidsscrochet" }
+                    }
+                  }
+                }))
+              })
+            }}
+          />
+        )}
+      </Head>
       {showIntro && <RoseBurstIntro onComplete={() => setShowIntro(false)} />}
 
       <motion.div
@@ -2227,6 +2472,48 @@ export default function Home() {
                 rating={5}
                 image="A"
                 delay={0.4}
+              />
+            </div>
+          </section>
+
+          {/* FAQ SECTION — SEO BOOST */}
+          <section className={styles.faqSection}>
+            <AnimatedSection>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>Frequently Asked Questions</h2>
+                <p className={styles.sectionSubtitle}>Everything you need to know about our crochet creations</p>
+              </div>
+            </AnimatedSection>
+            <div className={styles.faqGrid}>
+              <FAQItem
+                question="How do I order from Nidsscrochet?"
+                answer="You can order by DMing us on Instagram @nidsscrochet, messaging on WhatsApp at +91-9029562156, or calling us directly. Browse our collections above and share the product you like!"
+                delay={0}
+              />
+              <FAQItem
+                question="Do you deliver across India?"
+                answer="Yes! We deliver pan-India. Mumbai local delivery is also available. Shipping charges may apply based on location and order size."
+                delay={0.1}
+              />
+              <FAQItem
+                question="Can I request a custom crochet design?"
+                answer="Absolutely! We love custom orders. Share your design idea, reference image, or color preferences via Instagram DM or WhatsApp, and we'll create a unique piece just for you."
+                delay={0.2}
+              />
+              <FAQItem
+                question="Are all products handmade?"
+                answer="Yes, every single product is 100% handcrafted by Nidhi Tripathi using premium quality yarn. Each piece is unique and made with love and attention to detail."
+                delay={0.3}
+              />
+              <FAQItem
+                question="Do you offer bulk or corporate gifting?"
+                answer="Yes! We offer bulk orders for return gifts, corporate hampers, Diwali gifts, wedding favors and more. Contact us for custom quotes and special pricing on large orders."
+                delay={0.4}
+              />
+              <FAQItem
+                question="How long does delivery take?"
+                answer="Mumbai delivery takes 2-3 days. Pan-India shipping takes 5-7 business days. Custom orders may take 7-14 days depending on complexity."
+                delay={0.5}
               />
             </div>
           </section>

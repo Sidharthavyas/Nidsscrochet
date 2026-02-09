@@ -1,58 +1,103 @@
 // pages/sitemap.xml.js
-// Dynamic sitemap generation for SEO
+// Enhanced dynamic sitemap with image sitemap support
 
 const SITE_URL = 'https://www.nidsscrochet.in';
 
-function generateSiteMap(products) {
+function escapeXml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function generateSiteMap(products, categories) {
+  const now = new Date().toISOString();
+
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset 
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+>
   <!-- Homepage -->
   <url>
     <loc>${SITE_URL}</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
+    <lastmod>${now}</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>${SITE_URL}/rose.webp</image:loc>
+      <image:title>Nidsscrochet - Handcrafted Crochet Creations</image:title>
+      <image:caption>Premium handmade crochet products by Nidhi Tripathi in Mumbai</image:caption>
+    </image:image>
   </url>
-  
-  <!-- Product Pages -->
-  ${products
-      .map((product) => {
-        return `
+
+  <!-- Collections / Categories Section (hash links for SPA) -->
   <url>
+    <loc>${SITE_URL}/#collections</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Individual Product Pages with Image Sitemaps -->
+${products
+    .map((product) => {
+      const productImages = product.images && product.images.length > 0
+        ? product.images
+        : product.image ? [product.image] : [];
+
+      const imageEntries = productImages
+        .map(
+          (img) => `    <image:image>
+      <image:loc>${escapeXml(img)}</image:loc>
+      <image:title>${escapeXml(product.name)} - Nidsscrochet</image:title>
+      <image:caption>${escapeXml(product.description || product.name)}</image:caption>
+    </image:image>`
+        )
+        .join('\n');
+
+      return `  <url>
     <loc>${SITE_URL}/product/${product._id}</loc>
-    <lastmod>${product.updatedAt || new Date().toISOString()}</lastmod>
+    <lastmod>${product.updatedAt || product.createdAt || now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+${imageEntries}
   </url>`;
-      })
-      .join('')}
+    })
+    .join('\n')}
 </urlset>`;
 }
 
 export async function getServerSideProps({ res }) {
   try {
-    // Fetch all products
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/products`);
-    const data = await response.json();
 
-    const products = data.success ? data.data : [];
+    const [productsRes, categoriesRes] = await Promise.all([
+      fetch(`${baseUrl}/api/products`).then((r) => r.json()),
+      fetch(`${baseUrl}/api/categories`).then((r) => r.json()).catch(() => ({ success: false, data: [] })),
+    ]);
 
-    // Generate the XML sitemap
-    const sitemap = generateSiteMap(products);
+    const products = productsRes.success ? productsRes.data : [];
+    const categories = categoriesRes.success ? categoriesRes.data : [];
 
-    res.setHeader('Content-Type', 'text/xml');
-    res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate');
+    const sitemap = generateSiteMap(products, categories);
+
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader(
+      'Cache-Control',
+      'public, s-maxage=43200, stale-while-revalidate=86400'
+    );
     res.write(sitemap);
     res.end();
 
-    return {
-      props: {},
-    };
+    return { props: {} };
   } catch (error) {
     console.error('Sitemap generation error:', error);
 
-    // Return basic sitemap if products fetch fails
     const basicSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -63,18 +108,14 @@ export async function getServerSideProps({ res }) {
   </url>
 </urlset>`;
 
-    res.setHeader('Content-Type', 'text/xml');
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.write(basicSitemap);
     res.end();
 
-    return {
-      props: {},
-    };
+    return { props: {} };
   }
 }
 
-// Default export required for Next.js page
 export default function Sitemap() {
-  // This component won't be rendered as getServerSideProps handles the response
   return null;
 }

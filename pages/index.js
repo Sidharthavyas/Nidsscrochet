@@ -340,6 +340,7 @@ function RoseBurstIntro({ onComplete }) {
                 height={200}
                 className={styles.roseMainImage}
                 priority
+                fetchPriority="high"
                 quality={85}
               />
               <motion.div
@@ -2647,7 +2648,7 @@ export async function getStaticProps() {
     // Cloudinary optimization helper - request smaller images
     const optimizeImage = (url) => {
       if (!url || !url.includes('cloudinary')) return url;
-      return url.replace('/upload/', '/upload/w_500,q_auto,f_auto/');
+      return url.replace('/upload/', '/upload/w_300,q_auto,f_auto/');
     };
 
     // Fetch data from database

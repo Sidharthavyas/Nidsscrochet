@@ -8,6 +8,10 @@ import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/Home.module.css';
 
+// ★ IMPORT YOUR DB LOGIC DIRECTLY — no self-fetch
+import connectDB from '../../lib/mongodb';
+import Product from '../../models/Product';
+
 // ================================================
 // IMAGE LIGHTBOX COMPONENT
 // ================================================
@@ -16,11 +20,12 @@ function ImageLightbox({ images, currentIndex, onClose }) {
   const [scale, setScale] = useState(1);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-  const imageContainerRef = useRef(null);
 
-  // Lock body scroll when lightbox is open
+  const touchStartRef = useRef(0);
+  const touchEndRef = useRef(0);
+  const imageContainerRef = useRef(null);
+  const lastTapRef = useRef(0);
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
@@ -28,78 +33,62 @@ function ImageLightbox({ images, currentIndex, onClose }) {
     };
   }, []);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      switch (e.key) {
-        case 'Escape':
-          onClose();
-          break;
-        case 'ArrowRight':
-          handleNext();
-          break;
-        case 'ArrowLeft':
-          handlePrev();
-          break;
-        case '+':
-        case '=':
-          zoomIn();
-          break;
-        case '-':
-          zoomOut();
-          break;
-        case '0':
-          resetZoom();
-          break;
-        default:
-          break;
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeIndex, scale]);
+  const resetZoom = useCallback(() => {
+    setScale(1);
+    setDragOffset({ x: 0, y: 0 });
+  }, []);
 
   const handleNext = useCallback(() => {
     if (images.length > 1) {
       setActiveIndex((prev) => (prev + 1) % images.length);
       resetZoom();
     }
-  }, [images.length]);
+  }, [images.length, resetZoom]);
 
   const handlePrev = useCallback(() => {
     if (images.length > 1) {
       setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
       resetZoom();
     }
-  }, [images.length]);
+  }, [images.length, resetZoom]);
 
-  const zoomIn = () => {
+  const zoomIn = useCallback(() => {
     setScale((prev) => Math.min(prev + 0.5, 4));
-  };
+  }, []);
 
-  const zoomOut = () => {
+  const zoomOut = useCallback(() => {
     setScale((prev) => {
       const newScale = Math.max(prev - 0.5, 1);
       if (newScale === 1) setDragOffset({ x: 0, y: 0 });
       return newScale;
     });
-  };
+  }, []);
 
-  const resetZoom = () => {
-    setScale(1);
-    setDragOffset({ x: 0, y: 0 });
-  };
-
-  const toggleZoom = () => {
+  const toggleZoom = useCallback(() => {
     if (scale === 1) {
       setScale(2.5);
     } else {
       resetZoom();
     }
-  };
+  }, [scale, resetZoom]);
 
-  // Double tap/click to zoom
-  const lastTapRef = useRef(0);
+  // Keyboard navigation — all deps listed
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      switch (e.key) {
+        case 'Escape': onClose(); break;
+        case 'ArrowRight': handleNext(); break;
+        case 'ArrowLeft': handlePrev(); break;
+        case '+': case '=': zoomIn(); break;
+        case '-': zoomOut(); break;
+        case '0': resetZoom(); break;
+        default: break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, handleNext, handlePrev, zoomIn, zoomOut, resetZoom]);
+
   const handleDoubleTap = () => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
@@ -108,28 +97,28 @@ function ImageLightbox({ images, currentIndex, onClose }) {
     lastTapRef.current = now;
   };
 
-  // Swipe support for mobile
   const handleTouchStartLB = (e) => {
     if (scale > 1) return;
-    setTouchStart(e.targetTouches[0].clientX);
+    touchStartRef.current = e.targetTouches[0].clientX;
   };
 
   const handleTouchMoveLB = (e) => {
     if (scale > 1) return;
-    setTouchEnd(e.targetTouches[0].clientX);
+    touchEndRef.current = e.targetTouches[0].clientX;
   };
 
   const handleTouchEndLB = () => {
     if (scale > 1) return;
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    if (distance > 60) handleNext();
-    if (distance < -60) handlePrev();
-    setTouchStart(0);
-    setTouchEnd(0);
+    if (!touchStartRef.current || !touchEndRef.current) return;
+    const distance = touchStartRef.current - touchEndRef.current;
+    if (Math.abs(distance) > 50) {
+      if (distance > 50) handleNext();
+      if (distance < -50) handlePrev();
+    }
+    touchStartRef.current = 0;
+    touchEndRef.current = 0;
   };
 
-  // Pan when zoomed
   const handleMouseDown = () => {
     if (scale > 1) setIsDragging(true);
   };
@@ -156,7 +145,6 @@ function ImageLightbox({ images, currentIndex, onClose }) {
       transition={{ duration: 0.3 }}
       onClick={onClose}
     >
-      {/* Top bar */}
       <div className={styles.lightboxTopBar} onClick={(e) => e.stopPropagation()}>
         <div className={styles.lightboxCounter}>
           {activeIndex + 1} / {images.length}
@@ -209,7 +197,6 @@ function ImageLightbox({ images, currentIndex, onClose }) {
         </div>
       </div>
 
-      {/* Main image area */}
       <div
         className={styles.lightboxContent}
         onClick={(e) => e.stopPropagation()}
@@ -217,14 +204,10 @@ function ImageLightbox({ images, currentIndex, onClose }) {
         onTouchMove={handleTouchMoveLB}
         onTouchEnd={handleTouchEndLB}
       >
-        {/* Previous button */}
         {images.length > 1 && (
           <motion.button
             className={`${styles.lightboxNavBtn} ${styles.lightboxNavPrev}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePrev();
-            }}
+            onClick={(e) => { e.stopPropagation(); handlePrev(); }}
             whileHover={{ scale: 1.1, x: -3 }}
             whileTap={{ scale: 0.9 }}
             aria-label="Previous image"
@@ -233,7 +216,6 @@ function ImageLightbox({ images, currentIndex, onClose }) {
           </motion.button>
         )}
 
-        {/* Image */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeIndex}
@@ -253,11 +235,7 @@ function ImageLightbox({ images, currentIndex, onClose }) {
             onMouseLeave={handleMouseUp}
           >
             <motion.div
-              animate={{
-                scale,
-                x: dragOffset.x,
-                y: dragOffset.y,
-              }}
+              animate={{ scale, x: dragOffset.x, y: dragOffset.y }}
               transition={{
                 scale: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] },
                 x: { duration: 0 },
@@ -272,24 +250,17 @@ function ImageLightbox({ images, currentIndex, onClose }) {
                 className={styles.lightboxImage}
                 unoptimized
                 priority
-                style={{
-                  objectFit: 'contain',
-                  objectPosition: 'center',
-                }}
+                style={{ objectFit: 'contain', objectPosition: 'center' }}
                 draggable={false}
               />
             </motion.div>
           </motion.div>
         </AnimatePresence>
 
-        {/* Next button */}
         {images.length > 1 && (
           <motion.button
             className={`${styles.lightboxNavBtn} ${styles.lightboxNavNext}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleNext();
-            }}
+            onClick={(e) => { e.stopPropagation(); handleNext(); }}
             whileHover={{ scale: 1.1, x: 3 }}
             whileTap={{ scale: 0.9 }}
             aria-label="Next image"
@@ -299,19 +270,13 @@ function ImageLightbox({ images, currentIndex, onClose }) {
         )}
       </div>
 
-      {/* Thumbnail strip */}
       {images.length > 1 && (
         <div className={styles.lightboxThumbnails} onClick={(e) => e.stopPropagation()}>
           {images.map((img, idx) => (
             <motion.button
               key={idx}
-              className={`${styles.lightboxThumb} ${
-                idx === activeIndex ? styles.lightboxThumbActive : ''
-              }`}
-              onClick={() => {
-                setActiveIndex(idx);
-                resetZoom();
-              }}
+              className={`${styles.lightboxThumb} ${idx === activeIndex ? styles.lightboxThumbActive : ''}`}
+              onClick={() => { setActiveIndex(idx); resetZoom(); }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -383,58 +348,21 @@ function ShareModal({ product, productUrl, onClose }) {
         <button className={styles.shareModalClose} onClick={onClose}>✕</button>
         <h3 className={styles.shareModalTitle}>Share this Product</h3>
         <div className={styles.shareOptions}>
-          <motion.button
-            className={styles.shareOption}
-            onClick={handleCopyLink}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <motion.button className={styles.shareOption} onClick={handleCopyLink} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <span className={styles.shareIcon}>{copied ? '✓' : '🔗'}</span>
             <span>{copied ? 'Copied!' : 'Copy Link'}</span>
           </motion.button>
-          <motion.a
-            href={shareLinks.whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.whatsapp}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className={styles.shareIcon}>💬</span>
-            <span>WhatsApp</span>
+          <motion.a href={shareLinks.whatsapp} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.whatsapp}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <span className={styles.shareIcon}>💬</span><span>WhatsApp</span>
           </motion.a>
-          <motion.a
-            href={shareLinks.facebook}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.facebook}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className={styles.shareIcon}>📘</span>
-            <span>Facebook</span>
+          <motion.a href={shareLinks.facebook} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.facebook}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <span className={styles.shareIcon}>📘</span><span>Facebook</span>
           </motion.a>
-          <motion.a
-            href={shareLinks.twitter}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.twitter}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className={styles.shareIcon}>🐦</span>
-            <span>Twitter</span>
+          <motion.a href={shareLinks.twitter} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.twitter}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <span className={styles.shareIcon}>🐦</span><span>Twitter</span>
           </motion.a>
-          <motion.a
-            href={shareLinks.pinterest}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.pinterest}`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className={styles.shareIcon}>📌</span>
-            <span>Pinterest</span>
+          <motion.a href={shareLinks.pinterest} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.pinterest}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <span className={styles.shareIcon}>📌</span><span>Pinterest</span>
           </motion.a>
         </div>
       </motion.div>
@@ -452,15 +380,24 @@ export default function ProductPage({ product, error }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
+  // ★ Handle fallback / loading state for router
+  if (router.isFallback) {
+    return (
+      <div className={styles.mainContainer}>
+        <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (error || !product) {
     return (
       <div className={styles.mainContainer}>
         <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>
           <h1>Product Not Found</h1>
-          <Link href="/">
-            <span className={styles.retryButton} style={{ cursor: 'pointer' }}>
-              Go Back Home
-            </span>
+          <Link href="/" className={styles.retryButton} style={{ cursor: 'pointer' }}>
+            Go Back Home
           </Link>
         </div>
       </div>
@@ -473,7 +410,7 @@ export default function ProductPage({ product, error }) {
 
   const productUrl = typeof window !== 'undefined'
     ? window.location.href
-    : `${process.env.NEXT_PUBLIC_SITE_URL}/product/${product._id}`;
+    : `https://www.nidsscrochet.in/product/${product._id}`;
 
   const handleShare = async () => {
     const shareData = {
@@ -481,224 +418,123 @@ export default function ProductPage({ product, error }) {
       text: `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`,
       url: productUrl,
     };
-
     if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          setShowShareModal(true);
-        }
-      }
+      try { await navigator.share(shareData); }
+      catch (err) { if (err.name !== 'AbortError') setShowShareModal(true); }
     } else {
       setShowShareModal(true);
     }
   };
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
-  };
+  const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
+  const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
 
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
-  };
-
-  // Open lightbox when clicking on the main image
   const handleImageClick = (index) => {
     setLightboxIndex(index);
     setLightboxOpen(true);
   };
 
+  // Safe price calculation
+  const getSalePercent = () => {
+    try {
+      const original = parseFloat(String(product.price).replace(/[^\d.]/g, ''));
+      const sale = parseFloat(String(product.salePrice).replace(/[^\d.]/g, ''));
+      if (original > 0 && sale > 0) return Math.round(((original - sale) / original) * 100);
+    } catch { /* ignore */ }
+    return 0;
+  };
+
   return (
     <>
-    <Head>
-  <title>{product.name} | Buy Handcrafted Crochet | Nidsscrochet</title>
-  <meta name="description" content={`Buy ${product.name} - ${product.description}. Handcrafted crochet by Nidhi Tripathi. ₹${product.price}. Order on Instagram or WhatsApp. Free Mumbai delivery available!`} />
-  <meta name="keywords" content={`${product.name}, ${product.category}, buy ${product.category?.toLowerCase()} online, crochet ${product.category?.toLowerCase()}, handmade ${product.name?.toLowerCase()}, Nidsscrochet, crochet shop Mumbai, handcrafted gifts India`} />
-  <link rel="canonical" href={`https://www.nidsscrochet.in/product/${product._id}`} />
-  <meta name="robots" content="index, follow, max-image-preview:large" />
-  <meta name="author" content="Nidhi Tripathi" />
+      <Head>
+        <title>{product.name} | Buy Handcrafted Crochet | Nidsscrochet</title>
+        <meta name="description" content={`Buy ${product.name} - ${product.description}. Handcrafted crochet by Nidhi Tripathi. ₹${product.price}. Order on Instagram or WhatsApp. Free Mumbai delivery available!`} />
+        <meta name="keywords" content={`${product.name}, ${product.category}, buy ${product.category?.toLowerCase()} online, crochet ${product.category?.toLowerCase()}, handmade ${product.name?.toLowerCase()}, Nidsscrochet, crochet shop Mumbai, handcrafted gifts India`} />
+        <link rel="canonical" href={`https://www.nidsscrochet.in/product/${product._id}`} />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <meta name="author" content="Nidhi Tripathi" />
 
-  {/* Open Graph */}
-  <meta property="og:type" content="product" />
-  <meta property="og:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
-  <meta property="og:title" content={`${product.name} | Nidsscrochet`} />
-  <meta property="og:description" content={`${product.description} — Handmade with love by Nidhi Tripathi. ₹${product.price}`} />
-  <meta property="og:image" content={productImages[0]} />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="1200" />
-  <meta property="og:image:alt" content={`${product.name} - Handcrafted crochet by Nidsscrochet`} />
-  <meta property="og:site_name" content="Nidsscrochet" />
-  <meta property="og:locale" content="en_IN" />
-  <meta property="product:price:amount" content={product.price?.toString().replace(/[^\d.]/g, '')} />
-  <meta property="product:price:currency" content="INR" />
-  <meta property="product:availability" content={product.stock > 0 ? "in stock" : "out of stock"} />
-  <meta property="product:brand" content="Nidsscrochet" />
-  <meta property="product:condition" content="new" />
-  <meta property="product:category" content={product.category} />
+        <meta property="og:type" content="product" />
+        <meta property="og:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
+        <meta property="og:title" content={`${product.name} | Nidsscrochet`} />
+        <meta property="og:description" content={`${product.description} — Handmade with love by Nidhi Tripathi. ₹${product.price}`} />
+        <meta property="og:image" content={productImages[0]} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="1200" />
+        <meta property="og:image:alt" content={`${product.name} - Handcrafted crochet by Nidsscrochet`} />
+        <meta property="og:site_name" content="Nidsscrochet" />
+        <meta property="og:locale" content="en_IN" />
+        <meta property="product:price:amount" content={product.price?.toString().replace(/[^\d.]/g, '')} />
+        <meta property="product:price:currency" content="INR" />
+        <meta property="product:availability" content={product.stock > 0 ? 'in stock' : 'out of stock'} />
+        <meta property="product:brand" content="Nidsscrochet" />
+        <meta property="product:condition" content="new" />
+        <meta property="product:category" content={product.category} />
 
-  {/* Twitter */}
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
-  <meta name="twitter:title" content={`${product.name} — ₹${product.price} | Nidsscrochet`} />
-  <meta name="twitter:description" content={`${product.description}. Handcrafted in Mumbai.`} />
-  <meta name="twitter:image" content={productImages[0]} />
-  <meta name="twitter:image:alt" content={product.name} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
+        <meta name="twitter:title" content={`${product.name} — ₹${product.price} | Nidsscrochet`} />
+        <meta name="twitter:description" content={`${product.description}. Handcrafted in Mumbai.`} />
+        <meta name="twitter:image" content={productImages[0]} />
+        <meta name="twitter:image:alt" content={product.name} />
 
-  {/* JSON-LD: Product + BreadcrumbList + FAQ */}
-  <script
-    type="application/ld+json"
-    dangerouslySetInnerHTML={{
-      __html: JSON.stringify({
-        "@context": "https://schema.org",
-        "@graph": [
-          // ---- Product ----
-          {
-            "@type": "Product",
-            "@id": `https://www.nidsscrochet.in/product/${product._id}#product`,
-            "name": product.name,
-            "description": product.description,
-            "image": productImages,
-            "sku": product._id,
-            "mpn": product._id,
-            "brand": {
-              "@type": "Brand",
-              "name": "Nidsscrochet"
-            },
-            "manufacturer": {
-              "@type": "Organization",
-              "name": "Nidsscrochet",
-              "url": "https://www.nidsscrochet.in"
-            },
-            "category": product.category,
-            "material": "Premium cotton and acrylic yarn",
-            "isHandmade": true,
-            "countryOfOrigin": "IN",
-            "additionalProperty": [
-              { "@type": "PropertyValue", "name": "Craft Type", "value": "Crochet" },
-              { "@type": "PropertyValue", "name": "Made In", "value": "Mumbai, India" },
-              { "@type": "PropertyValue", "name": "Gift Ready", "value": "Yes" }
-            ],
-            "offers": {
-              "@type": "Offer",
-              "url": `https://www.nidsscrochet.in/product/${product._id}`,
-              "priceCurrency": "INR",
-              "price": product.salePrice
-                ? product.salePrice.toString().replace(/[^\d.]/g, '')
-                : product.price.toString().replace(/[^\d.]/g, ''),
-              ...(product.salePrice ? {
-                "priceSpecification": {
-                  "@type": "PriceSpecification",
-                  "price": product.salePrice.toString().replace(/[^\d.]/g, ''),
-                  "priceCurrency": "INR",
-                  "valueAddedTaxIncluded": true
-                }
-              } : {}),
-              "availability": product.stock > 0
-                ? "https://schema.org/InStock"
-                : "https://schema.org/OutOfStock",
-              "itemCondition": "https://schema.org/NewCondition",
-              "seller": {
-                "@type": "Organization",
-                "name": "Nidsscrochet"
-              },
-              "shippingDetails": {
-                "@type": "OfferShippingDetails",
-                "shippingDestination": {
-                  "@type": "DefinedRegion",
-                  "addressCountry": "IN"
-                },
-                "deliveryTime": {
-                  "@type": "ShippingDeliveryTime",
-                  "handlingTime": {
-                    "@type": "QuantitativeValue",
-                    "minValue": 1,
-                    "maxValue": 3,
-                    "unitCode": "DAY"
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'Product',
+                  '@id': `https://www.nidsscrochet.in/product/${product._id}#product`,
+                  name: product.name,
+                  description: product.description,
+                  image: productImages,
+                  sku: product._id,
+                  mpn: product._id,
+                  brand: { '@type': 'Brand', name: 'Nidsscrochet' },
+                  manufacturer: { '@type': 'Organization', name: 'Nidsscrochet', url: 'https://www.nidsscrochet.in' },
+                  category: product.category,
+                  material: 'Premium cotton and acrylic yarn',
+                  countryOfOrigin: 'IN',
+                  offers: {
+                    '@type': 'Offer',
+                    url: `https://www.nidsscrochet.in/product/${product._id}`,
+                    priceCurrency: 'INR',
+                    price: (product.salePrice || product.price)?.toString().replace(/[^\d.]/g, '') || '0',
+                    availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                    itemCondition: 'https://schema.org/NewCondition',
+                    seller: { '@type': 'Organization', name: 'Nidsscrochet' },
                   },
-                  "transitTime": {
-                    "@type": "QuantitativeValue",
-                    "minValue": 2,
-                    "maxValue": 7,
-                    "unitCode": "DAY"
-                  }
-                }
-              },
-              "hasMerchantReturnPolicy": {
-                "@type": "MerchantReturnPolicy",
-                "applicableCountry": "IN",
-                "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted",
-                "merchantReturnDays": 0
-              }
-            },
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": "5",
-              "reviewCount": "3",
-              "bestRating": "5",
-              "worstRating": "1"
-            }
-          },
-          // ---- BreadcrumbList ----
-          {
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Home",
-                "item": "https://www.nidsscrochet.in"
-              },
-              {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "Collections",
-                "item": "https://www.nidsscrochet.in/#collections"
-              },
-              {
-                "@type": "ListItem",
-                "position": 3,
-                "name": product.category,
-                "item": `https://www.nidsscrochet.in/#collections`
-              },
-              {
-                "@type": "ListItem",
-                "position": 4,
-                "name": product.name,
-                "item": `https://www.nidsscrochet.in/product/${product._id}`
-              }
-            ]
-          }
-        ]
-      })
-    }}
-  />
-</Head>
+                  aggregateRating: { '@type': 'AggregateRating', ratingValue: '5', reviewCount: '3', bestRating: '5', worstRating: '1' },
+                },
+                {
+                  '@type': 'BreadcrumbList',
+                  itemListElement: [
+                    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.nidsscrochet.in' },
+                    { '@type': 'ListItem', position: 2, name: 'Collections', item: 'https://www.nidsscrochet.in/#collections' },
+                    { '@type': 'ListItem', position: 3, name: product.category, item: 'https://www.nidsscrochet.in/#collections' },
+                    { '@type': 'ListItem', position: 4, name: product.name, item: `https://www.nidsscrochet.in/product/${product._id}` },
+                  ],
+                },
+              ],
+            }),
+          }}
+        />
+      </Head>
+
       <main className={styles.mainContainer}>
-        {/* Navigation Bar */}
+        {/* ★ FIXED: No more <motion.a> inside <Link> — use legacyBehavior or just Link directly */}
         <nav className={`${styles.navbar} ${styles.scrolled}`}>
           <div className={styles.navWrapper}>
             <div className={styles.navContent}>
-              <Link href="/">
-                <motion.a
-                  className={styles.navBrand}
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.4 }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  Nidsscrochet
-                </motion.a>
+              <Link href="/" className={styles.navBrand} style={{ cursor: 'pointer', textDecoration: 'none' }}>
+                Nidsscrochet
               </Link>
 
               <div className={styles.navLinks}>
-                <Link href="/#collections">
-                  <motion.a
-                    whileHover={{ y: -2 }}
-                    className={styles.navLink}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    Collections
-                  </motion.a>
+                <Link href="/#collections" className={styles.navLink} style={{ cursor: 'pointer', textDecoration: 'none' }}>
+                  Collections
                 </Link>
                 <motion.a
                   href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
@@ -722,17 +558,14 @@ export default function ProductPage({ product, error }) {
           </div>
         </nav>
 
-        {/* Back Button */}
+        {/* Back Button — ★ FIXED: no nested <a> */}
         <div style={{ padding: '6rem 2rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
-          <Link href="/#collections" prefetch={true}>
-            <motion.a
-              className={styles.backButton}
-              style={{ display: 'inline-block', cursor: 'pointer', textDecoration: 'none' }}
-              whileHover={{ x: -5 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              ← Back to Collections
-            </motion.a>
+          <Link
+            href="/#collections"
+            className={styles.backButton}
+            style={{ display: 'inline-block', cursor: 'pointer', textDecoration: 'none' }}
+          >
+            ← Back to Collections
           </Link>
         </div>
 
@@ -752,7 +585,6 @@ export default function ProductPage({ product, error }) {
           <div className={styles.productDetailGrid}>
             {/* Image Gallery */}
             <div className={styles.modalImageCarousel}>
-              {/* ===== ZOOM HINT OVERLAY ===== */}
               <motion.div
                 className={styles.zoomHintOverlay}
                 initial={{ opacity: 0 }}
@@ -787,35 +619,11 @@ export default function ProductPage({ product, error }) {
 
               {productImages.length > 1 && (
                 <>
-                  <button
-                    className={`${styles.carouselBtn} ${styles.carouselBtnPrev}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      prevImage();
-                    }}
-                  >
-                    ←
-                  </button>
-                  <button
-                    className={`${styles.carouselBtn} ${styles.carouselBtnNext}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      nextImage();
-                    }}
-                  >
-                    →
-                  </button>
-
+                  <button className={`${styles.carouselBtn} ${styles.carouselBtnPrev}`} onClick={(e) => { e.stopPropagation(); prevImage(); }}>←</button>
+                  <button className={`${styles.carouselBtn} ${styles.carouselBtnNext}`} onClick={(e) => { e.stopPropagation(); nextImage(); }}>→</button>
                   <div className={styles.carouselDots}>
                     {productImages.map((_, idx) => (
-                      <button
-                        key={idx}
-                        className={`${styles.carouselDot} ${idx === currentImageIndex ? styles.carouselDotActive : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentImageIndex(idx);
-                        }}
-                      />
+                      <button key={idx} className={`${styles.carouselDot} ${idx === currentImageIndex ? styles.carouselDotActive : ''}`} onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }} />
                     ))}
                   </div>
                 </>
@@ -824,19 +632,8 @@ export default function ProductPage({ product, error }) {
               {productImages.length > 1 && (
                 <div className={styles.thumbnailRow}>
                   {productImages.map((img, idx) => (
-                    <button
-                      key={idx}
-                      className={`${styles.thumbnailButton} ${idx === currentImageIndex ? styles.thumbnailActive : ''}`}
-                      onClick={() => setCurrentImageIndex(idx)}
-                    >
-                      <Image
-                        src={img}
-                        alt={`${product.name} thumbnail ${idx + 1}`}
-                        width={70}
-                        height={70}
-                        style={{ objectFit: 'cover' }}
-                        unoptimized
-                      />
+                    <button key={idx} className={`${styles.thumbnailButton} ${idx === currentImageIndex ? styles.thumbnailActive : ''}`} onClick={() => setCurrentImageIndex(idx)}>
+                      <Image src={img} alt={`${product.name} thumbnail ${idx + 1}`} width={70} height={70} style={{ objectFit: 'cover' }} unoptimized />
                     </button>
                   ))}
                 </div>
@@ -850,9 +647,7 @@ export default function ProductPage({ product, error }) {
             {/* Product Details */}
             <div className={styles.modalDetails}>
               <span className={styles.modalCategory}>{product.category}</span>
-
               <h1>{product.name}</h1>
-
               <p className={styles.modalDescription}>{product.description}</p>
 
               <div className={styles.modalPriceSection}>
@@ -862,9 +657,11 @@ export default function ProductPage({ product, error }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                       <span className={styles.modalPrice} style={{ color: '#e91e63' }}>₹{product.salePrice}</span>
                       <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '1.2rem' }}>₹{product.price}</span>
-                      <span style={{ background: '#e91e63', color: 'white', padding: '4px 10px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                        {Math.round(((parseFloat(product.price.replace(/[^\d.]/g, '')) - parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) / parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100)}% OFF
-                      </span>
+                      {getSalePercent() > 0 && (
+                        <span style={{ background: '#e91e63', color: 'white', padding: '4px 10px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                          {getSalePercent()}% OFF
+                        </span>
+                      )}
                     </div>
                   ) : (
                     <span className={styles.modalPrice}>₹{product.price}</span>
@@ -872,65 +669,28 @@ export default function ProductPage({ product, error }) {
                 </div>
                 <span className={styles.modalStock}>
                   {product.stock > 0 ? (
-                    <>
-                      <span className={styles.stockDot}>●</span>
-                      {product.stock} in stock
-                    </>
+                    <><span className={styles.stockDot}>●</span>{product.stock} in stock</>
                   ) : (
-                    <>
-                      <span className={styles.stockDotOut}>●</span>
-                      Out of stock
-                    </>
+                    <><span className={styles.stockDotOut}>●</span>Out of stock</>
                   )}
                 </span>
               </div>
 
               <div className={styles.productFeatures}>
-                <div className={styles.feature}>
-                  <span className={styles.featureIcon}>🧶</span>
-                  <span>Handcrafted</span>
-                </div>
-                <div className={styles.feature}>
-                  <span className={styles.featureIcon}>✨</span>
-                  <span>Premium Quality</span>
-                </div>
-                <div className={styles.feature}>
-                  <span className={styles.featureIcon}>💝</span>
-                  <span>Gift Ready</span>
-                </div>
+                <div className={styles.feature}><span className={styles.featureIcon}>🧶</span><span>Handcrafted</span></div>
+                <div className={styles.feature}><span className={styles.featureIcon}>✨</span><span>Premium Quality</span></div>
+                <div className={styles.feature}><span className={styles.featureIcon}>💝</span><span>Gift Ready</span></div>
               </div>
 
               <div className={styles.modalActions}>
-                <motion.button
-                  onClick={handleShare}
-                  className={`${styles.modalBtn} ${styles.modalBtnShare}`}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span className={styles.btnIcon}>🔗</span>
-                  Share this Product
+                <motion.button onClick={handleShare} className={`${styles.modalBtn} ${styles.modalBtnShare}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+                  <span className={styles.btnIcon}>🔗</span>Share this Product
                 </motion.button>
-
-                <motion.a
-                  href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${styles.modalBtn} ${styles.modalBtnPrimary}`}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span className={styles.btnIcon}>📷</span>
-                  Order on Instagram
+                <motion.a href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3" target="_blank" rel="noopener noreferrer" className={`${styles.modalBtn} ${styles.modalBtnPrimary}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+                  <span className={styles.btnIcon}>📷</span>Order on Instagram
                 </motion.a>
-
-                <motion.a
-                  href="tel:9029562156"
-                  className={`${styles.modalBtn} ${styles.modalBtnSecondary}`}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span className={styles.btnIcon}>📞</span>
-                  Call Us
+                <motion.a href="tel:9029562156" className={`${styles.modalBtn} ${styles.modalBtnSecondary}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+                  <span className={styles.btnIcon}>📞</span>Call Us
                 </motion.a>
               </div>
             </div>
@@ -939,73 +699,51 @@ export default function ProductPage({ product, error }) {
 
         {/* Sticky mobile CTA */}
         <div className={styles.stickyCta}>
-          <a
-            href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.stickyCtaButton}
-          >
+          <a href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3" target="_blank" rel="noopener noreferrer" className={styles.stickyCtaButton}>
             📷 Order on Instagram
           </a>
         </div>
 
-        {/* Share Modal */}
         <AnimatePresence>
-          {showShareModal && (
-            <ShareModal
-              product={product}
-              productUrl={productUrl}
-              onClose={() => setShowShareModal(false)}
-            />
-          )}
+          {showShareModal && <ShareModal product={product} productUrl={productUrl} onClose={() => setShowShareModal(false)} />}
         </AnimatePresence>
 
-        {/* ===== IMAGE LIGHTBOX ===== */}
         <AnimatePresence>
-          {lightboxOpen && (
-            <ImageLightbox
-              images={productImages}
-              currentIndex={lightboxIndex}
-              onClose={() => setLightboxOpen(false)}
-            />
-          )}
+          {lightboxOpen && <ImageLightbox images={productImages} currentIndex={lightboxIndex} onClose={() => setLightboxOpen(false)} />}
         </AnimatePresence>
       </main>
     </>
   );
 }
 
-// Server-side rendering to fetch product data
+// ================================================
+// ★★★ THE FIX — Direct DB access, no self-fetch ★★★
+// ================================================
 export async function getServerSideProps({ params }) {
   const { id } = params;
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/products?id=${id}`);
-    const data = await res.json();
+    await connectDB();
 
-    if (!data.success || !data.data) {
+    const product = await Product.findById(id).lean();
+
+    if (!product) {
       return {
-        props: {
-          error: 'Product not found',
-          product: null,
-        },
+        props: { error: 'Product not found', product: null },
       };
     }
 
+    // Serialize MongoDB document (ObjectId → string, Date → string)
     return {
       props: {
-        product: data.data,
+        product: JSON.parse(JSON.stringify(product)),
         error: null,
       },
     };
-  } catch (error) {
-    console.error('Error fetching product:', error);
+  } catch (err) {
+    console.error('Error fetching product:', err);
     return {
-      props: {
-        error: 'Failed to load product',
-        product: null,
-      },
+      props: { error: 'Failed to load product', product: null },
     };
   }
 }

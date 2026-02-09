@@ -2,8 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // Enable SWC minifier for faster builds
-  swcMinify: true,
+
 
   // Image optimization
   images: {

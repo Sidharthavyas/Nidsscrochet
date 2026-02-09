@@ -4499,7 +4499,7 @@
         }
 
         .navLinks {
-            padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+            padding-bottom: calc(2rem + enva(safe-area-inset-bottom));
         }
     }
 }

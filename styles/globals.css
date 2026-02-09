@@ -1,4 +1,4 @@
-/* styles/globals.css */
+/* styles/globals.css - FIXED */
 
 @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
@@ -22,6 +22,7 @@
   --border-radius: 18px;
   --border-radius-lg: 24px;
   --transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  --transition-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -32,14 +33,10 @@
 
 html {
   scroll-behavior: smooth;
-  /* Butter-smooth hardware-accelerated scrolling */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Safe area for notched devices (iPhone X+) */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
-/* Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -52,18 +49,9 @@ body {
   color: var(--black);
   overflow-x: hidden;
   line-height: 1.6;
-  /* Better touch interactions on mobile */
-  -webkit-tap-highlight-color: rgba(255, 107, 157, 0.2);
-  /* Optimize touch scrolling on iOS */
+  font-size: 16px;
+  -webkit-tap-highlight-color: rgba(255, 107, 157, 0.15);
   -webkit-overflow-scrolling: touch;
-}
-
-/* Increase font size on small mobile devices for better readability */
-@media (max-width: 480px) {
-  body {
-    font-size: 16px;
-    /* Prevents zoom on input focus on iOS */
-  }
 }
 
 a {
@@ -74,26 +62,45 @@ a {
 img {
   max-width: 100%;
   height: auto;
+  display: block;
 }
 
 button {
   font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
 }
 
-/* Ensure minimum touch target size for mobile (44x44px per Apple/Google guidelines) */
-button,
-a,
-input,
+/* ✅ FIXED: Only apply min-height to INTERACTIVE elements that need it
+   NOT to inline links, small buttons, dots, badges etc.
+   We use a specific class instead of blanket rule */
+
+/* REMOVED THIS BROKEN RULE:
+button, a, input, select, textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+*/
+
+/* Instead, only form inputs get minimum sizing */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
 select,
 textarea {
   min-height: 44px;
-  min-width: 44px;
+  font-size: 16px; /* Prevents iOS zoom on focus */
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 8px;
+  width: 10px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -103,11 +110,19 @@ textarea {
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, var(--pink), var(--pink-dark));
   border-radius: 10px;
-  border: 1px solid var(--gray);
+  border: 2px solid var(--gray);
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--pink-dark);
+}
+
+/* Hide scrollbar on mobile */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
 }
 
 /* Selection */
@@ -116,16 +131,20 @@ textarea {
   color: var(--pink-dark);
 }
 
-/* Focus Styles */
+/* Focus Styles - Only for keyboard navigation */
 :focus-visible {
   outline: 2px solid var(--pink);
-  outline-offset: 4px;
-  border-radius: 8px;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Remove focus outline for mouse/touch users */
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
 /* Accessibility - Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
@@ -133,8 +152,6 @@ textarea {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-
-  /* Scroll behavior is handled in html rule above */
 }
 
 /* Utility Classes */
@@ -144,9 +161,30 @@ textarea {
   padding: 0 2rem;
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+}
+
 .gradient-text {
   background: linear-gradient(135deg, var(--pink), var(--blue));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Prevent content shift when modal opens */
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* Safe area support */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

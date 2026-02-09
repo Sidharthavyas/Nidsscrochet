@@ -49,11 +49,8 @@ function ShareModalComponent({ product, productUrl, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <button className={styles.shareModalClose} onClick={onClose}>✕</button>
-
         <h3 className={styles.shareModalTitle}>Share this Product</h3>
-
         <div className={styles.shareOptions}>
-          {/* Copy Link */}
           <motion.button
             className={styles.shareOption}
             onClick={handleCopyLink}
@@ -63,8 +60,6 @@ function ShareModalComponent({ product, productUrl, onClose }) {
             <span className={styles.shareIcon}>{copied ? '✓' : '🔗'}</span>
             <span>{copied ? 'Copied!' : 'Copy Link'}</span>
           </motion.button>
-
-          {/* WhatsApp */}
           <motion.a
             href={shareLinks.whatsapp}
             target="_blank"
@@ -76,8 +71,6 @@ function ShareModalComponent({ product, productUrl, onClose }) {
             <span className={styles.shareIcon}>💬</span>
             <span>WhatsApp</span>
           </motion.a>
-
-          {/* Facebook */}
           <motion.a
             href={shareLinks.facebook}
             target="_blank"
@@ -89,8 +82,6 @@ function ShareModalComponent({ product, productUrl, onClose }) {
             <span className={styles.shareIcon}>📘</span>
             <span>Facebook</span>
           </motion.a>
-
-          {/* Twitter */}
           <motion.a
             href={shareLinks.twitter}
             target="_blank"
@@ -102,8 +93,6 @@ function ShareModalComponent({ product, productUrl, onClose }) {
             <span className={styles.shareIcon}>🐦</span>
             <span>Twitter</span>
           </motion.a>
-
-          {/* Pinterest */}
           <motion.a
             href={shareLinks.pinterest}
             target="_blank"
@@ -121,7 +110,158 @@ function ShareModalComponent({ product, productUrl, onClose }) {
   );
 }
 
-// Rose Burst Animation Component
+// ================================================
+// SEARCH SUGGESTIONS COMPONENT — IMPROVED
+// ================================================
+function SearchSuggestions({ suggestions, query, onSelect, onClose, visible, noResults }) {
+  const listRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  // Reset active index when suggestions change
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [suggestions]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!visible) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveIndex((prev) =>
+          prev < suggestions.length - 1 ? prev + 1 : 0
+        );
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveIndex((prev) =>
+          prev > 0 ? prev - 1 : suggestions.length - 1
+        );
+      } else if (e.key === 'Enter' && activeIndex >= 0) {
+        e.preventDefault();
+        onSelect(suggestions[activeIndex].product);
+      } else if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [visible, suggestions, activeIndex, onSelect, onClose]);
+
+  // Scroll active item into view
+  useEffect(() => {
+    if (activeIndex >= 0 && listRef.current) {
+      const activeEl = listRef.current.children[activeIndex];
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  }, [activeIndex]);
+
+  // Highlight matching text
+  const highlightMatch = (text, q) => {
+    if (!q || !q.trim()) return text;
+    const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    return parts.map((part, i) =>
+      regex.test(part) ? (
+        <mark key={i} className={styles.suggestionHighlight}>{part}</mark>
+      ) : (
+        part
+      )
+    );
+  };
+
+  if (!visible) return null;
+
+  // No results state
+  if (noResults && query.trim().length > 0) {
+    return (
+      <motion.div
+        className={styles.suggestionsDropdown}
+        initial={{ opacity: 0, y: -8, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -8, scale: 0.98 }}
+        transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+      >
+        <div className={styles.noSuggestionsContent}>
+          <span className={styles.noSuggestionsIcon}>🔍</span>
+          <span className={styles.noSuggestionsTitle}>No results for &ldquo;{query}&rdquo;</span>
+          <span className={styles.noSuggestionsHint}>Try a different keyword or browse our collections</span>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (suggestions.length === 0) return null;
+
+  return (
+    <motion.div
+      className={styles.suggestionsDropdown}
+      initial={{ opacity: 0, y: -8, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+      transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+    >
+      {/* Results count header */}
+      <div className={styles.suggestionsHeader}>
+        <span className={styles.suggestionsCount}>
+          {suggestions.length} result{suggestions.length !== 1 ? 's' : ''}
+        </span>
+        <span className={styles.suggestionsHint}>↑↓ to navigate · Enter to select</span>
+      </div>
+
+      {/* Suggestions list */}
+      <div className={styles.suggestionsList} ref={listRef} role="listbox">
+        {suggestions.map((item, idx) => (
+          <motion.div
+            key={item.id}
+            className={`${styles.suggestionItem} ${idx === activeIndex ? styles.suggestionItemActive : ''}`}
+            onClick={() => onSelect(item.product)}
+            onMouseEnter={() => setActiveIndex(idx)}
+            role="option"
+            aria-selected={idx === activeIndex}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: idx * 0.03, duration: 0.2 }}
+          >
+            <div className={styles.suggestionImageWrap}>
+              {item.image ? (
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  width={44}
+                  height={44}
+                  style={{ objectFit: 'cover', borderRadius: '8px', display: 'block' }}
+                  unoptimized
+                />
+              ) : (
+                <div className={styles.suggestionImagePlaceholder}>🧶</div>
+              )}
+            </div>
+            <div className={styles.suggestionInfo}>
+              <span className={styles.suggestionName}>
+                {highlightMatch(item.name, query)}
+              </span>
+              <span className={styles.suggestionCategory}>{item.category}</span>
+            </div>
+            <div className={styles.suggestionPriceWrap}>
+              <span className={styles.suggestionPrice}>
+                ₹{item.price?.toString().replace(/[^\d]/g, '')}
+              </span>
+              <span className={styles.suggestionArrow}>→</span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+// ================================================
+// ROSE BURST INTRO
+// ================================================
 function RoseBurstIntro({ onComplete }) {
   const [showRose, setShowRose] = useState(true);
   const [isBursting, setIsBursting] = useState(false);
@@ -183,11 +323,7 @@ function RoseBurstIntro({ onComplete }) {
                     scale: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
                     rotate: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
                     opacity: { duration: 0.8 },
-                    y: {
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    },
+                    y: { duration: 1.5, repeat: Infinity, ease: "easeInOut" },
                   }
               }
             >
@@ -200,18 +336,10 @@ function RoseBurstIntro({ onComplete }) {
                 priority
                 quality={85}
               />
-
               <motion.div
                 className={styles.roseGlow}
-                animate={{
-                  scale: [1, 1.2, 1],
-                  opacity: [0.3, 0.6, 0.3],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
+                animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               />
             </motion.div>
 
@@ -220,13 +348,7 @@ function RoseBurstIntro({ onComplete }) {
                 <motion.div
                   key={index}
                   className={styles.burstPetal}
-                  initial={{
-                    x: 0,
-                    y: 0,
-                    scale: 1,
-                    opacity: 1,
-                    rotate: 0,
-                  }}
+                  initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
                   animate={{
                     x: Math.cos((petal.angle * Math.PI) / 180) * 300,
                     y: Math.sin((petal.angle * Math.PI) / 180) * 300,
@@ -234,11 +356,7 @@ function RoseBurstIntro({ onComplete }) {
                     opacity: [1, 0.8, 0],
                     rotate: [0, petal.angle * 2, petal.angle * 4],
                   }}
-                  transition={{
-                    duration: 0.8,
-                    delay: petal.delay,
-                    ease: "easeOut",
-                  }}
+                  transition={{ duration: 0.8, delay: petal.delay, ease: "easeOut" }}
                 >
                   <Image
                     src="/rose.webp"
@@ -257,23 +375,14 @@ function RoseBurstIntro({ onComplete }) {
                 <motion.div
                   key={`sparkle-${i}`}
                   className={styles.sparkleParticle}
-                  initial={{
-                    x: 0,
-                    y: 0,
-                    scale: 0,
-                    opacity: 1,
-                  }}
+                  initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
                   animate={{
                     x: (Math.random() - 0.5) * 400,
                     y: (Math.random() - 0.5) * 400,
                     scale: [0, 1, 0],
                     opacity: [1, 1, 0],
                   }}
-                  transition={{
-                    duration: 1,
-                    delay: i * 0.03,
-                    ease: "easeOut",
-                  }}
+                  transition={{ duration: 1, delay: i * 0.03, ease: "easeOut" }}
                 >
                   ✨
                 </motion.div>
@@ -294,138 +403,73 @@ function RoseBurstIntro({ onComplete }) {
   );
 }
 
-// Decorative Shapes Component
+// ================================================
+// DECORATIVE SHAPES
+// ================================================
 function DecorativeShapes() {
   return (
     <>
       <motion.div
         className={styles.decorativeCircle}
         style={{ top: '10%', left: '5%' }}
-        animate={{
-          y: [0, -30, 0],
-          scale: [1, 1.2, 1],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
+        animate={{ y: [0, -30, 0], scale: [1, 1.2, 1] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
         className={styles.decorativeCircle}
         style={{ top: '60%', right: '8%' }}
-        animate={{
-          y: [0, 40, 0],
-          scale: [1, 1.3, 1],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 1
-        }}
+        animate={{ y: [0, 40, 0], scale: [1, 1.3, 1] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
       />
       <motion.div
         className={styles.blobShape}
         style={{ top: '30%', left: '10%' }}
-        animate={{
-          rotate: [0, 360],
-          scale: [1, 1.1, 1],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear"
-        }}
+        animate={{ rotate: [0, 360], scale: [1, 1.1, 1] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
       />
       <motion.div
         className={styles.blobShape}
         style={{ bottom: '20%', right: '15%' }}
-        animate={{
-          rotate: [360, 0],
-          scale: [1, 1.2, 1],
-        }}
-        transition={{
-          duration: 25,
-          repeat: Infinity,
-          ease: "linear"
-        }}
+        animate={{ rotate: [360, 0], scale: [1, 1.2, 1] }}
+        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
       />
       <motion.div
         className={styles.sparkle}
         style={{ top: '20%', left: '15%' }}
-        animate={{
-          opacity: [0, 1, 0],
-          scale: [0, 1, 0],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          repeatDelay: 2
-        }}
+        animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
+        transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
       >
         ✨
       </motion.div>
       <motion.div
         className={styles.sparkle}
         style={{ top: '70%', right: '20%' }}
-        animate={{
-          opacity: [0, 1, 0],
-          scale: [0, 1, 0],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          repeatDelay: 1,
-          delay: 1
-        }}
+        animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
+        transition={{ duration: 3, repeat: Infinity, repeatDelay: 1, delay: 1 }}
       >
         💫
       </motion.div>
       <motion.div
         className={styles.sparkle}
         style={{ bottom: '30%', left: '20%' }}
-        animate={{
-          opacity: [0, 1, 0],
-          scale: [0, 1, 0],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          repeatDelay: 2,
-          delay: 2
-        }}
+        animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
+        transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, delay: 2 }}
       >
         ⭐
       </motion.div>
       <motion.div
         className={styles.floatingHeart}
         style={{ top: '40%', right: '10%' }}
-        animate={{
-          y: [0, -20, 0],
-          rotate: [-10, 10, -10],
-        }}
-        transition={{
-          duration: 6,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
+        animate={{ y: [0, -20, 0], rotate: [-10, 10, -10] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       >
         💕
       </motion.div>
       <motion.div
         className={styles.floatingHeart}
         style={{ bottom: '40%', left: '12%' }}
-        animate={{
-          y: [0, 15, 0],
-          rotate: [10, -10, 10],
-        }}
-        transition={{
-          duration: 7,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 1
-        }}
+        animate={{ y: [0, 15, 0], rotate: [10, -10, 10] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
       >
         💖
       </motion.div>
@@ -433,10 +477,11 @@ function DecorativeShapes() {
   );
 }
 
-// Scroll Progress Indicator
+// ================================================
+// SCROLL PROGRESS
+// ================================================
 function ScrollProgress() {
   const { scrollYProgress } = useScroll();
-
   return (
     <motion.div
       className={styles.scrollProgress}
@@ -445,28 +490,22 @@ function ScrollProgress() {
   );
 }
 
-// Scroll to Top Button
+// ================================================
+// SCROLL TO TOP
+// ================================================
 function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.pageYOffset > 300) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
+      setIsVisible(window.pageYOffset > 300);
     };
-
     window.addEventListener('scroll', toggleVisibility);
     return () => window.removeEventListener('scroll', toggleVisibility);
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -493,7 +532,9 @@ function ScrollToTop() {
   );
 }
 
-// Magnetic Button Component
+// ================================================
+// MAGNETIC BUTTON
+// ================================================
 function MagneticButton({ children, className, href, target, rel, ...props }) {
   const ref = useRef(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -507,9 +548,7 @@ function MagneticButton({ children, className, href, target, rel, ...props }) {
     setPosition({ x, y });
   };
 
-  const reset = () => {
-    setPosition({ x: 0, y: 0 });
-  };
+  const reset = () => setPosition({ x: 0, y: 0 });
 
   return (
     <motion.a
@@ -529,7 +568,9 @@ function MagneticButton({ children, className, href, target, rel, ...props }) {
   );
 }
 
-// Floating decorative elements
+// ================================================
+// FLOATING EMOJI
+// ================================================
 function FloatingEmoji({ emoji, delay, duration, x, y }) {
   return (
     <motion.div
@@ -540,18 +581,16 @@ function FloatingEmoji({ emoji, delay, duration, x, y }) {
         y: [y, y - 50, y],
         x: [x, x + 20, x]
       }}
-      transition={{
-        duration: duration,
-        repeat: Infinity,
-        delay: delay,
-        ease: "easeInOut"
-      }}
+      transition={{ duration, repeat: Infinity, delay, ease: "easeInOut" }}
     >
       {emoji}
     </motion.div>
   );
 }
 
+// ================================================
+// ANIMATED SECTION
+// ================================================
 function AnimatedSection({ children, delay = 0 }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -568,7 +607,9 @@ function AnimatedSection({ children, delay = 0 }) {
   );
 }
 
-// Stats Counter Component
+// ================================================
+// STATS COUNTER
+// ================================================
 function StatsCounter({ end, duration = 2, label, icon }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
@@ -580,7 +621,6 @@ function StatsCounter({ end, duration = 2, label, icon }) {
       const animate = (currentTime) => {
         if (!startTime) startTime = currentTime;
         const progress = (currentTime - startTime) / (duration * 1000);
-
         if (progress < 1) {
           setCount(Math.floor(end * progress));
           requestAnimationFrame(animate);
@@ -612,7 +652,9 @@ function StatsCounter({ end, duration = 2, label, icon }) {
   );
 }
 
-// Testimonial Card Component
+// ================================================
+// TESTIMONIAL CARD
+// ================================================
 function TestimonialCard({ name, review, rating, image, delay }) {
   return (
     <motion.div
@@ -648,7 +690,9 @@ function TestimonialCard({ name, review, rating, image, delay }) {
   );
 }
 
-// Process Step Component
+// ================================================
+// PROCESS STEP
+// ================================================
 function ProcessStep({ number, title, description, icon, delay }) {
   return (
     <motion.div
@@ -679,7 +723,9 @@ function ProcessStep({ number, title, description, icon, delay }) {
   );
 }
 
-// Helper function to format price with ₹ symbol
+// ================================================
+// HELPER: FORMAT PRICE
+// ================================================
 const formatPrice = (price) => {
   if (!price) return '₹0';
   const priceStr = price.toString();
@@ -688,7 +734,7 @@ const formatPrice = (price) => {
 };
 
 // ================================================
-// UPDATED PRODUCT CARD WITH SHARE FUNCTIONALITY
+// PRODUCT CARD
 // ================================================
 function ProductCard({ product, index, onClick }) {
   const router = useRouter();
@@ -706,7 +752,6 @@ function ProductCard({ product, index, onClick }) {
     ? product.images
     : [product.image];
 
-  // Generate product URL
   const productUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/product/${product._id}`
     : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/product/${product._id}`;
@@ -738,11 +783,9 @@ function ProductCard({ product, index, onClick }) {
 
   useEffect(() => {
     if (!isHovered || productImages.length <= 1) return;
-
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
     }, 2000);
-
     return () => clearInterval(interval);
   }, [isHovered, productImages.length]);
 
@@ -751,17 +794,13 @@ function ProductCard({ product, index, onClick }) {
     setIsWishlisted(!isWishlisted);
   };
 
-  // NEW: Handle share button click
   const handleShare = async (e) => {
     e.stopPropagation();
-
     const shareData = {
       title: `${product.name} | Nidsscrochet`,
       text: `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`,
       url: productUrl,
     };
-
-    // Try native share first (mobile)
     if (navigator.share) {
       try {
         await navigator.share(shareData);
@@ -771,12 +810,10 @@ function ProductCard({ product, index, onClick }) {
         }
       }
     } else {
-      // Fallback to custom modal (desktop)
       setShowShareModal(true);
     }
   };
 
-  // NEW: Navigate to product page
   const handleCardClick = () => {
     router.push(`/product/${product._id}`);
   };
@@ -801,9 +838,7 @@ function ProductCard({ product, index, onClick }) {
         onMouseMove={handleMouseMove}
         onClick={handleCardClick}
         onKeyPress={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            handleCardClick();
-          }
+          if (e.key === 'Enter' || e.key === ' ') handleCardClick();
         }}
         style={{ rotateX: y, rotateY: x }}
         role="button"
@@ -812,7 +847,6 @@ function ProductCard({ product, index, onClick }) {
         whileHover={{ scale: 1.02 }}
       >
         <div className={styles.productImageWrapper}>
-          {/* Badge */}
           {badge && (
             <motion.div
               className={`${styles.productBadge} ${styles[`badge${badge.color}`]}`}
@@ -825,7 +859,6 @@ function ProductCard({ product, index, onClick }) {
             </motion.div>
           )}
 
-          {/* Wishlist Button */}
           <AnimatePresence>
             {isHovered && (
               <motion.button
@@ -848,7 +881,6 @@ function ProductCard({ product, index, onClick }) {
             )}
           </AnimatePresence>
 
-          {/* NEW: Share Button */}
           <AnimatePresence>
             {isHovered && (
               <motion.button
@@ -867,7 +899,6 @@ function ProductCard({ product, index, onClick }) {
             )}
           </AnimatePresence>
 
-          {/* Image Indicators */}
           {productImages.length > 1 && (
             <div className={styles.imageIndicator}>
               {productImages.map((_, idx) => (
@@ -926,8 +957,6 @@ function ProductCard({ product, index, onClick }) {
               transition={{ duration: 1.2, ease: "easeInOut" }}
             />
           )}
-
-
         </div>
 
         <div className={styles.productInfo}>
@@ -941,7 +970,6 @@ function ProductCard({ product, index, onClick }) {
               {product.category}
             </motion.span>
 
-            {/* Star Rating */}
             <div className={styles.ratingStars}>
               {[...Array(5)].map((_, i) => (
                 <motion.span
@@ -959,7 +987,6 @@ function ProductCard({ product, index, onClick }) {
           <h4 className={styles.productName}>{product.name}</h4>
           <p className={styles.productDescription}>{product.description}</p>
 
-          {/* Color Variants */}
           {product.colors && product.colors.length > 0 && (
             <motion.div
               className={styles.colorVariants}
@@ -991,26 +1018,21 @@ function ProductCard({ product, index, onClick }) {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Sale Price Section */}
               {product.salePrice ? (
                 <>
-                  <motion.div
-                    className={styles.productPriceSale}
-                    whileHover={{ scale: 1.05 }}
-                  >
+                  <motion.div className={styles.productPriceSale} whileHover={{ scale: 1.05 }}>
                     <span className={styles.priceSymbol}>₹</span>
                     <span className={styles.priceAmount}>{product.salePrice?.toString().replace(/[^\d]/g, '')}</span>
-                    <span className={styles.saleBadge}>{Math.round(((parseFloat(product.price.replace(/[^\d.]/g, '')) - parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) / parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100)}% OFF</span>
+                    <span className={styles.saleBadge}>
+                      {Math.round(((parseFloat(product.price.replace(/[^\d.]/g, '')) - parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) / parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100)}% OFF
+                    </span>
                   </motion.div>
                   <div className={styles.productPriceOriginal}>
                     <span>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>
                   </div>
                 </>
               ) : (
-                <motion.div
-                  className={styles.productPrice}
-                  whileHover={{ scale: 1.05 }}
-                >
+                <motion.div className={styles.productPrice} whileHover={{ scale: 1.05 }}>
                   <span className={styles.priceSymbol}>₹</span>
                   <span className={styles.priceAmount}>{product.price?.toString().replace(/[^\d]/g, '')}</span>
                 </motion.div>
@@ -1041,7 +1063,6 @@ function ProductCard({ product, index, onClick }) {
         </div>
       </motion.div>
 
-      {/* NEW: Share Modal */}
       <AnimatePresence>
         {showShareModal && (
           <ShareModalComponent
@@ -1055,6 +1076,9 @@ function ProductCard({ product, index, onClick }) {
   );
 }
 
+// ================================================
+// PRODUCT MODAL
+// ================================================
 function ProductModal({ product, onClose }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
@@ -1068,49 +1092,31 @@ function ProductModal({ product, onClose }) {
     const handleEscape = (e) => {
       if (e.key === 'Escape') onClose();
     };
-
     document.addEventListener('keydown', handleEscape);
     document.body.style.overflow = 'hidden';
-
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
   }, [onClose]);
 
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
+  const handleTouchStart = (e) => setTouchStart(e.targetTouches[0].clientX);
+  const handleTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe && currentImageIndex < productImages.length - 1) {
+    if (distance > 50 && currentImageIndex < productImages.length - 1) {
       setCurrentImageIndex(prev => prev + 1);
     }
-    if (isRightSwipe && currentImageIndex > 0) {
+    if (distance < -50 && currentImageIndex > 0) {
       setCurrentImageIndex(prev => prev - 1);
     }
-
     setTouchStart(0);
     setTouchEnd(0);
   };
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
-  };
+  const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
+  const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
 
   if (!product) return null;
 
@@ -1316,7 +1322,11 @@ function ProductModal({ product, onClose }) {
   );
 }
 
+// ================================================
+// HOME PAGE
+// ================================================
 export default function Home() {
+  const router = useRouter();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1325,11 +1335,15 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Search functionality
+  // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchActive, setSearchActive] = useState(false);
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef(null);
+  const searchInputRef = useRef(null);
 
-  // Check if user has already seen the intro in this session
+  // Intro animation
   const [showIntro, setShowIntro] = useState(() => {
     if (typeof window !== 'undefined') {
       return !sessionStorage.getItem('introSeen');
@@ -1350,6 +1364,7 @@ export default function Home() {
   const heroY = useTransform(scrollYProgress, [0, 0.5], [0, 150]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
 
+  // Scroll handler for navbar
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
@@ -1358,25 +1373,34 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close suggestions on scroll (mobile UX)
   useEffect(() => {
-    // Skip the intro animation if already seen in this session
+    const handleScroll = () => {
+      if (showSuggestions) {
+        setShowSuggestions(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [showSuggestions]);
+
+  // Intro timer
+  useEffect(() => {
     if (typeof window !== 'undefined' && sessionStorage.getItem('introSeen')) {
       setContentVisible(true);
       setShowIntro(false);
       return;
     }
-
     const timer = setTimeout(() => {
       setContentVisible(true);
-      // Mark intro as seen in sessionStorage
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('introSeen', 'true');
       }
     }, 2800);
-
     return () => clearTimeout(timer);
   }, []);
 
+  // Fetch data
   useEffect(() => {
     Promise.all([
       fetch('/api/categories').then(r => {
@@ -1411,17 +1435,62 @@ export default function Home() {
     return (category) => products.filter((p) => p.category === category.name);
   }, [products]);
 
-  // Filter products based on search query
-  const filteredProducts = useMemo(() => {
-    if (!searchQuery.trim()) return products;
+  // Search index for instant filtering
+  const searchIndex = useMemo(() => {
+    return products.map((p) => ({
+      id: p._id,
+      searchText: `${p.name || ''} ${p.description || ''} ${p.category || ''}`.toLowerCase(),
+      name: p.name,
+      category: p.category,
+      image: p.image || (p.images && p.images[0]),
+      price: p.price,
+      product: p
+    }));
+  }, [products]);
+
+  // Search suggestions - instant filtering as you type
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
 
     const query = searchQuery.toLowerCase().trim();
-    return products.filter((product) =>
-      product.name?.toLowerCase().includes(query) ||
-      product.description?.toLowerCase().includes(query) ||
-      product.category?.toLowerCase().includes(query)
-    );
-  }, [products, searchQuery]);
+    const matches = searchIndex
+      .filter(item => item.searchText.includes(query))
+      .slice(0, 6);
+
+    setSearchSuggestions(matches);
+    setShowSuggestions(true);
+  }, [searchQuery, searchIndex]);
+
+  // Click outside handler to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+        // On mobile, also close the search bar when clicking outside
+        if (window.innerWidth <= 768) {
+          setSearchActive(false);
+        }
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
+
+  // Handle selecting a suggestion — navigate to product page
+  const handleSuggestionSelect = (product) => {
+    setShowSuggestions(false);
+    setSearchQuery('');
+    setSearchActive(false);
+    router.push(`/product/${product._id}`);
+  };
 
   const scrollSlider = (categorySlug, direction) => {
     const slider = sliderRefs.current[categorySlug];
@@ -1440,22 +1509,12 @@ export default function Home() {
         <title>nidsscrochet</title>
         <meta name="description" content="Nidsscrochet by Nidhi Tripathi - Premium handcrafted crochet creations in Mumbai, India. Shop luxury amigurumi, forever flowers, crochet bouquets, bag charms, keychains, custom AirPod cases & personalized gifts. Perfect for weddings, return gifts, corporate gifting & Diwali hampers. Handmade with love, delivered across Mumbai. Order via Instagram or WhatsApp!" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-
-        {/* Comprehensive Keywords for SEO */}
         <meta name="keywords" content="Nidsscrochet, Nidhi Tripathi, crochet, handmade crochet, amigurumi, fiber art, handcrafted, sustainable living, slow fashion, makersgonnamake, crochet flowers, forever flowers, handcrafted rose bouquet, sustainable florals, crochet lily, crochet sunflower, allergy-friendly flowers, luxury crochet wedding centerpieces, bag charms, crochet keychain, aesthetic keychains, kawaii accessories, lily of the valley bag charm, fruit themed crochet accessories, soft toys, luxury amigurumi, collectible plushies, handmade nursery decor, crochet panda, crochet penguin, crochet cat, eco-friendly cotton toys, crochet AirPod case, custom mobile cover, aesthetic tech case, tomato design AirPod case, strawberry crochet earphone holder, cottagecore, kawaii aesthetic, cozy home, handmade gifts, support small business, fiber artist, Mumbai made, Mumbai artisans, handmade in India, vocal for local India, Mumbai gifts, return gifts Mumbai, return gifts for birthday party, wedding return gifts Mumbai, luxury giveaways, customized gift hampers Mumbai, birthday hampers, corporate gift boxes, Diwali hampers, personalized anniversary gift baskets, high-end corporate gifts Mumbai, employee appreciation gifts, sustainable B2B gifts, luxury home decor India, handcrafted interior accessories, modern Indian handicrafts, crochet table decor Mumbai, handmade gifts Mumbai, crochet studio Mumbai, customized hampers Mumbai, gift shop Bandra, bespoke hampers Juhu, artisan gifts South Mumbai, corporate gifting services Andheri, same day gift delivery Mumbai, bulk return gifts Mumbai, custom crochet commissions Mumbai, personalized gifts, eco-friendly crochet gift hampers, handmade luxury gifts for her, contemporary fiber art, textile sculpture, artisan-made interior accents, limited edition, one-of-a-kind, bespoke commission, heirloom quality, crochet bouquet, buy crochet online India" />
-
-        {/* Canonical URL */}
         <link rel="canonical" href="https://www.nidsscrochet.in/" />
-
-        {/* Author and Copyright */}
         <meta name="author" content="Nidhi Tripathi" />
         <meta name="copyright" content="Nidsscrochet" />
-
-        {/* Robots */}
         <meta name="robots" content="index, follow" />
         <meta name="googlebot" content="index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1" />
-
-        {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.nidsscrochet.in/" />
         <meta property="og:title" content="Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Mumbai" />
@@ -1465,20 +1524,14 @@ export default function Home() {
         <meta property="og:image:height" content="630" />
         <meta property="og:site_name" content="Nidsscrochet" />
         <meta property="og:locale" content="en_IN" />
-
-        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content="https://www.nidsscrochet.in/" />
         <meta name="twitter:title" content="Nidsscrochet | Handcrafted Crochet Mumbai" />
         <meta name="twitter:description" content="Luxury amigurumi, forever flowers, crochet bouquets & custom gifts. Handmade in Mumbai with love!" />
         <meta name="twitter:image" content="https://www.nidsscrochet.in/rose.webp" />
-
-        {/* Additional SEO */}
         <meta name="format-detection" content="telephone=yes" />
         <meta name="geo.region" content="IN" />
         <meta name="geo.placename" content="India" />
-
-        {/* JSON-LD Structured Data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -1492,19 +1545,14 @@ export default function Home() {
                   "url": "https://www.nidsscrochet.in",
                   "logo": "https://www.nidsscrochet.in/rose.webp",
                   "description": "Handcrafted crochet creations by Nidhi Tripathi",
-                  "founder": {
-                    "@type": "Person",
-                    "name": "Nidhi Tripathi"
-                  },
+                  "founder": { "@type": "Person", "name": "Nidhi Tripathi" },
                   "contactPoint": {
                     "@type": "ContactPoint",
                     "telephone": "+91-9029562156",
                     "contactType": "customer service",
                     "availableLanguage": ["English", "Hindi"]
                   },
-                  "sameAs": [
-                    "https://www.instagram.com/nidsscrochet"
-                  ]
+                  "sameAs": ["https://www.instagram.com/nidsscrochet"]
                 },
                 {
                   "@type": "WebSite",
@@ -1512,9 +1560,7 @@ export default function Home() {
                   "url": "https://www.nidsscrochet.in",
                   "name": "Nidsscrochet",
                   "description": "Handcrafted Crochet Creations",
-                  "publisher": {
-                    "@id": "https://www.nidsscrochet.in/#organization"
-                  },
+                  "publisher": { "@id": "https://www.nidsscrochet.in/#organization" },
                   "potentialAction": {
                     "@type": "SearchAction",
                     "target": "https://www.nidsscrochet.in/?search={search_term_string}",
@@ -1527,7 +1573,7 @@ export default function Home() {
                   "name": "Nidsscrochet",
                   "alternateName": "Nidsscrochet by Nidhi Tripathi",
                   "image": "https://www.nidsscrochet.in/rose.webp",
-                  "description": "Premium handcrafted crochet studio in Mumbai, India. Specializing in luxury amigurumi, forever flowers, crochet bouquets, bag charms, keychains, custom AirPod cases, and personalized gifts. Perfect for weddings, return gifts, corporate gifting, and Diwali hampers.",
+                  "description": "Premium handcrafted crochet studio in Mumbai, India.",
                   "url": "https://www.nidsscrochet.in",
                   "telephone": "+91-9029562156",
                   "priceRange": "₹₹",
@@ -1537,15 +1583,9 @@ export default function Home() {
                     "addressRegion": "Maharashtra",
                     "addressCountry": "IN"
                   },
-                  "geo": {
-                    "@type": "GeoCoordinates",
-                    "addressCountry": "IN"
-                  },
+                  "geo": { "@type": "GeoCoordinates", "addressCountry": "IN" },
                   "areaServed": [
                     { "@type": "City", "name": "Mumbai" },
-                    { "@type": "City", "name": "Bandra" },
-                    { "@type": "City", "name": "Andheri" },
-                    { "@type": "City", "name": "Juhu" },
                     { "@type": "Country", "name": "India" }
                   ],
                   "hasOfferCatalog": {
@@ -1566,10 +1606,7 @@ export default function Home() {
                     "opens": "09:00",
                     "closes": "21:00"
                   },
-                  "sameAs": [
-                    "https://www.instagram.com/nidsscrochet"
-                  ],
-                  "keywords": "handmade gifts Mumbai, crochet studio Mumbai, return gifts Mumbai, wedding gifts Mumbai, corporate gifting Mumbai, Diwali hampers Mumbai, amigurumi India, crochet flowers India"
+                  "sameAs": ["https://www.instagram.com/nidsscrochet"]
                 }
               ]
             })
@@ -1577,7 +1614,6 @@ export default function Home() {
         />
       </Head>
 
-      {/* Only show intro animation if showIntro is true (first visit in session) */}
       {showIntro && <RoseBurstIntro onComplete={() => setShowIntro(false)} />}
 
       <motion.div
@@ -1588,6 +1624,7 @@ export default function Home() {
         <ScrollProgress />
         <ScrollToTop />
 
+        {/* ===== NAVBAR ===== */}
         <motion.nav
           className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}
           initial={{ y: -100, opacity: 0 }}
@@ -1604,36 +1641,70 @@ export default function Home() {
                 Nidsscrochet
               </motion.div>
 
-              {/* Search Bar */}
-              <div className={`${styles.searchContainer} ${searchActive ? styles.searchActive : ''}`}>
+              {/* ===== SEARCH BAR — IMPROVED ===== */}
+              <div
+                ref={searchContainerRef}
+                className={`${styles.searchContainer} ${searchActive ? styles.searchActive : ''}`}
+              >
                 <button
                   className={styles.searchIcon}
-                  onClick={() => setSearchActive(!searchActive)}
+                  onClick={() => {
+                    setSearchActive(!searchActive);
+                    if (!searchActive && searchInputRef.current) {
+                      setTimeout(() => searchInputRef.current?.focus(), 100);
+                    }
+                    if (searchActive) {
+                      setShowSuggestions(false);
+                      setSearchQuery('');
+                    }
+                  }}
                   aria-label="Toggle search"
                 >
                   🔍
                 </button>
                 <input
+                  ref={searchInputRef}
                   type="text"
                   className={styles.searchInput}
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setSearchActive(true)}
+                  onFocus={() => {
+                    setSearchActive(true);
+                    if (searchQuery.trim()) setShowSuggestions(true);
+                  }}
                   aria-label="Search products"
+                  aria-autocomplete="list"
+                  role="combobox"
+                  aria-expanded={showSuggestions}
                 />
                 {searchQuery && (
                   <button
                     className={styles.searchClear}
                     onClick={() => {
                       setSearchQuery('');
-                      setSearchActive(false);
+                      setShowSuggestions(false);
+                      searchInputRef.current?.focus();
                     }}
                     aria-label="Clear search"
                   >
                     ✕
                   </button>
                 )}
+
+                {/* Suggestions Dropdown */}
+                <AnimatePresence>
+                  {(showSuggestions || (searchActive && searchQuery.trim() && searchSuggestions.length === 0)) && (
+                    <SearchSuggestions
+                      suggestions={searchSuggestions}
+                      query={searchQuery}
+                      onSelect={handleSuggestionSelect}
+                      onClose={() => setShowSuggestions(false)}
+                      visible={showSuggestions || (searchActive && searchQuery.trim().length > 0)}
+                      noResults={searchActive && searchQuery.trim().length > 0 && searchSuggestions.length === 0}
+                    />
+                  )}
+                </AnimatePresence>
               </div>
 
               <motion.button
@@ -1679,9 +1750,11 @@ export default function Home() {
           </div>
         </motion.nav>
 
+        {/* ===== MAIN CONTENT ===== */}
         <main className={styles.mainContainer}>
           <DecorativeShapes />
 
+          {/* HERO */}
           <section className={styles.hero}>
             <FloatingEmoji emoji="🧶" delay={0} duration={8} x={100} y={100} />
             <FloatingEmoji emoji="💕" delay={2} duration={10} x={300} y={150} />
@@ -1709,7 +1782,7 @@ export default function Home() {
                 className={styles.brandName}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+                transition={{ duration: 0.8, delay: 0.5 }}
               >
                 Nidsscrochet
               </motion.h1>
@@ -1718,7 +1791,7 @@ export default function Home() {
                 className={styles.creatorName}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+                transition={{ duration: 0.8, delay: 0.7 }}
               >
                 by Nidhi Tripathi
               </motion.p>
@@ -1727,7 +1800,7 @@ export default function Home() {
                 className={styles.tagline}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.9, ease: [0.25, 0.1, 0.25, 1] }}
+                transition={{ duration: 0.8, delay: 0.9 }}
               >
                 Where Every Stitch Tells a Story
               </motion.p>
@@ -1736,7 +1809,7 @@ export default function Home() {
                 className={styles.heroButtons}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.1, ease: [0.25, 0.1, 0.25, 1] }}
+                transition={{ duration: 0.8, delay: 1.1 }}
               >
                 <MagneticButton
                   href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
@@ -1765,6 +1838,7 @@ export default function Home() {
             </motion.div>
           </section>
 
+          {/* STATS */}
           <section className={styles.statsSection}>
             <AnimatedSection>
               <div className={styles.statsGrid}>
@@ -1776,8 +1850,8 @@ export default function Home() {
             </AnimatedSection>
           </section>
 
+          {/* PRODUCTS */}
           <section className={styles.productsSection} id="collections">
-            {/* Sales Banner */}
             {banner.active && banner.text && (
               <motion.div
                 className={styles.salesBanner}
@@ -1829,7 +1903,6 @@ export default function Home() {
             ) : (
               categories.map((category, idx) => {
                 const categoryProducts = getProductsByCategory(category);
-
                 return (
                   <AnimatedSection key={category._id} delay={idx * 0.15}>
                     <div className={styles.categoryBlock}>
@@ -1844,7 +1917,6 @@ export default function Home() {
                           </motion.span>
                           {category.name}
                         </h3>
-
                         <div className={styles.sliderControls}>
                           <motion.button
                             className={styles.sliderBtn}
@@ -1870,7 +1942,6 @@ export default function Home() {
                       <div className={styles.sliderWrapper}>
                         <div className={`${styles.sliderFade} ${styles.sliderFadeLeft}`}></div>
                         <div className={`${styles.sliderFade} ${styles.sliderFadeRight}`}></div>
-
                         <div
                           className={styles.productsSlider}
                           ref={(el) => (sliderRefs.current[category.slug] = el)}
@@ -1902,6 +1973,7 @@ export default function Home() {
             )}
           </section>
 
+          {/* PROCESS */}
           <section className={styles.processSection}>
             <AnimatedSection>
               <div className={styles.sectionHeader}>
@@ -1909,39 +1981,15 @@ export default function Home() {
                 <p className={styles.sectionSubtitle}>Every piece is crafted with love and attention to detail</p>
               </div>
             </AnimatedSection>
-
             <div className={styles.processGrid}>
-              <ProcessStep
-                number="01"
-                title="Design Selection"
-                description="Choose from our collection or request a custom design"
-                icon="🎨"
-                delay={0}
-              />
-              <ProcessStep
-                number="02"
-                title="Handcrafted"
-                description="Each piece is carefully crocheted by hand with premium yarn"
-                icon="🧶"
-                delay={0.2}
-              />
-              <ProcessStep
-                number="03"
-                title="Quality Check"
-                description="Every product is inspected to ensure perfect quality"
-                icon="✨"
-                delay={0.4}
-              />
-              <ProcessStep
-                number="04"
-                title="Delivered with Love"
-                description="Packaged beautifully and delivered to your doorstep"
-                icon="💝"
-                delay={0.6}
-              />
+              <ProcessStep number="01" title="Design Selection" description="Choose from our collection or request a custom design" icon="🎨" delay={0} />
+              <ProcessStep number="02" title="Handcrafted" description="Each piece is carefully crocheted by hand with premium yarn" icon="🧶" delay={0.2} />
+              <ProcessStep number="03" title="Quality Check" description="Every product is inspected to ensure perfect quality" icon="✨" delay={0.4} />
+              <ProcessStep number="04" title="Delivered with Love" description="Packaged beautifully and delivered to your doorstep" icon="💝" delay={0.6} />
             </div>
           </section>
 
+          {/* TESTIMONIALS */}
           <section className={styles.testimonialsSection}>
             <AnimatedSection>
               <div className={styles.sectionHeader}>
@@ -1949,7 +1997,6 @@ export default function Home() {
                 <p className={styles.sectionSubtitle}>Real reviews from real people</p>
               </div>
             </AnimatedSection>
-
             <div className={styles.testimonialsGrid}>
               <TestimonialCard
                 name="Priya Sharma"
@@ -1975,6 +2022,7 @@ export default function Home() {
             </div>
           </section>
 
+          {/* FOOTER */}
           <AnimatedSection>
             <footer className={styles.footer}>
               <div className={styles.footerContent}>
@@ -2027,6 +2075,7 @@ export default function Home() {
           </AnimatedSection>
         </main>
 
+        {/* PRODUCT MODAL */}
         <AnimatePresence mode="wait">
           {selectedProduct && (
             <ProductModal

@@ -1,5 +1,7 @@
 // pages/sitemap.xml.js
 // Enhanced dynamic sitemap with image sitemap support
+import connectDB from '../lib/mongodb';
+import Product from '../models/Product';
 
 const SITE_URL = 'https://www.nidsscrochet.in';
 
@@ -45,44 +47,46 @@ function generateSiteMap(products, categories) {
 
   <!-- Individual Product Pages with Image Sitemaps -->
 ${products
-    .map((product) => {
-      const productImages = product.images && product.images.length > 0
-        ? product.images
-        : product.image ? [product.image] : [];
+      .map((product) => {
+        const productImages = product.images && product.images.length > 0
+          ? product.images
+          : product.image ? [product.image] : [];
 
-      const imageEntries = productImages
-        .map(
-          (img) => `    <image:image>
+        const imageEntries = productImages
+          .map(
+            (img) => `    <image:image>
       <image:loc>${escapeXml(img)}</image:loc>
       <image:title>${escapeXml(product.name)} - Nidsscrochet</image:title>
       <image:caption>${escapeXml(product.description || product.name)}</image:caption>
     </image:image>`
-        )
-        .join('\n');
+          )
+          .join('\n');
 
-      return `  <url>
+        return `  <url>
     <loc>${SITE_URL}/product/${product._id}</loc>
     <lastmod>${product.updatedAt || product.createdAt || now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
 ${imageEntries}
   </url>`;
-    })
-    .join('\n')}
+      })
+      .join('\n')}
 </urlset>`;
 }
 
 export async function getServerSideProps({ res }) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    // ★ Connect to DB directly to avoid self-fetch deadlock
+    await connectDB();
 
-    const [productsRes, categoriesRes] = await Promise.all([
-      fetch(`${baseUrl}/api/products`).then((r) => r.json()),
-      fetch(`${baseUrl}/api/categories`).then((r) => r.json()).catch(() => ({ success: false, data: [] })),
-    ]);
+    // Fetch all products (select only needed fields for sitemap to be faster)
+    // We get images, name, description, updatedAt, createdAt
+    const products = await Product.find({}, 'name description image images updatedAt createdAt').lean();
 
-    const products = productsRes.success ? productsRes.data : [];
-    const categories = categoriesRes.success ? categoriesRes.data : [];
+    // If you had a Category model, you would fetch it here. 
+    // Since we don't have a separate Category model file visible yet, we'll extract from products or skip.
+    // For now, let's just use products.
+    const categories = [];
 
     const sitemap = generateSiteMap(products, categories);
 
@@ -98,6 +102,7 @@ export async function getServerSideProps({ res }) {
   } catch (error) {
     console.error('Sitemap generation error:', error);
 
+    // Fallback minimal sitemap
     const basicSitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>

@@ -1249,7 +1249,7 @@ function ProductCard({ product, index, onClick }) {
             </div>
           </div>
 
-          <h4 className={styles.productName}>{product.name}</h4>
+          <h4 className={styles.productName} style={{ minHeight: '2.5em', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.name}</h4>
           <p className={styles.productDescription}>{product.description}</p>
 
           {product.colors && product.colors.length > 0 && (

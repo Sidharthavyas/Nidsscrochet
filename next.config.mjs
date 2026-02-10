@@ -17,7 +17,7 @@ const nextConfig = {
     // We use Cloudinary URL transforms instead
     unoptimized: true,
     formats: ['image/avif', 'image/webp'],
-    minimumCacheTTL: 60 * 60 * 24, // 24 hours
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
     // Configure quality levels to prevent Next.js 16 warning
     qualities: [75, 80, 85, 90, 100],
   },
@@ -55,6 +55,16 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // Aggressive caching for static assets (images, fonts, icons)
+        source: '/(.*)\\.(jpg|jpeg|png|webp|avif|svg|ico|woff|woff2|css|js)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
         source: '/:path*',
         headers: [
           {
@@ -87,12 +97,13 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
+            // next/font/google self-hosts fonts — no external font CDN needed
             value: `
               default-src 'self';
               script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com;
-              style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+              style-src 'self' 'unsafe-inline';
               img-src 'self' data: https: blob:;
-              font-src 'self' https://fonts.gstatic.com;
+              font-src 'self';
               connect-src 'self' https://res.cloudinary.com;
               frame-ancestors 'self';
               base-uri 'self';

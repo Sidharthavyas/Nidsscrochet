@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { motion, useScroll, useTransform, useMotionValue, AnimatePresence, useInView } from 'framer-motion';
+import { motion, useScroll, useMotionValue, AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
 
 // SSG Imports
@@ -1608,26 +1608,18 @@ export default function Home({ initialProducts, initialCategories, initialBanner
   const searchContainerRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  // Intro animation
+  // Intro animation — runs as overlay, does NOT block content rendering
   const [showIntro, setShowIntro] = useState(() => {
     if (typeof window !== 'undefined') {
       return !sessionStorage.getItem('introSeen');
     }
     return true;
   });
-  const [contentVisible, setContentVisible] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return !!sessionStorage.getItem('introSeen');
-    }
-    return false;
-  });
 
   const [banner, setBanner] = useState(initialBanner || { text: '', active: false });
   const sliderRefs = useRef({});
 
   const { scrollYProgress } = useScroll();
-  const heroY = useTransform(scrollYProgress, [0, 0.5], [0, 150]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
 
   // Scroll handler for navbar
   useEffect(() => {
@@ -1649,15 +1641,13 @@ export default function Home({ initialProducts, initialCategories, initialBanner
     return () => window.removeEventListener('scroll', handleScroll);
   }, [showSuggestions]);
 
-  // Intro timer
+  // Intro timer — only marks intro as seen, content is always visible
   useEffect(() => {
     if (typeof window !== 'undefined' && sessionStorage.getItem('introSeen')) {
-      setContentVisible(true);
       setShowIntro(false);
       return;
     }
     const timer = setTimeout(() => {
-      setContentVisible(true);
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('introSeen', 'true');
       }
@@ -2124,20 +2114,13 @@ export default function Home({ initialProducts, initialCategories, initialBanner
       </Head>
       {showIntro && <RoseBurstIntro onComplete={() => setShowIntro(false)} />}
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: contentVisible ? 1 : 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div>
         <ScrollProgress />
         <ScrollToTop />
 
         {/* ===== NAVBAR ===== */}
-        <motion.nav
+        <nav
           className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
         >
           <div className={styles.navWrapper}>
             <div className={styles.navContent}>
@@ -2256,7 +2239,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
               </div>
             </div>
           </div>
-        </motion.nav>
+        </nav>
 
         {/* ===== MAIN CONTENT ===== */}
         <main className={styles.mainContainer}>
@@ -2270,12 +2253,8 @@ export default function Home({ initialProducts, initialCategories, initialBanner
             <FloatingEmoji emoji="🌸" delay={1} duration={11} x={700} y={120} />
             <FloatingEmoji emoji="🎀" delay={3} duration={10} x={200} y={200} />
 
-            <motion.div
+            <div
               className={styles.heroGlassCard}
-              style={{ y: heroY, opacity: heroOpacity }}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
             >
               <motion.div
                 className={styles.heroBadge}
@@ -2343,7 +2322,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                   <span>Contact Us</span>
                 </MagneticButton>
               </motion.div>
-            </motion.div>
+            </div>
           </section>
 
           {/* STATS */}
@@ -2634,7 +2613,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
             />
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
     </>
   );
 }
@@ -2649,7 +2628,8 @@ export async function getStaticProps() {
     // Cloudinary optimization helper - request smaller images
     const optimizeImage = (url) => {
       if (!url || !url.includes('cloudinary')) return url;
-      return url.replace('/upload/', '/upload/w_300,q_auto,f_auto/');
+      // w_200 matches mobile display size (177px) with slight buffer for DPR
+      return url.replace('/upload/', '/upload/w_200,q_75,f_auto/');
     };
 
     // Fetch data from database

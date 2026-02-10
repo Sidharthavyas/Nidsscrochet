@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 import { Poppins } from 'next/font/google';
 import Head from 'next/head';
+import { Analytics } from "@vercel/analytics/react";
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
@@ -27,6 +28,7 @@ export default function App({ Component, pageProps }) {
       </Head>
       <main className={poppins.className}>
         <Component {...pageProps} />
+        <Analytics />
       </main>
     </>
   );

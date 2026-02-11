@@ -498,163 +498,163 @@ function AdminDashboard() {
                     </div>
 
                     <form onSubmit={handleSubmit} className={styles.productForm}>
-                    <div className={styles.formRow}>
-                      <div className={styles.formGroup}>
-                        <label>Category *</label>
-                        <select name="category" value={formData.category} onChange={handleInputChange} required>
-                          <option value="">Select Category</option>
-                          {categories.map((cat) => (
-                            <option key={cat._id} value={cat.name}>
-                              {cat.icon} {cat.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className={styles.formGroup}>
-                        <label>Product Name *</label>
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          placeholder="e.g., Crochet Rose Bouquet"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className={styles.formGroup}>
-                      <label>Description *</label>
-                      <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        placeholder="Describe your product..."
-                        rows="3"
-                        required
-                      />
-                    </div>
-
-
-                    <div className={styles.formRow}>
-                      <div className={styles.formGroup}>
-                        <label>Price (₹) *</label>
-                        <input
-                          type="text"
-                          name="price"
-                          value={formData.price}
-                          onChange={handleInputChange}
-                          placeholder="₹299"
-                          required
-                        />
-                      </div>
-
-                      <div className={styles.formGroup}>
-                        <label>Sale Price (₹)</label>
-                        <input
-                          type="text"
-                          name="salePrice"
-                          value={formData.salePrice}
-                          onChange={handleInputChange}
-                          placeholder="₹199 (optional)"
-                        />
-                      </div>
-                    </div>
-
-                    <div className={styles.formRow}>
-                      <div className={styles.formGroup}>
-                        <label>Stock</label>
-                        <input
-                          type="number"
-                          name="stock"
-                          value={formData.stock}
-                          onChange={handleInputChange}
-                          min="0"
-                        />
-                      </div>
-                    </div>
-
-
-                    <div className={styles.formGroup}>
-                      <label className={styles.checkboxLabel}>
-                        <input
-                          type="checkbox"
-                          name="featured"
-                          checked={formData.featured}
-                          onChange={handleInputChange}
-                        />
-                        <span>⭐ Featured Product</span>
-                      </label>
-                    </div>
-
-                    {/* NEW: Multiple Image Upload */}
-                    <div className={styles.formGroup}>
-                      <label>Product Images * (Max 5)</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleImageChange}
-                        required={!editingProduct && imagePreviews.length === 0}
-                      />
-                      <small>Upload up to 5 images for your product</small>
-
-                      {/* Image Previews */}
-                      {imagePreviews.length > 0 && (
-                        <div className={styles.imagePreviewGrid}>
-                          {imagePreviews.map((preview, index) => (
-                            <div key={index} className={styles.imagePreviewItem}>
-                              <Image
-                                src={preview}
-                                alt={`Preview ${index + 1}`}
-                                width={150}
-                                height={150}
-                                style={{ objectFit: 'cover' }}
-                                unoptimized
-                              />
-                              <button
-                                type="button"
-                                className={styles.removeImageBtn}
-                                onClick={() => removeImage(index)}
-                              >
-                                ✕
-                              </button>
-                              {index === 0 && (
-                                <span className={styles.primaryBadge}>Primary</span>
-                              )}
-                            </div>
-                          ))}
+                      <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                          <label>Category *</label>
+                          <select name="category" value={formData.category} onChange={handleInputChange} required>
+                            <option value="">Select Category</option>
+                            {categories.map((cat) => (
+                              <option key={cat._id} value={cat.name}>
+                                {cat.icon} {cat.name}
+                              </option>
+                            ))}
+                          </select>
                         </div>
-                      )}
-                    </div>
 
-                    <div className={styles.formActions}>
-                      <motion.button
-                        type="submit"
-                        className={styles.submitBtn}
-                        disabled={uploading}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        {uploading ? '⏳ Processing...' : editingProduct ? '✓ Update Product' : '✓ Add Product'}
-                      </motion.button>
+                        <div className={styles.formGroup}>
+                          <label>Product Name *</label>
+                          <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            placeholder="e.g., Crochet Rose Bouquet"
+                            required
+                          />
+                        </div>
+                      </div>
 
-                      {editingProduct && (
+                      <div className={styles.formGroup}>
+                        <label>Description *</label>
+                        <textarea
+                          name="description"
+                          value={formData.description}
+                          onChange={handleInputChange}
+                          placeholder="Describe your product..."
+                          rows="3"
+                          required
+                        />
+                      </div>
+
+
+                      <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                          <label>Price (₹) *</label>
+                          <input
+                            type="text"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            placeholder="₹299"
+                            required
+                          />
+                        </div>
+
+                        <div className={styles.formGroup}>
+                          <label>Sale Price (₹)</label>
+                          <input
+                            type="text"
+                            name="salePrice"
+                            value={formData.salePrice}
+                            onChange={handleInputChange}
+                            placeholder="₹199 (optional)"
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                          <label>Stock</label>
+                          <input
+                            type="number"
+                            name="stock"
+                            value={formData.stock}
+                            onChange={handleInputChange}
+                            min="0"
+                          />
+                        </div>
+                      </div>
+
+
+                      <div className={styles.formGroup}>
+                        <label className={styles.checkboxLabel}>
+                          <input
+                            type="checkbox"
+                            name="featured"
+                            checked={formData.featured}
+                            onChange={handleInputChange}
+                          />
+                          <span>⭐ Featured Product</span>
+                        </label>
+                      </div>
+
+                      {/* NEW: Multiple Image Upload */}
+                      <div className={styles.formGroup}>
+                        <label>Product Images * (Max 5)</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleImageChange}
+                          required={!editingProduct && imagePreviews.length === 0}
+                        />
+                        <small>Upload up to 5 images for your product</small>
+
+                        {/* Image Previews */}
+                        {imagePreviews.length > 0 && (
+                          <div className={styles.imagePreviewGrid}>
+                            {imagePreviews.map((preview, index) => (
+                              <div key={index} className={styles.imagePreviewItem}>
+                                <Image
+                                  src={preview}
+                                  alt={`Preview ${index + 1}`}
+                                  width={150}
+                                  height={150}
+                                  style={{ objectFit: 'cover' }}
+                                  unoptimized
+                                />
+                                <button
+                                  type="button"
+                                  className={styles.removeImageBtn}
+                                  onClick={() => removeImage(index)}
+                                >
+                                  ✕
+                                </button>
+                                {index === 0 && (
+                                  <span className={styles.primaryBadge}>Primary</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className={styles.formActions}>
                         <motion.button
-                          type="button"
-                          className={styles.cancelBtn}
-                          onClick={cancelEdit}
+                          type="submit"
+                          className={styles.submitBtn}
+                          disabled={uploading}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          Cancel
+                          {uploading ? '⏳ Processing...' : editingProduct ? '✓ Update Product' : '✓ Add Product'}
                         </motion.button>
-                      )}
-                    </div>
-                  </form>
-                </motion.div>
-              </div>
+
+                        {editingProduct && (
+                          <motion.button
+                            type="button"
+                            className={styles.cancelBtn}
+                            onClick={cancelEdit}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            Cancel
+                          </motion.button>
+                        )}
+                      </div>
+                    </form>
+                  </motion.div>
+                </div>
               )}
 
               <div className={styles.productsSection}>
@@ -684,8 +684,8 @@ function AdminDashboard() {
                           <Image
                             src={product.images?.[0] || product.image}
                             alt={product.name}
-                            width={300}
-                            height={280}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 320px"
                             style={{ objectFit: 'cover' }}
                             unoptimized
                           />

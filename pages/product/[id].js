@@ -11,6 +11,7 @@ import styles from '../../styles/Home.module.css';
 // ★ IMPORT YOUR DB LOGIC DIRECTLY — no self-fetch
 import connectDB from '../../lib/mongodb';
 import Product from '../../models/Product';
+import Review from '../../models/Review';
 
 // ================================================
 // IMAGE LIGHTBOX COMPONENT
@@ -29,7 +30,7 @@ function ImageLightbox({ images, currentIndex, onClose }) {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
   }, []);
 
@@ -373,12 +374,93 @@ function ShareModal({ product, productUrl, onClose }) {
 // ================================================
 // PRODUCT PAGE
 // ================================================
-export default function ProductPage({ product, error }) {
+export default function ProductPage({ product, error, reviews: initialReviews, reviewStats: initialStats }) {
   const router = useRouter();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Review state
+  const [reviews, setReviews] = useState(initialReviews || []);
+  const [reviewStats, setReviewStats] = useState(initialStats || { averageRating: 0, reviewCount: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
+  const [reviewName, setReviewName] = useState('');
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewHover, setReviewHover] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+  const reviewSectionRef = useRef(null);
+
+  // ★ FIX: Reset body overflow on mount & on route change to prevent stuck pages
+  useEffect(() => {
+    // Clear any stale overflow:hidden leaked from homepage modals/lightboxes
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.height = '';
+    document.body.classList.remove('modal-open');
+
+    const handleRouteChange = () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.classList.remove('modal-open');
+    };
+    router.events.on('routeChangeStart', handleRouteChange);
+    return () => {
+      router.events.off('routeChangeStart', handleRouteChange);
+    };
+  }, [router]);
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    setReviewError('');
+    setReviewSuccess(false);
+
+    if (!reviewName.trim()) { setReviewError('Please enter your name'); return; }
+    if (reviewRating === 0) { setReviewError('Please select a star rating'); return; }
+
+    setReviewSubmitting(true);
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: product._id,
+          name: reviewName.trim(),
+          rating: reviewRating,
+          comment: reviewComment.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) { setReviewError(data.message || 'Failed to submit review'); return; }
+
+      // Add the new review to the list and recalculate stats
+      const newReviews = [data.review, ...reviews];
+      setReviews(newReviews);
+      const totalRatings = newReviews.reduce((sum, r) => sum + r.rating, 0);
+      const newDist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+      newReviews.forEach((r) => { newDist[r.rating] = (newDist[r.rating] || 0) + 1; });
+      setReviewStats({
+        averageRating: Math.round((totalRatings / newReviews.length) * 10) / 10,
+        reviewCount: newReviews.length,
+        distribution: newDist,
+      });
+
+      setReviewName('');
+      setReviewRating(0);
+      setReviewComment('');
+      setReviewSuccess(true);
+      setTimeout(() => setReviewSuccess(false), 4000);
+    } catch (err) {
+      setReviewError('Something went wrong. Please try again.');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
 
   // ★ Handle fallback / loading state for router
   if (router.isFallback) {
@@ -697,6 +779,176 @@ export default function ProductPage({ product, error }) {
           </div>
         </div>
 
+        {/* ================================================ */}
+        {/* REVIEWS SECTION */}
+        {/* ================================================ */}
+        <div className={styles.reviewSection} ref={reviewSectionRef}>
+          <h2 className={styles.reviewSectionTitle}>Customer Reviews</h2>
+
+          {/* Review Summary */}
+          <div className={styles.reviewSummary}>
+            <div className={styles.reviewSummaryLeft}>
+              <div className={styles.reviewBigRating}>
+                {reviewStats.reviewCount > 0 ? reviewStats.averageRating.toFixed(1) : '—'}
+              </div>
+              <div className={styles.reviewBigStars}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span
+                    key={star}
+                    className={star <= Math.round(reviewStats.averageRating) ? styles.starFilled : styles.starEmpty}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+              <div className={styles.reviewTotalCount}>
+                {reviewStats.reviewCount} {reviewStats.reviewCount === 1 ? 'review' : 'reviews'}
+              </div>
+            </div>
+
+            <div className={styles.reviewSummaryRight}>
+              {[5, 4, 3, 2, 1].map((star) => {
+                const count = reviewStats.distribution[star] || 0;
+                const pct = reviewStats.reviewCount > 0 ? (count / reviewStats.reviewCount) * 100 : 0;
+                return (
+                  <div key={star} className={styles.starBarRow}>
+                    <span className={styles.starBarLabel}>{star}★</span>
+                    <div className={styles.starBarTrack}>
+                      <motion.div
+                        className={styles.starBarFill}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 0.8, delay: (5 - star) * 0.1 }}
+                      />
+                    </div>
+                    <span className={styles.starBarCount}>{count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Review Form */}
+          <div className={styles.reviewFormWrapper}>
+            <h3 className={styles.reviewFormTitle}>Write a Review</h3>
+            <form onSubmit={handleReviewSubmit} className={styles.reviewForm}>
+              <div className={styles.reviewFormRow}>
+                <label className={styles.reviewLabel}>Your Name</label>
+                <input
+                  type="text"
+                  className={styles.reviewInput}
+                  placeholder="Enter your name"
+                  value={reviewName}
+                  onChange={(e) => setReviewName(e.target.value)}
+                  maxLength={80}
+                />
+              </div>
+
+              <div className={styles.reviewFormRow}>
+                <label className={styles.reviewLabel}>Rating</label>
+                <div className={styles.starSelector}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <motion.button
+                      type="button"
+                      key={star}
+                      className={`${styles.starSelectBtn} ${star <= (reviewHover || reviewRating) ? styles.starSelectActive : ''}`}
+                      onClick={() => setReviewRating(star)}
+                      onMouseEnter={() => setReviewHover(star)}
+                      onMouseLeave={() => setReviewHover(0)}
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      ★
+                    </motion.button>
+                  ))}
+                  {reviewRating > 0 && (
+                    <span className={styles.ratingText}>
+                      {['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][reviewRating]}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.reviewFormRow}>
+                <label className={styles.reviewLabel}>Your Review <span className={styles.optionalLabel}>(optional)</span></label>
+                <textarea
+                  className={styles.reviewTextarea}
+                  placeholder="Share your experience with this product..."
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  maxLength={1000}
+                  rows={4}
+                />
+                <div className={styles.charCount}>{reviewComment.length}/1000</div>
+              </div>
+
+              {reviewError && <div className={styles.reviewAlert} data-type="error">{reviewError}</div>}
+              {reviewSuccess && (
+                <motion.div
+                  className={styles.reviewAlert}
+                  data-type="success"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  ✓ Thank you for your review!
+                </motion.div>
+              )}
+
+              <motion.button
+                type="submit"
+                className={styles.reviewSubmitBtn}
+                disabled={reviewSubmitting}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+              </motion.button>
+            </form>
+          </div>
+
+          {/* Review List */}
+          {reviews.length > 0 ? (
+            <div className={styles.reviewList}>
+              {reviews.map((review, idx) => (
+                <motion.div
+                  key={review._id || idx}
+                  className={styles.reviewCard}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                >
+                  <div className={styles.reviewCardHeader}>
+                    <div className={styles.reviewAvatar}>
+                      {review.name?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                    <div className={styles.reviewMeta}>
+                      <span className={styles.reviewAuthor}>{review.name}</span>
+                      <span className={styles.reviewDate}>
+                        {new Date(review.createdAt).toLocaleDateString('en-IN', {
+                          year: 'numeric', month: 'short', day: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                    <div className={styles.reviewCardStars}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span key={star} className={star <= review.rating ? styles.starFilled : styles.starEmpty}>★</span>
+                      ))}
+                    </div>
+                  </div>
+                  {review.comment && (
+                    <p className={styles.reviewComment}>{review.comment}</p>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.noReviews}>
+              <span>✨</span>
+              <p>No reviews yet. Be the first to review this product!</p>
+            </div>
+          )}
+        </div>
+
         {/* Sticky mobile CTA */}
         <div className={styles.stickyCta}>
           <a href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3" target="_blank" rel="noopener noreferrer" className={styles.stickyCtaButton}>
@@ -725,25 +977,43 @@ export async function getServerSideProps({ params }) {
   try {
     await connectDB();
 
-    const product = await Product.findById(id).lean();
+    const [product, reviewsRaw] = await Promise.all([
+      Product.findById(id).lean(),
+      Review.find({ productId: id }).sort({ createdAt: -1 }).lean(),
+    ]);
 
     if (!product) {
       return {
-        props: { error: 'Product not found', product: null },
+        props: { error: 'Product not found', product: null, reviews: [], reviewStats: { averageRating: 0, reviewCount: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } } },
       };
     }
 
-    // Serialize MongoDB document (ObjectId → string, Date → string)
+    // Compute review stats
+    const reviewCount = reviewsRaw.length;
+    let averageRating = 0;
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    if (reviewCount > 0) {
+      let total = 0;
+      reviewsRaw.forEach((r) => {
+        total += r.rating;
+        distribution[r.rating] = (distribution[r.rating] || 0) + 1;
+      });
+      averageRating = Math.round((total / reviewCount) * 10) / 10;
+    }
+
+    // Serialize MongoDB documents
     return {
       props: {
         product: JSON.parse(JSON.stringify(product)),
+        reviews: JSON.parse(JSON.stringify(reviewsRaw)),
+        reviewStats: { averageRating, reviewCount, distribution },
         error: null,
       },
     };
   } catch (err) {
     console.error('Error fetching product:', err);
     return {
-      props: { error: 'Failed to load product', product: null },
+      props: { error: 'Failed to load product', product: null, reviews: [], reviewStats: { averageRating: 0, reviewCount: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } } },
     };
   }
 }

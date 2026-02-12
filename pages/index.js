@@ -10,6 +10,7 @@ import connectDB from '../lib/mongodb';
 import Product from '../models/Product';
 import Category from '../models/Category';
 import Banner from '../models/Banner';
+import Review from '../models/Review';
 
 // ================================================
 // SHARE MODAL COMPONENT
@@ -513,7 +514,7 @@ function ImageLightbox({ images, currentIndex, onClose, onNext, onPrev }) {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
   }, []);
 
@@ -1237,15 +1238,17 @@ function ProductCard({ product, index, onClick }) {
 
             <div className={styles.ratingStars}>
               {[...Array(5)].map((_, i) => (
-                <motion.span
+                <span
                   key={i}
-                  className={i < (product.rating || 5) ? styles.starFilled : styles.starEmpty}
-                  whileHover={{ scale: 1.2, rotate: 15 }}
-                  transition={{ duration: 0.2 }}
+                  className={i < Math.round(product.averageRating || 0) ? styles.starFilled : styles.starEmpty}
+                  style={{ fontSize: '0.75rem' }}
                 >
-                  ⭐
-                </motion.span>
+                  ★
+                </span>
               ))}
+              <span className={styles.reviewCountBadge}>
+                {product.reviewCount > 0 ? `(${product.reviewCount})` : ''}
+              </span>
             </div>
           </div>
 
@@ -1361,7 +1364,7 @@ function ProductModal({ product, onClose }) {
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
   }, [onClose]);
 
@@ -1975,7 +1978,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                       "name": "Do you offer bulk/corporate gifting?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "Yes! We offer bulk orders for return gifts, corporate hampers, Diwali gifts, wedding favors and more. Contact us for custom quotes and special pricing on bulk orders."
+                        "text": "Yes! But we require advance notice of 1-2 months for bulk orders. "
                       }
                     },
                     {
@@ -2652,6 +2655,30 @@ export async function getStaticProps() {
       if (serialized.image) serialized.image = optimizeImage(serialized.image);
       if (serialized.images) serialized.images = serialized.images.map(optimizeImage);
       return serialized;
+    });
+
+    // Aggregate review stats per product
+    const reviewAgg = await Review.aggregate([
+      {
+        $group: {
+          _id: '$productId',
+          averageRating: { $avg: '$rating' },
+          reviewCount: { $sum: 1 },
+        }
+      },
+    ]);
+    const reviewMap = {};
+    reviewAgg.forEach((r) => {
+      reviewMap[r._id.toString()] = {
+        averageRating: Math.round(r.averageRating * 10) / 10,
+        reviewCount: r.reviewCount,
+      };
+    });
+    // Merge review stats into product objects
+    products.forEach((p) => {
+      const stats = reviewMap[p._id] || { averageRating: 0, reviewCount: 0 };
+      p.averageRating = stats.averageRating;
+      p.reviewCount = stats.reviewCount;
     });
 
     const categories = categoriesRaw.map(serialize);

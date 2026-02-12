@@ -2520,12 +2520,12 @@ export default function Home({ initialProducts, initialCategories, initialBanner
             <div className={styles.faqGrid}>
               <FAQItem
                 question="How do I order from Nidsscrochet?"
-                answer="You can order by DMing us on Instagram @nidsscrochet, messaging on WhatsApp at +91-9029562156, or calling us directly. Browse our collections above and share the product you like!"
+                answer="You can order by DMing us on Instagram @nidsscrochet, messaging on WhatsApp at +91-9029562156/+91-7021610623, or calling us directly. Browse our collections above and share the product you like!"
                 delay={0}
               />
               <FAQItem
                 question="Do you deliver across India?"
-                answer="Yes! We deliver pan-India. Mumbai local delivery is also available. Shipping charges may apply based on location and order size."
+                answer="Yes! We deliver pan-India. Mumbai local delivery is also available. Shipping charges  applies based on location and order size."
                 delay={0.1}
               />
               <FAQItem
@@ -2540,7 +2540,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
               />
               <FAQItem
                 question="Do you offer bulk or corporate gifting?"
-                answer="Yes! We offer bulk orders for return gifts, corporate hampers, Diwali gifts, wedding favors and more. Contact us for custom quotes and special pricing on large orders."
+                answer="Yes! But we require advance notice of 1-2 months for bulk orders."
                 delay={0.4}
               />
               <FAQItem

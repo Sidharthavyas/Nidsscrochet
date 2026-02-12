@@ -28,9 +28,9 @@ function ImageLightbox({ images, currentIndex, onClose }) {
   const lastTapRef = useRef(0);
 
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
+    document.body.classList.add('modal-open');
     return () => {
-      document.body.style.overflow = '';
+      document.body.classList.remove('modal-open');
     };
   }, []);
 
@@ -396,18 +396,12 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
   // ★ FIX: Reset body overflow on mount & on route change to prevent stuck pages
   useEffect(() => {
     // Clear any stale overflow:hidden leaked from homepage modals/lightboxes
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.height = '';
     document.body.classList.remove('modal-open');
+    document.body.style.overflow = ''; // Cleanup legacy inline styles just in case
 
     const handleRouteChange = () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
-      document.body.style.height = '';
       document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
     };
     router.events.on('routeChangeStart', handleRouteChange);
     return () => {

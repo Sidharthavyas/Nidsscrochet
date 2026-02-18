@@ -105,6 +105,7 @@ const nextConfig = {
               img-src 'self' data: https: blob:;
               font-src 'self';
               connect-src 'self' https://res.cloudinary.com https://curious-magpie-74.clerk.accounts.dev https://*.clerk.accounts.dev https://*.clerk.com;
+              worker-src 'self' blob:;
               frame-ancestors 'self';
               base-uri 'self';
               form-action 'self';

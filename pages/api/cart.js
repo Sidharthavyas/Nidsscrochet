@@ -1,5 +1,5 @@
 import { getAuth } from '@clerk/nextjs/server';
-import connectDb from '../../../lib/mongodb';
+import connectDb from '../../lib/mongodb';
 
 export default async function handler(req, res) {
   const { userId } = getAuth(req);

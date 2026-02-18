@@ -28,18 +28,18 @@ const Cart = () => {
 
   if (items.length === 0) {
     return (
-      <div style={{ background: 'var(--cream)', minHeight: '100vh' }} className="py-12">
+      <div style={{ background: '#fff5f5', minHeight: '100vh' }} className="py-12">
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-6" style={{ 
-              background: 'var(--pink-soft)',
-              border: '2px solid var(--pink)'
+              background: '#fce7f3',
+              border: '2px solid #ec4899'
             }}>
-              <ShoppingCart className="w-10 h-10" style={{ color: 'var(--pink)' }} />
+              <ShoppingCart className="w-10 h-10" style={{ color: '#ec4899' }} />
             </div>
             <h1 className="text-2xl font-bold mb-2" style={{ 
               fontFamily: 'Pacifico, cursive',
-              background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
+              background: 'linear-gradient(135deg, #ec4899, #be185d)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
@@ -49,9 +49,9 @@ const Cart = () => {
               href="/"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all"
               style={{
-                background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
-                color: 'var(--white)',
-                boxShadow: 'var(--shadow-pink)',
+                background: 'linear-gradient(135deg, #ec4899, #be185d)',
+                color: 'white',
+                boxShadow: '0 4px 14px rgba(236, 72, 153, 0.3)',
                 textDecoration: 'none'
               }}
             >
@@ -65,13 +65,13 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--cream)' }}>
+    <div className="min-h-screen" style={{ background: '#fff5f5' }}>
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2" style={{ 
             fontFamily: 'Pacifico, cursive',
-            background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
+            background: 'linear-gradient(135deg, #ec4899, #be185d)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text'
@@ -82,7 +82,7 @@ const Cart = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2">
-            <div className="rounded-lg shadow-sm border border-pink-soft" style={{ background: 'var(--white)' }}>
+            <div className="rounded-lg shadow-sm border" style={{ background: 'white', borderColor: '#fce7f3' }}>
               {items.map((item) => (
                 <CartItem key={item.id} item={item} />
               ))}
@@ -100,13 +100,13 @@ const Cart = () => {
               
               <motion.button
                 onClick={handleClearCart}
-                className="px-6 py-3 font-medium transition-all"
+                className="px-6 py-3 font-medium transition-all rounded-lg"
                 style={{
                   background: 'transparent',
-                  color: 'var(--pink)',
-                  border: '2px solid var(--pink)'
+                  color: '#ec4899',
+                  border: '2px solid #ec4899'
                 }}
-                whileHover={{ scale: 1.05, backgroundColor: 'var(--pink-soft)' }}
+                whileHover={{ scale: 1.05, backgroundColor: '#fce7f3' }}
                 whileTap={{ scale: 0.95 }}
               >
                 <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ const Cart = () => {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="rounded-lg shadow-sm border border-pink-soft p-6 sticky top-4" style={{ background: 'var(--white)' }}>
+            <div className="rounded-lg shadow-sm border p-6 sticky top-4" style={{ background: 'white', borderColor: '#fce7f3' }}>
               <h2 className="text-lg font-semibold mb-4" style={{ color: '#374151' }}>Order Summary</h2>
               
               <div className="space-y-3 mb-6">
@@ -162,11 +162,11 @@ const Cart = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="p-3 rounded-lg mb-4"
                     style={{ 
-                      background: 'linear-gradient(135deg, var(--pink-soft), var(--blue-light))',
-                      border: '1px solid var(--pink)'
+                      background: 'linear-gradient(135deg, #fce7f3, #dbeafe)',
+                      border: '1px solid #ec4899'
                     }}
                   >
-                    <p className="text-sm font-medium text-center" style={{ color: 'var(--pink-dark)' }}>
+                    <p className="text-sm font-medium text-center" style={{ color: '#be185d' }}>
                       🎉 Free shipping on orders above ₹500!
                     </p>
                   </motion.div>
@@ -183,7 +183,7 @@ const Cart = () => {
                 </div>
                 {estimatedShipping === 0 && (
                   <div className="text-center mt-2">
-                    <span className="text-sm font-medium" style={{ color: 'var(--pink)' }}>
+                    <span className="text-sm font-medium" style={{ color: '#ec4899' }}>
                       You saved ₹50 on shipping!
                     </span>
                   </div>
@@ -194,9 +194,9 @@ const Cart = () => {
                 onClick={handleCheckout}
                 className="w-full py-3 rounded-lg font-medium transition-all"
                 style={{
-                  background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
-                  color: 'var(--white)',
-                  boxShadow: 'var(--shadow-pink)',
+                  background: 'linear-gradient(135deg, #ec4899, #be185d)',
+                  color: 'white',
+                  boxShadow: '0 4px 14px rgba(236, 72, 153, 0.3)',
                   border: 'none'
                 }}
                 whileHover={{ scale: 1.02, y: -2 }}
@@ -209,7 +209,7 @@ const Cart = () => {
               </motion.button>
 
               <div className="mt-4 text-center">
-                <Link href="/" className="text-sm hover:underline" style={{ color: 'var(--pink)' }}>
+                <Link href="/" className="text-sm hover:underline" style={{ color: '#ec4899' }}>
                   Continue Shopping
                 </Link>
               </div>

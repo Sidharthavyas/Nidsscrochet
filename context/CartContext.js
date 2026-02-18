@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 
 const CartContext = createContext();
@@ -57,24 +57,32 @@ const cartReducer = (state, action) => {
 
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, { items: [] });
+  const [isClient, setIsClient] = useState(false);
   const { isSignedIn, userId } = useAuth();
 
-  // Load cart from localStorage on mount
+  // Mark as client-side only after mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('guestCart');
-    if (savedCart) {
-      try {
-        const cartItems = JSON.parse(savedCart);
-        dispatch({ type: 'LOAD_CART', payload: cartItems });
-      } catch (error) {
-        console.error('Error loading cart from localStorage:', error);
+    setIsClient(true);
+  }, []);
+
+  // Load cart from localStorage on mount (client-side only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedCart = localStorage.getItem('guestCart');
+      if (savedCart) {
+        try {
+          const cartItems = JSON.parse(savedCart);
+          dispatch({ type: 'LOAD_CART', payload: cartItems });
+        } catch (error) {
+          console.error('Error loading cart from localStorage:', error);
+        }
       }
     }
   }, []);
 
   // Save cart to localStorage whenever it changes (for guests)
   useEffect(() => {
-    if (!isSignedIn) {
+    if (typeof window !== 'undefined' && !isSignedIn) {
       localStorage.setItem('guestCart', JSON.stringify(state.items));
     }
   }, [state.items, isSignedIn]);

@@ -32,7 +32,21 @@ export default function App({ Component, pageProps }) {
   }, [router]);
 
   return (
-    <ClerkProvider>
+    <ClerkProvider 
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      appearance={{
+        layout: {
+          logoImageUrl: "/rose.webp",
+          socialButtonsVariant: "iconButton",
+        },
+        variables: {
+          colorPrimary: "#FFB6C1",
+          colorBackground: "#FFF5F5",
+          colorInputBackground: "#FFFFFF",
+          colorInputText: "#333333",
+        },
+      }}
+    >
       <CartProvider>
         <Head>
           {/* Preconnect to Cloudinary for faster image loading */}

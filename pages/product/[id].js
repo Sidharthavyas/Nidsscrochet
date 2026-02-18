@@ -621,7 +621,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
       </Head>
 
       <main className={styles.mainContainer}>
-        // ---- Replace the broken navbar block with this ----
+        {{/* ---- Replace the broken navbar block with this ---- */}}
 
 <nav className={`${styles.navbar} ${styles.scrolled}`}>
   <div className={styles.navWrapper}>

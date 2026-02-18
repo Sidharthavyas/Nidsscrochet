@@ -547,7 +547,7 @@ function ImageLightbox({ images, currentIndex, onClose, onNext, onPrev }) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeIndex]);
+  }, [activeIndex, onClose, handleNext, handlePrev]);
 
   const handleNext = () => {
     if (images.length > 1) {
@@ -2187,6 +2187,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                   aria-autocomplete="list"
                   role="combobox"
                   aria-expanded={showSuggestions}
+                  aria-controls={showSuggestions ? 'search-suggestions' : undefined}
                 />
                 {searchQuery && (
                   <button

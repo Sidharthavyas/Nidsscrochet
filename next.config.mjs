@@ -100,11 +100,11 @@ const nextConfig = {
             // next/font/google self-hosts fonts — no external font CDN needed
             value: `
               default-src 'self';
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com;
+              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://curious-magpie-74.clerk.accounts.dev https://*.clerk.accounts.dev;
               style-src 'self' 'unsafe-inline';
               img-src 'self' data: https: blob:;
               font-src 'self';
-              connect-src 'self' https://res.cloudinary.com;
+              connect-src 'self' https://res.cloudinary.com https://curious-magpie-74.clerk.accounts.dev https://*.clerk.accounts.dev https://*.clerk.com;
               frame-ancestors 'self';
               base-uri 'self';
               form-action 'self';

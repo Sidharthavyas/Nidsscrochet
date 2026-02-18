@@ -1,0 +1,219 @@
+import { createContext, useContext, useReducer, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
+
+const CartContext = createContext();
+
+const cartReducer = (state, action) => {
+  switch (action.type) {
+    case 'ADD_TO_CART':
+      const existingItem = state.items.find(item => item.id === action.payload.id);
+      if (existingItem) {
+        return {
+          ...state,
+          items: state.items.map(item =>
+            item.id === action.payload.id
+              ? { ...item, quantity: item.quantity + action.payload.quantity }
+              : item
+          )
+        };
+      }
+      return {
+        ...state,
+        items: [...state.items, action.payload]
+      };
+
+    case 'UPDATE_QUANTITY':
+      return {
+        ...state,
+        items: state.items.map(item =>
+          item.id === action.payload.id
+            ? { ...item, quantity: action.payload.quantity }
+            : item
+        ).filter(item => item.quantity > 0)
+      };
+
+    case 'REMOVE_FROM_CART':
+      return {
+        ...state,
+        items: state.items.filter(item => item.id !== action.payload.id)
+      };
+
+    case 'CLEAR_CART':
+      return {
+        ...state,
+        items: []
+      };
+
+    case 'LOAD_CART':
+      return {
+        ...state,
+        items: action.payload
+      };
+
+    default:
+      return state;
+  }
+};
+
+export const CartProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(cartReducer, { items: [] });
+  const { isSignedIn, userId } = useAuth();
+
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem('guestCart');
+    if (savedCart) {
+      try {
+        const cartItems = JSON.parse(savedCart);
+        dispatch({ type: 'LOAD_CART', payload: cartItems });
+      } catch (error) {
+        console.error('Error loading cart from localStorage:', error);
+      }
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes (for guests)
+  useEffect(() => {
+    if (!isSignedIn) {
+      localStorage.setItem('guestCart', JSON.stringify(state.items));
+    }
+  }, [state.items, isSignedIn]);
+
+  // Sync cart with backend for authenticated users
+  useEffect(() => {
+    if (isSignedIn && userId) {
+      syncCartWithBackend();
+    }
+  }, [isSignedIn, userId]);
+
+  const syncCartWithBackend = async () => {
+    try {
+      // Get guest cart from localStorage
+      const guestCart = localStorage.getItem('guestCart');
+      const guestCartItems = guestCart ? JSON.parse(guestCart) : [];
+
+      if (guestCartItems.length > 0) {
+        // Merge guest cart with user cart
+        const response = await fetch('/api/cart/merge', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ items: guestCartItems }),
+        });
+
+        if (response.ok) {
+          const mergedCart = await response.json();
+          dispatch({ type: 'LOAD_CART', payload: mergedCart.items });
+          localStorage.removeItem('guestCart'); // Clear guest cart after merging
+        }
+      } else {
+        // Load existing user cart
+        const response = await fetch('/api/cart');
+        if (response.ok) {
+          const userCart = await response.json();
+          dispatch({ type: 'LOAD_CART', payload: userCart.items || [] });
+        }
+      }
+    } catch (error) {
+      console.error('Error syncing cart with backend:', error);
+    }
+  };
+
+  const addToCart = (product, quantity = 1) => {
+    // Sanitize price: strip non-numeric chars (e.g. ₹) and convert to number
+    const rawPrice = product.price;
+    const numericPrice = parseFloat(String(rawPrice).replace(/[^\d.]/g, '')) || 0;
+
+    const cartItem = {
+      id: product._id || product.id,
+      name: product.name || product.title,
+      price: numericPrice,
+      image: product.image || product.imageUrl,
+      quantity
+    };
+    dispatch({ type: 'ADD_TO_CART', payload: cartItem });
+
+    // Update backend if user is authenticated
+    if (isSignedIn) {
+      updateCartBackend();
+    }
+  };
+
+  const updateQuantity = (id, quantity) => {
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+
+    // Update backend if user is authenticated
+    if (isSignedIn) {
+      updateCartBackend();
+    }
+  };
+
+  const removeFromCart = (id) => {
+    dispatch({ type: 'REMOVE_FROM_CART', payload: { id } });
+
+    // Update backend if user is authenticated
+    if (isSignedIn) {
+      updateCartBackend();
+    }
+  };
+
+  const clearCart = () => {
+    dispatch({ type: 'CLEAR_CART' });
+
+    // Update backend if user is authenticated
+    if (isSignedIn) {
+      updateCartBackend();
+    }
+  };
+
+  const updateCartBackend = async () => {
+    try {
+      await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ items: state.items }),
+      });
+    } catch (error) {
+      console.error('Error updating cart backend:', error);
+    }
+  };
+
+  const getCartTotal = () => {
+    return state.items.reduce((total, item) => {
+      const price = parseFloat(String(item.price).replace(/[^\d.]/g, '')) || 0;
+      return total + (price * item.quantity);
+    }, 0);
+  };
+
+  const getCartCount = () => {
+    return state.items.reduce((count, item) => count + item.quantity, 0);
+  };
+
+  const value = {
+    items: state.items,
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    getCartTotal,
+    getCartCount,
+    syncCartWithBackend
+  };
+
+  return (
+    <CartContext.Provider value={value}>
+      {children}
+    </CartContext.Provider>
+  );
+};
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+};

@@ -4,6 +4,9 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { motion, useScroll, useMotionValue, AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
+import { useCart } from '@/context/CartContext';
+import { useAuth, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import CartButton from '@/components/CartButton';
 
 // SSG Imports
 import connectDB from '../lib/mongodb';
@@ -1606,6 +1609,8 @@ function ProductModal({ product, onClose }) {
 // ================================================
 export default function Home({ initialProducts, initialCategories, initialBanner }) {
   const router = useRouter();
+  const { getCartCount } = useCart();
+  const { isSignedIn } = useAuth();
   const [products, setProducts] = useState(initialProducts || []);
   const [categories, setCategories] = useState(initialCategories || []);
   const [loading, setLoading] = useState(false);
@@ -2231,6 +2236,45 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 >
                   Collections
                 </motion.a>
+                
+                <CartButton />
+                
+                <SignedOut>
+                  <div className="flex items-center gap-2">
+                    <SignInButton mode="modal">
+                      <motion.button
+                        whileHover={{ y: -2 }}
+                        className={styles.navLink}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                      >
+                        Sign In
+                      </motion.button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <motion.button
+                        whileHover={{ y: -2, scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={styles.navCta}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                      >
+                        Sign Up
+                      </motion.button>
+                    </SignUpButton>
+                  </div>
+                </SignedOut>
+                
+                <SignedIn>
+                  <div className="flex items-center gap-2">
+                    <UserButton 
+                      appearance={{
+                        elements: {
+                          avatarBox: "w-8 h-8",
+                        }
+                      }}
+                    />
+                  </div>
+                </SignedIn>
+                
                 <motion.a
                   href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
                   target="_blank"

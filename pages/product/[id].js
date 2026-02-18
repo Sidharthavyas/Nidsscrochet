@@ -7,6 +7,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/Home.module.css';
+import { useCart } from '@/context/CartContext';
+import { useAuth, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import CartButton from '@/components/CartButton';
+import { ShoppingCart, Plus, Minus, IndianRupee } from 'lucide-react';
 
 // ★ IMPORT YOUR DB LOGIC DIRECTLY — no self-fetch
 import connectDB from '../../lib/mongodb';
@@ -376,10 +380,14 @@ function ShareModal({ product, productUrl, onClose }) {
 // ================================================
 export default function ProductPage({ product, error, reviews: initialReviews, reviewStats: initialStats }) {
   const router = useRouter();
+  const { addToCart } = useCart();
+  const { isSignedIn } = useAuth();
+  const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   // Review state
   const [reviews, setReviews] = useState(initialReviews || []);
@@ -510,6 +518,19 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
     setLightboxOpen(true);
   };
 
+  const handleAddToCart = () => {
+    const productData = {
+      _id: product._id,
+      name: product.name,
+      price: product.salePrice || product.price,
+      image: productImages[0]
+    };
+    
+    addToCart(productData, quantity);
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 3000);
+  };
+
   // Safe price calculation
   const getSalePercent = () => {
     try {
@@ -600,51 +621,86 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
       </Head>
 
       <main className={styles.mainContainer}>
-        {/* ★ FIXED: No more <motion.a> inside <Link> — use legacyBehavior or just Link directly */}
-        <nav className={`${styles.navbar} ${styles.scrolled}`}>
-          <div className={styles.navWrapper}>
-            <div className={styles.navContent}>
-              <Link href="/" className={styles.navBrand} style={{ cursor: 'pointer', textDecoration: 'none' }}>
-                Nidsscrochet
-              </Link>
+        // ---- Replace the broken navbar block with this ----
 
-              <div className={styles.navLinks}>
-                <Link href="/#collections" className={styles.navLink} style={{ cursor: 'pointer', textDecoration: 'none' }}>
-                  Collections
-                </Link>
-                <motion.a
-                  href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ y: -2 }}
-                  className={styles.navLink}
-                >
-                  Instagram
-                </motion.a>
-                <motion.a
-                  href="tel:9029562156"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={styles.navCta}
-                >
-                  📞 Call Us
-                </motion.a>
-              </div>
-            </div>
+<nav className={`${styles.navbar} ${styles.scrolled}`}>
+  <div className={styles.navWrapper}>
+    <div className={styles.navContent}>
+      <Link
+        href="/"
+        className={styles.navBrand}
+        style={{ cursor: 'pointer', textDecoration: 'none' }}
+      >
+        Nidsscrochet
+      </Link>
+
+      <div className={styles.navLinks}>
+        <Link
+          href="/#collections"
+          className={styles.navLink}
+          style={{ cursor: 'pointer', textDecoration: 'none' }}
+        >
+          Collections
+        </Link>
+
+        <CartButton />
+
+        <SignedOut>
+          <div className="flex items-center gap-2">
+            <SignInButton mode="modal">
+              <motion.button
+                whileHover={{ y: -2 }}
+                className={styles.navLink}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 'inherit',
+                }}
+              >
+                Sign In
+              </motion.button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <motion.button
+                whileHover={{ y: -2, scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={styles.navCta}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 'inherit',
+                }}
+              >
+                Sign Up
+              </motion.button>
+            </SignUpButton>
           </div>
-        </nav>
+        </SignedOut>
 
-        {/* Back Button — ★ FIXED: no nested <a> */}
-        <div style={{ padding: '6rem 2rem 1rem', maxWidth: '1200px', margin: '0 auto' }}>
-          <Link
-            href="/#collections"
-            className={styles.backButton}
-            style={{ display: 'inline-block', cursor: 'pointer', textDecoration: 'none' }}
-          >
-            ← Back to Collections
-          </Link>
-        </div>
+        <SignedIn>
+          <UserButton afterSignOutUrl="/" />
+        </SignedIn>
+      </div>
+    </div>
+  </div>
+</nav>
 
+{/* Back Link */}
+<div className={styles.productPageContainer} style={{ paddingBottom: 0 }}>
+  <Link
+    href="/#collections"
+    className={styles.backLink}
+    style={{
+      display: 'inline-block',
+      cursor: 'pointer',
+      textDecoration: 'none',
+    }}
+  >
+    ← Back to Collections
+  </Link>
+</div>
         {/* Breadcrumbs */}
         <div className={styles.productPageContainer}>
           <div className={styles.breadcrumbs}>
@@ -756,6 +812,67 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 <div className={styles.feature}><span className={styles.featureIcon}>🧶</span><span>Handcrafted</span></div>
                 <div className={styles.feature}><span className={styles.featureIcon}>✨</span><span>Premium Quality</span></div>
                 <div className={styles.feature}><span className={styles.featureIcon}>💝</span><span>Gift Ready</span></div>
+              </div>
+
+              {/* Cart Section */}
+              <div className={styles.cartSection} style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                  <span style={{ fontWeight: '600', color: '#374151' }}>Quantity:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #d1d5db', borderRadius: '8px', overflow: 'hidden' }}>
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      style={{ padding: '0.5rem', backgroundColor: '#f3f4f6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      aria-label="Decrease quantity"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span style={{ padding: '0.5rem 1rem', minWidth: '3rem', textAlign: 'center', fontWeight: '500' }}>
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      style={{ padding: '0.5rem', backgroundColor: '#f3f4f6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      aria-label="Increase quantity"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <motion.button
+                  onClick={handleAddToCart}
+                  className={`${styles.modalBtn} ${styles.modalBtnPrimary}`}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{ 
+                    width: '100%', 
+                    backgroundColor: addedToCart ? '#10b981' : '#3b82f6',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem'
+                  }}
+                  disabled={product.stock <= 0}
+                >
+                  <ShoppingCart className="w-5 h-5" />
+                  {addedToCart ? '✓ Added to Cart' : 'Add to Cart'}
+                </motion.button>
+
+                {addedToCart && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ 
+                      marginTop: '0.5rem', 
+                      textAlign: 'center', 
+                      color: '#10b981', 
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Item added to cart successfully!
+                  </motion.div>
+                )}
               </div>
 
               <div className={styles.modalActions}>

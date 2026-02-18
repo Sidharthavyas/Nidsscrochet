@@ -4,6 +4,8 @@ import Head from 'next/head';
 import { Analytics } from "@vercel/analytics/react";
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { ClerkProvider } from '@clerk/nextjs';
+import { CartProvider } from '@/context/CartContext';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
@@ -30,23 +32,25 @@ export default function App({ Component, pageProps }) {
   }, [router]);
 
   return (
-    <>
-      <Head>
-        {/* Preconnect to Cloudinary for faster image loading */}
-        <link rel="preconnect" href="https://res.cloudinary.com" />
-        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-        {/* Preload the LCP image to eliminate resource load delay */}
-        <link
-          rel="preload"
-          href="/rose.webp"
-          as="image"
-          type="image/webp"
-        />
-      </Head>
-      <main className={poppins.className}>
-        <Component {...pageProps} />
-        <Analytics />
-      </main>
-    </>
+    <ClerkProvider>
+      <CartProvider>
+        <Head>
+          {/* Preconnect to Cloudinary for faster image loading */}
+          <link rel="preconnect" href="https://res.cloudinary.com" />
+          <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+          {/* Preload the LCP image to eliminate resource load delay */}
+          <link
+            rel="preload"
+            href="/rose.webp"
+            as="image"
+            type="image/webp"
+          />
+        </Head>
+        <main className={poppins.className}>
+          <Component {...pageProps} />
+          <Analytics />
+        </main>
+      </CartProvider>
+    </ClerkProvider>
   );
 }

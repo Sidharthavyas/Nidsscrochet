@@ -391,7 +391,17 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
 
   // Review state
   const [reviews, setReviews] = useState(initialReviews || []);
-  const [reviewStats, setReviewStats] = useState(initialStats || { averageRating: 0, reviewCount: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
+  const [reviewStats, setReviewStats] = useState(() => {
+    const defaultStats = { averageRating: 0, reviewCount: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
+    if (!initialStats) return defaultStats;
+    return {
+      averageRating: initialStats.averageRating || 0,
+      reviewCount: initialStats.reviewCount || 0,
+      distribution: initialStats.distribution && typeof initialStats.distribution === 'object' 
+        ? { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0, ...initialStats.distribution }
+        : defaultStats.distribution
+    };
+  });
   const [reviewName, setReviewName] = useState('');
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHover, setReviewHover] = useState(0);
@@ -621,103 +631,71 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
       </Head>
 
       <main className={styles.mainContainer}>
-        {{/* ---- Replace the broken navbar block with this ---- */}}
+        {/* Navbar */}
+        <nav className={`${styles.navbar} ${styles.scrolled}`}>
+          <div className={styles.navWrapper}>
+            <div className={styles.navContent}>
+              <Link href="/" className={styles.navBrand} style={{ cursor: 'pointer', textDecoration: 'none' }}>
+                Nidsscrochet
+              </Link>
 
-<nav className={`${styles.navbar} ${styles.scrolled}`}>
-  <div className={styles.navWrapper}>
-    <div className={styles.navContent}>
-      <Link
-        href="/"
-        className={styles.navBrand}
-        style={{ cursor: 'pointer', textDecoration: 'none' }}
-      >
-        Nidsscrochet
-      </Link>
+              <div className={styles.navLinks}>
+                <Link href="/#collections" className={styles.navLink} style={{ cursor: 'pointer', textDecoration: 'none' }}>
+                  Collections
+                </Link>
 
-      <div className={styles.navLinks}>
-        <Link
-          href="/#collections"
-          className={styles.navLink}
-          style={{ cursor: 'pointer', textDecoration: 'none' }}
-        >
-          Collections
-        </Link>
+                <CartButton />
 
-        <CartButton />
+                <SignedOut>
+                  <div className="flex items-center gap-2">
+                    <SignInButton mode="modal">
+                      <motion.button
+                        whileHover={{ y: -2 }}
+                        className={styles.navLink}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                      >
+                        Sign In
+                      </motion.button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <motion.button
+                        whileHover={{ y: -2, scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={styles.navCta}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                      >
+                        Sign Up
+                      </motion.button>
+                    </SignUpButton>
+                  </div>
+                </SignedOut>
 
-        <SignedOut>
-          <div className="flex items-center gap-2">
-            <SignInButton mode="modal">
-              <motion.button
-                whileHover={{ y: -2 }}
-                className={styles.navLink}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: 'inherit',
-                }}
-              >
-                Sign In
-              </motion.button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <motion.button
-                whileHover={{ y: -2, scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={styles.navCta}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: 'inherit',
-                }}
-              >
-                Sign Up
-              </motion.button>
-            </SignUpButton>
-          </div>
-        </SignedOut>
-
-        <SignedIn>
-          <UserButton afterSignOutUrl="/" />
-        </SignedIn>
-      </div>
-    </div>
-  </div>
-</nav>
-
-{/* Back Link */}
-<div className={styles.productPageContainer} style={{ paddingBottom: 0 }}>
-  <Link
-    href="/#collections"
-    className={styles.backLink}
-    style={{
-      display: 'inline-block',
-      cursor: 'pointer',
-      textDecoration: 'none',
-    }}
-  >
-    ← Back to Collections
-  </Link>
-</div>
-        {/* Breadcrumbs */}
-        <div className={styles.productPageContainer}>
-          <div className={styles.breadcrumbs}>
-            <Link href="/#collections" className={styles.breadcrumbLink}>Collections</Link>
-            <span className={styles.breadcrumbSeparator}>/</span>
-            <span className={styles.breadcrumbLink}>{product.category}</span>
-            <span className={styles.breadcrumbSeparator}>/</span>
-            <span className={styles.breadcrumbCurrent}>{product.name}</span>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
+            </div>
           </div>
         </div>
+      </nav>
 
-        {/* Product Content */}
-        <div className={styles.productPageContainer}>
-          <div className={styles.productDetailGrid}>
-            {/* Image Gallery */}
-            <div className={styles.modalImageCarousel}>
-              <motion.div
+      {/* Breadcrumbs */}
+      <div className={styles.productPageContainer}>
+        <div className={styles.breadcrumbs}>
+          <Link href="/" className={styles.breadcrumbLink}>Home</Link>
+          <span className={styles.breadcrumbSeparator}>/</span>
+          <Link href="/#collections" className={styles.breadcrumbLink}>Collections</Link>
+          <span className={styles.breadcrumbSeparator}>/</span>
+          <span className={styles.breadcrumbLink}>{product.category}</span>
+          <span className={styles.breadcrumbSeparator}>/</span>
+          <span className={styles.breadcrumbCurrent}>{product.name}</span>
+        </div>
+      </div>
+
+      <div className={styles.productPageContainer}>
+        <div className={styles.productDetailGrid}>
+          {/* Image Gallery */}
+          <div className={styles.modalImageCarousel}>
+            <motion.div
                 className={styles.zoomHintOverlay}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -919,7 +897,8 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
 
             <div className={styles.reviewSummaryRight}>
               {[5, 4, 3, 2, 1].map((star) => {
-                const count = reviewStats.distribution[star] || 0;
+                const safeDistribution = reviewStats.distribution || { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+                const count = typeof safeDistribution[star] === 'number' ? safeDistribution[star] : 0;
                 const pct = reviewStats.reviewCount > 0 ? (count / reviewStats.reviewCount) * 100 : 0;
                 return (
                   <div key={star} className={styles.starBarRow}>

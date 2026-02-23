@@ -7,7 +7,6 @@ export default function OrderSuccess() {
   const [orderNumber, setOrderNumber] = useState('');
 
   useEffect(() => {
-    // Generate a random order number for demo purposes
     const orderNum = 'ORD' + Date.now().toString().slice(-8);
     setOrderNumber(orderNum);
   }, []);
@@ -17,105 +16,168 @@ export default function OrderSuccess() {
       <Head>
         <title>Order Successful - nidsscrochet</title>
         <meta name="description" content="Your order has been placed successfully" />
+        <style>{`
+          @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+          @keyframes scaleIn { from{opacity:0;transform:scale(0.7)} to{opacity:1;transform:scale(1)} }
+          @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+        `}</style>
       </Head>
 
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full">
-          <div className="text-center">
-            {/* Success Icon */}
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
-              <CheckCircle className="h-10 w-10 text-green-600" />
-            </div>
+      <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
+        {/* Navbar */}
+        <header style={{
+          background: 'rgba(255,255,255,0.9)',
+          backdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255,107,157,0.1)',
+          boxShadow: '0 2px 20px rgba(0,0,0,0.04)',
+          position: 'sticky', top: 0, zIndex: 100,
+        }}>
+          <div style={{
+            maxWidth: '1100px', margin: '0 auto',
+            padding: '0.9rem 1.25rem',
+            display: 'flex', justifyContent: 'center', alignItems: 'center',
+          }}>
+            <Link href="/" style={{
+              fontFamily: "'Pacifico', cursive",
+              fontSize: '1.4rem',
+              background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              textDecoration: 'none',
+            }}>
+              nidsscrochet
+            </Link>
+          </div>
+        </header>
 
-            {/* Success Message */}
-            <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
+        {/* Content */}
+        <div style={{
+          maxWidth: '460px', margin: '0 auto',
+          padding: '2.5rem 1rem 3rem',
+        }}>
+          {/* Success Icon */}
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '1.5rem',
+            animation: 'scaleIn 0.5s ease both',
+          }}>
+            <div style={{
+              width: '72px', height: '72px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #d4edda, #c3e6cb)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 1rem',
+              animation: 'pulse 2s ease infinite',
+            }}>
+              <CheckCircle style={{ width: '38px', height: '38px', color: '#28a745' }} />
+            </div>
+            <h1 style={{
+              fontSize: '1.6rem', fontWeight: 700, color: 'var(--black)',
+              marginBottom: '0.35rem',
+            }}>
               Order Successful!
             </h1>
-            <p className="text-lg text-gray-600 mb-6">
+            <p style={{ color: 'var(--text-gray)', fontSize: '0.92rem', lineHeight: 1.5 }}>
               Thank you for your purchase. Your order has been confirmed.
             </p>
+          </div>
 
-            {/* Order Details */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 text-left">
-              <div className="flex items-center gap-2 mb-4">
-                <Package className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Order Details</h2>
+          {/* Order Details Card */}
+          <div style={{
+            background: 'var(--white)',
+            borderRadius: '16px',
+            padding: '1.25rem',
+            boxShadow: 'var(--shadow-sm)',
+            border: '1px solid rgba(255,107,157,0.08)',
+            marginBottom: '1rem',
+            animation: 'fadeInUp 0.4s ease 0.15s both',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
+              <Package style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
+              <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--black)', margin: 0 }}>
+                Order Details
+              </h2>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
+                <span style={{ color: 'var(--text-gray)' }}>Order Number</span>
+                <span style={{ fontWeight: 600, color: 'var(--black)' }}>{orderNumber}</span>
               </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Order Number:</span>
-                  <span className="font-medium text-gray-900">{orderNumber}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Date:</span>
-                  <span className="font-medium text-gray-900">
-                    {new Date().toLocaleDateString('en-IN', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <span className="font-medium text-green-600">Confirmed</span>
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
+                <span style={{ color: 'var(--text-gray)' }}>Date</span>
+                <span style={{ fontWeight: 600, color: 'var(--black)' }}>
+                  {new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
+                <span style={{ color: 'var(--text-gray)' }}>Status</span>
+                <span style={{ fontWeight: 600, color: '#28a745' }}>Confirmed</span>
               </div>
             </div>
+          </div>
 
-            {/* Next Steps */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h3 className="font-medium text-blue-900 mb-2">What's Next?</h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• You'll receive an order confirmation email shortly</li>
-                <li>• We'll process your order within 1-2 business days</li>
-                <li>• You'll receive tracking information once shipped</li>
-                <li>• Expected delivery: 3-5 business days</li>
-              </ul>
-            </div>
+          {/* What's Next */}
+          <div style={{
+            background: 'var(--pink-soft)',
+            borderRadius: '14px',
+            padding: '1rem 1.25rem',
+            marginBottom: '1.25rem',
+            border: '1px solid rgba(255,107,157,0.12)',
+            animation: 'fadeInUp 0.4s ease 0.25s both',
+          }}>
+            <h3 style={{ fontWeight: 700, color: 'var(--pink-dark)', marginBottom: '0.5rem', fontSize: '0.92rem' }}>
+              What's Next?
+            </h3>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.85rem', color: 'var(--black)', lineHeight: 1.8 }}>
+              <li>• Order confirmation email on its way</li>
+              <li>• Processing within 1–2 business days</li>
+              <li>• Tracking info once shipped</li>
+              <li>• Delivery in 3–5 business days</li>
+            </ul>
+          </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <Link
-                href="/"
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', animation: 'fadeInUp 0.4s ease 0.35s both' }}>
+            <Link href="/" style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+              padding: '0.8rem',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
+              color: '#fff',
+              textDecoration: 'none',
+              fontWeight: 700,
+              fontSize: '0.92rem',
+              boxShadow: 'var(--shadow-pink)',
+              transition: 'all 0.3s ease',
+            }}>
+              <ShoppingBag style={{ width: '18px', height: '18px' }} />
+              Continue Shopping
+            </Link>
+          </div>
+
+          {/* Help Section */}
+          <div style={{
+            textAlign: 'center',
+            marginTop: '2rem',
+            animation: 'fadeInUp 0.4s ease 0.4s both',
+          }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-gray)', marginBottom: '0.5rem' }}>
+              Need help with your order?
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              <a href="tel:9029562156" style={{
+                fontSize: '0.85rem', color: 'var(--pink)', textDecoration: 'none', fontWeight: 500
+              }}>
+                📞 Call Us: 9029562156
+              </a>
+              <a href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+                target="_blank" rel="noopener noreferrer" style={{
+                  fontSize: '0.85rem', color: 'var(--pink)', textDecoration: 'none', fontWeight: 500
+                }}
               >
-                <ShoppingBag className="w-5 h-5" />
-                Continue Shopping
-              </Link>
-
-              <Link
-                href="/account/orders"
-                className="w-full flex items-center justify-center gap-2 border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-              >
-                View My Orders
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            {/* Help Section */}
-            <div className="mt-8 text-center">
-              <p className="text-sm text-gray-600 mb-2">
-                Need help with your order?
-              </p>
-              <div className="space-y-1">
-                <a
-                  href="tel:9029562156"
-                  className="text-sm text-blue-600 hover:text-blue-700"
-                >
-                  📞 Call Us: 9029562156
-                </a>
-                <br />
-                <a
-                  href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:text-blue-700"
-                >
-                  📷 Message on Instagram
-                </a>
-              </div>
+                📷 Message on Instagram
+              </a>
             </div>
           </div>
         </div>

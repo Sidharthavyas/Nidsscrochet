@@ -4,7 +4,7 @@ import { useAuth } from '@clerk/nextjs';
 import { SignUp } from '@clerk/nextjs';
 import Head from 'next/head';
 import Link from 'next/link';
-import { ShoppingBag, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export default function Signup() {
   const router = useRouter();
@@ -36,8 +36,7 @@ export default function Signup() {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{
-            width: '48px',
-            height: '48px',
+            width: '48px', height: '48px',
             border: '3px solid var(--pink-soft)',
             borderTop: '3px solid var(--pink)',
             borderRadius: '50%',
@@ -57,7 +56,6 @@ export default function Signup() {
         <meta name="description" content="Create your nidsscrochet account" />
         <style>{`
           @keyframes spin { to { transform: rotate(360deg); } }
-          @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
           @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
         `}</style>
       </Head>
@@ -68,7 +66,6 @@ export default function Signup() {
         position: 'relative',
         overflow: 'hidden',
       }}>
-
         {/* Decorative blobs */}
         <div style={{
           position: 'absolute', top: '-80px', left: '-80px',
@@ -93,38 +90,33 @@ export default function Signup() {
         }}>
           <div style={{
             maxWidth: '1400px', margin: '0 auto',
-            padding: '0.9rem 2rem',
+            padding: '0.9rem 1.25rem',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
           }}>
             <Link href="/" style={{
-              fontFamily: 'Pacifico, cursive',
-              fontSize: '1.5rem',
+              fontFamily: "'Pacifico', cursive",
+              fontSize: '1.4rem',
               background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
               textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              animation: 'float 3s ease-in-out infinite'
             }}>
-              <ShoppingBag style={{ width: '22px', height: '22px', color: 'var(--pink)', WebkitTextFillColor: 'var(--pink)' }} />
               nidsscrochet
             </Link>
 
-            <Link href="/cart" style={{
-              display: 'flex', alignItems: 'center', gap: '0.4rem',
+            <Link href="/" style={{
+              display: 'flex', alignItems: 'center', gap: '0.35rem',
               color: 'var(--pink)', textDecoration: 'none',
               fontSize: '0.85rem', fontWeight: '600',
-              padding: '0.5rem 1rem',
+              padding: '0.45rem 1rem',
               borderRadius: '50px',
-              border: '2px solid var(--pink-soft)',
+              border: '1.5px solid var(--pink-soft)',
               background: 'var(--white)',
               transition: 'all 0.3s ease'
             }}>
-              <ArrowLeft style={{ width: '16px', height: '16px' }} />
-              Back to Cart
+              <ArrowLeft style={{ width: '15px', height: '15px' }} />
+              Home
             </Link>
           </div>
         </header>
@@ -134,27 +126,27 @@ export default function Signup() {
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'center',
-          padding: '3rem 1rem 4rem',
+          padding: '2.5rem 1rem 4rem',
           minHeight: 'calc(100vh - 70px)',
           gap: '2rem',
           flexWrap: 'wrap'
         }}>
           {/* Left Info Panel */}
           <div style={{
-            width: '100%', maxWidth: '340px',
+            width: '100%', maxWidth: '320px',
             animation: 'fadeInUp 0.5s ease both'
           }}>
-            <div style={{ marginBottom: '2rem' }}>
+            <div style={{ marginBottom: '1.5rem' }}>
               <h1 style={{
-                fontFamily: 'Pacifico, cursive',
-                fontSize: '2rem',
+                fontFamily: "'Pacifico', cursive",
+                fontSize: '1.8rem',
                 background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
                 marginBottom: '0.5rem'
-              }}>Join us! 🧶</h1>
-              <p style={{ color: 'var(--text-gray)', fontSize: '0.95rem', lineHeight: '1.6' }}>
+              }}>Join us!</h1>
+              <p style={{ color: 'var(--text-gray)', fontSize: '0.92rem', lineHeight: '1.6' }}>
                 Create your free account and start exploring our handcrafted crochet collection.
               </p>
               {redirectPath === '/checkout' && (
@@ -165,22 +157,21 @@ export default function Signup() {
                   background: 'linear-gradient(135deg, var(--pink-soft), rgba(168,218,255,0.2))',
                   border: '1.5px solid var(--pink)',
                 }}>
-                  <p style={{ color: 'var(--pink-dark)', fontSize: '0.88rem', fontWeight: 600 }}>
-                    🎁 Create an account to complete your checkout
+                  <p style={{ color: 'var(--pink-dark)', fontSize: '0.85rem', fontWeight: 600 }}>
+                    Create an account to complete your checkout
                   </p>
                 </div>
               )}
             </div>
 
-            {/* Benefits */}
             <div style={{
               background: 'var(--white)',
               borderRadius: '20px',
-              padding: '1.5rem',
+              padding: '1.25rem',
               boxShadow: 'var(--shadow-sm)',
               border: '1px solid rgba(255,107,157,0.08)'
             }}>
-              <p style={{ fontWeight: 700, color: 'var(--black)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+              <p style={{ fontWeight: 700, color: 'var(--black)', marginBottom: '0.75rem', fontSize: '0.88rem' }}>
                 Why join nidsscrochet?
               </p>
               {[
@@ -188,15 +179,14 @@ export default function Signup() {
                 { icon: '⚡', text: 'Faster checkout process' },
                 { icon: '📦', text: 'Track your orders easily' },
                 { icon: '📍', text: 'Save shipping addresses' },
-                { icon: '🎁', text: 'Exclusive offers & updates' },
               ].map(({ icon, text }) => (
                 <div key={text} style={{
-                  display: 'flex', alignItems: 'center', gap: '0.75rem',
-                  padding: '0.5rem 0',
+                  display: 'flex', alignItems: 'center', gap: '0.65rem',
+                  padding: '0.4rem 0',
                   borderBottom: '1px solid rgba(255,107,157,0.06)'
                 }}>
-                  <span style={{ fontSize: '1.1rem' }}>{icon}</span>
-                  <span style={{ color: 'var(--text-gray)', fontSize: '0.88rem' }}>{text}</span>
+                  <span style={{ fontSize: '1rem' }}>{icon}</span>
+                  <span style={{ color: 'var(--text-gray)', fontSize: '0.85rem' }}>{text}</span>
                 </div>
               ))}
             </div>

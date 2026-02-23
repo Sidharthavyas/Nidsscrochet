@@ -4,7 +4,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { ArrowLeft, Lock, ShoppingCart, User, CreditCard, Truck, Shield, IndianRupee } from 'lucide-react';
+import { ArrowLeft, Lock, ShoppingCart, CreditCard, Truck, Shield, IndianRupee } from 'lucide-react';
 
 export default function Checkout() {
   const { items, getCartTotal, clearCart } = useCart();
@@ -15,16 +15,13 @@ export default function Checkout() {
   const cartTotal = getCartTotal();
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isSignedIn && items.length > 0) {
-      // Store the checkout intent and redirect to login
       localStorage.setItem('checkoutIntent', 'true');
       router.push('/login');
     }
   }, [isSignedIn, items.length, router]);
 
-  // If cart is empty, redirect to cart page
   useEffect(() => {
     if (items.length === 0) {
       router.push('/cart');
@@ -36,14 +33,9 @@ export default function Checkout() {
       router.push('/login');
       return;
     }
-
     setLoading(true);
     try {
-      // Here you would integrate with your payment processor
-      // For now, we'll just show a success message
       alert('Payment integration would go here. This is a demo.');
-
-      // Clear cart after successful payment
       clearCart();
       router.push('/order-success');
     } catch (error) {
@@ -54,12 +46,13 @@ export default function Checkout() {
     }
   };
 
+  // Loading / redirect states
   if (!isSignedIn && items.length > 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting to login...</p>
+      <div style={styles.loadingPage}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={styles.spinner} />
+          <p style={{ color: 'var(--text-gray)' }}>Redirecting to login...</p>
         </div>
       </div>
     );
@@ -67,11 +60,11 @@ export default function Checkout() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
-          <Link href="/" className="text-blue-600 hover:text-blue-700">
+      <div style={styles.loadingPage}>
+        <div style={{ textAlign: 'center' }}>
+          <ShoppingCart style={{ width: '56px', height: '56px', color: 'var(--pink-soft)', margin: '0 auto 1rem' }} />
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--black)', marginBottom: '0.5rem' }}>Your cart is empty</h2>
+          <Link href="/" style={{ color: 'var(--pink)', textDecoration: 'none', fontWeight: 600 }}>
             Continue Shopping
           </Link>
         </div>
@@ -84,177 +77,198 @@ export default function Checkout() {
       <Head>
         <title>Checkout - nidsscrochet</title>
         <meta name="description" content="Complete your purchase securely" />
+        <style>{`
+          @keyframes spin { to { transform: rotate(360deg); } }
+          @keyframes fadeInUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+          @media (max-width: 768px) {
+            .checkout-grid { flex-direction: column !important; }
+            .checkout-main { max-width: 100% !important; }
+            .checkout-sidebar { max-width: 100% !important; position: static !important; }
+          }
+        `}</style>
       </Head>
 
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-6xl mx-auto px-4">
-          {/* Header */}
-          <div className="mb-8">
-            <Link
-              href="/cart"
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
-            >
-              <ArrowLeft className="w-4 h-4" />
+      <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
+        {/* Navbar */}
+        <header style={styles.header}>
+          <div style={styles.headerInner}>
+            <Link href="/" style={styles.logo}>
+              nidsscrochet
+            </Link>
+            <Link href="/cart" style={styles.backBtn}>
+              <ArrowLeft style={{ width: '15px', height: '15px' }} />
               Back to Cart
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
-            <p className="text-gray-600 mt-2">Complete your order securely</p>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '1.5rem 1rem 3rem' }}>
+          {/* Page header */}
+          <div style={{ marginBottom: '1.5rem', animation: 'fadeInUp 0.4s ease both' }}>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--black)', marginBottom: '0.25rem' }}>
+              Checkout
+            </h1>
+            <p style={{ color: 'var(--text-gray)', fontSize: '0.9rem' }}>Complete your order securely</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* User Information */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <User className="w-5 h-5 text-blue-600" />
-                  <h2 className="text-lg font-semibold text-gray-900">Account Information</h2>
+          {/* Grid layout */}
+          <div className="checkout-grid" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
+            {/* Left column: items + delivery */}
+            <div className="checkout-main" style={{ flex: '1 1 65%', minWidth: 0 }}>
+              {/* Account Info */}
+              <div style={{ ...styles.card, marginBottom: '1rem', animation: 'fadeInUp 0.4s ease 0.05s both' }}>
+                <div style={styles.sectionHeader}>
+                  <Shield style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
+                  <h2 style={styles.sectionTitle}>Account</h2>
                 </div>
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-green-800">
-                    <Shield className="w-4 h-4" />
-                    <span className="font-medium">Authenticated as {user?.firstName || user?.emailAddresses?.[0]?.emailAddress}</span>
-                  </div>
+                <div style={{
+                  background: 'var(--pink-soft)',
+                  borderRadius: '10px',
+                  padding: '0.75rem 1rem',
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  color: 'var(--pink-dark)', fontSize: '0.88rem', fontWeight: 500
+                }}>
+                  <Shield style={{ width: '14px', height: '14px' }} />
+                  Signed in as {user?.firstName || user?.emailAddresses?.[0]?.emailAddress}
                 </div>
               </div>
 
               {/* Order Items */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <ShoppingCart className="w-5 h-5 text-blue-600" />
-                  <h2 className="text-lg font-semibold text-gray-900">Order Items ({itemCount})</h2>
+              <div style={{ ...styles.card, marginBottom: '1rem', animation: 'fadeInUp 0.4s ease 0.1s both' }}>
+                <div style={styles.sectionHeader}>
+                  <ShoppingCart style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
+                  <h2 style={styles.sectionTitle}>Order Items ({itemCount})</h2>
                 </div>
-
-                <div className="space-y-4">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex items-center gap-4 pb-4 border-b border-gray-200 last:border-0">
-                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 relative">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{item.name}</h3>
-                        <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">
-                          <IndianRupee className="inline w-4 h-4" />
-                          {(item.price * item.quantity).toFixed(2)}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          <IndianRupee className="inline w-3 h-3" />
-                          {item.price.toFixed(2)} each
-                        </p>
-                      </div>
+                {items.map((item, idx) => (
+                  <div key={item.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.85rem',
+                    padding: '0.75rem 0',
+                    borderBottom: idx < items.length - 1 ? '1px solid rgba(255,107,157,0.08)' : 'none'
+                  }}>
+                    <div style={{
+                      width: '56px', height: '56px', borderRadius: '10px',
+                      overflow: 'hidden', flexShrink: 0, background: 'var(--gray)'
+                    }}>
+                      <img src={item.image} alt={item.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                     </div>
-                  ))}
-                </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--black)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {item.name}
+                      </p>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-gray)' }}>
+                        Qty: {item.quantity}
+                      </p>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <p style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--black)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                        <IndianRupee style={{ width: '14px', height: '14px' }} />
+                        {(item.price * item.quantity).toFixed(2)}
+                      </p>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-gray)' }}>
+                        ₹{item.price.toFixed(2)} each
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* Delivery Information */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <Truck className="w-5 h-5 text-blue-600" />
-                  <h2 className="text-lg font-semibold text-gray-900">Delivery Information</h2>
+              <div style={{ ...styles.card, animation: 'fadeInUp 0.4s ease 0.15s both' }}>
+                <div style={styles.sectionHeader}>
+                  <Truck style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
+                  <h2 style={styles.sectionTitle}>Delivery Information</h2>
                 </div>
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Delivery Address
-                    </label>
-                    <textarea
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      rows={3}
-                      placeholder="Enter your delivery address"
-                      defaultValue=""
-                    />
+                    <label style={styles.label}>Delivery Address</label>
+                    <textarea style={{ ...styles.input, minHeight: '70px', resize: 'vertical' }}
+                      rows={3} placeholder="Enter your delivery address" defaultValue="" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter your phone number"
-                      defaultValue=""
-                    />
+                    <label style={styles.label}>Phone Number</label>
+                    <input type="tel" style={styles.input}
+                      placeholder="Enter your phone number" defaultValue="" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Order Notes (Optional)
-                    </label>
-                    <textarea
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      rows={2}
-                      placeholder="Special instructions for delivery"
-                      defaultValue=""
-                    />
+                    <label style={styles.label}>Order Notes (Optional)</label>
+                    <textarea style={{ ...styles.input, minHeight: '50px', resize: 'vertical' }}
+                      rows={2} placeholder="Special instructions for delivery" defaultValue="" />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-4">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
+            {/* Right column: order summary */}
+            <div className="checkout-sidebar" style={{ flex: '0 0 340px', position: 'sticky', top: '1rem' }}>
+              <div style={{ ...styles.card, animation: 'fadeInUp 0.4s ease 0.2s both' }}>
+                <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--black)', marginBottom: '1rem' }}>
+                  Order Summary
+                </h2>
 
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between text-gray-600">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-gray)', fontSize: '0.88rem' }}>
                     <span>Subtotal ({itemCount} items)</span>
-                    <span>
-                      <IndianRupee className="inline w-3 h-3" />
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
+                      <IndianRupee style={{ width: '12px', height: '12px' }} />
                       {cartTotal.toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-gray-600">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-gray)', fontSize: '0.88rem' }}>
                     <span>Shipping</span>
-                    <span>Free</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Tax</span>
-                    <span>Calculated at checkout</span>
+                    <span style={{ color: 'var(--pink)', fontWeight: 600 }}>Free</span>
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 pt-4 mb-6">
-                  <div className="flex justify-between text-lg font-semibold text-gray-900">
-                    <span>Total</span>
-                    <span>
-                      <IndianRupee className="inline w-4 h-4" />
-                      {cartTotal.toFixed(2)}
-                    </span>
-                  </div>
+                <div style={{
+                  borderTop: '1.5px solid rgba(255,107,157,0.12)',
+                  paddingTop: '0.85rem', marginBottom: '1.2rem',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                }}>
+                  <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--black)' }}>Total</span>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--pink-dark)', display: 'flex', alignItems: 'center' }}>
+                    <IndianRupee style={{ width: '16px', height: '16px' }} />
+                    {cartTotal.toFixed(2)}
+                  </span>
                 </div>
 
-                <button
-                  onClick={handleProceedToPayment}
-                  disabled={loading}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
+                <button onClick={handleProceedToPayment} disabled={loading} style={{
+                  width: '100%',
+                  padding: '0.8rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
+                  color: '#fff',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.6 : 1,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                  boxShadow: 'var(--shadow-pink)',
+                  transition: 'all 0.3s ease',
+                  fontFamily: 'inherit',
+                }}>
                   {loading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <div style={{ ...styles.spinner, width: '16px', height: '16px', borderWidth: '2px', margin: 0 }} />
                       Processing...
                     </>
                   ) : (
                     <>
-                      <CreditCard className="w-5 h-5" />
+                      <CreditCard style={{ width: '18px', height: '18px' }} />
                       Proceed to Payment
                     </>
                   )}
                 </button>
 
-                <div className="mt-4 text-center">
-                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600 mb-2">
-                    <Lock className="w-4 h-4" />
-                    <span>Secure Checkout</span>
+                <div style={{ textAlign: 'center', marginTop: '0.85rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', color: 'var(--text-gray)', fontSize: '0.82rem', marginBottom: '0.25rem' }}>
+                    <Lock style={{ width: '13px', height: '13px' }} />
+                    Secure Checkout
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-gray)', opacity: 0.7 }}>
                     Your payment information is encrypted and secure
                   </p>
                 </div>
@@ -266,3 +280,83 @@ export default function Checkout() {
     </>
   );
 }
+
+const styles = {
+  loadingPage: {
+    minHeight: '100vh',
+    background: 'var(--cream)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  spinner: {
+    width: '40px', height: '40px',
+    border: '3px solid var(--pink-soft)',
+    borderTop: '3px solid var(--pink)',
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
+    margin: '0 auto 1rem',
+  },
+  header: {
+    background: 'rgba(255,255,255,0.9)',
+    backdropFilter: 'blur(20px)',
+    borderBottom: '1px solid rgba(255,107,157,0.1)',
+    boxShadow: '0 2px 20px rgba(0,0,0,0.04)',
+    position: 'sticky', top: 0, zIndex: 100,
+  },
+  headerInner: {
+    maxWidth: '1100px', margin: '0 auto',
+    padding: '0.9rem 1.25rem',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+  },
+  logo: {
+    fontFamily: "'Pacifico', cursive",
+    fontSize: '1.4rem',
+    background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    textDecoration: 'none',
+  },
+  backBtn: {
+    display: 'flex', alignItems: 'center', gap: '0.35rem',
+    color: 'var(--pink)', textDecoration: 'none',
+    fontSize: '0.85rem', fontWeight: '600',
+    padding: '0.45rem 1rem',
+    borderRadius: '50px',
+    border: '1.5px solid var(--pink-soft)',
+    background: 'var(--white)',
+    transition: 'all 0.3s ease',
+  },
+  card: {
+    background: 'var(--white)',
+    borderRadius: '16px',
+    padding: '1.25rem',
+    boxShadow: 'var(--shadow-sm)',
+    border: '1px solid rgba(255,107,157,0.08)',
+  },
+  sectionHeader: {
+    display: 'flex', alignItems: 'center', gap: '0.5rem',
+    marginBottom: '0.85rem',
+  },
+  sectionTitle: {
+    fontSize: '1rem', fontWeight: 700, color: 'var(--black)', margin: 0,
+  },
+  label: {
+    display: 'block',
+    fontSize: '0.85rem', fontWeight: 600, color: 'var(--black)',
+    marginBottom: '0.35rem',
+  },
+  input: {
+    width: '100%',
+    padding: '0.65rem 0.85rem',
+    borderRadius: '10px',
+    border: '1.5px solid rgba(255,107,157,0.15)',
+    background: 'var(--cream)',
+    fontSize: '0.88rem',
+    fontFamily: 'inherit',
+    color: 'var(--black)',
+    outline: 'none',
+    transition: 'border-color 0.3s ease',
+  },
+};

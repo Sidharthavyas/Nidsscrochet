@@ -11,7 +11,7 @@ import styles from '../../styles/Home.module.css';
 import { useCart } from '@/context/CartContext';
 import { useAuth, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import CartButton from '@/components/CartButton';
-import { ShoppingCart, Plus, Minus, IndianRupee } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, IndianRupee, Truck, CreditCard } from 'lucide-react';
 
 // ★ IMPORT YOUR DB LOGIC DIRECTLY — no self-fetch
 import connectDB from '../../lib/mongodb';
@@ -532,10 +532,13 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
 
   const handleAddToCart = () => {
     const productData = {
+      ...product,
       _id: product._id,
       name: product.name,
       price: product.salePrice || product.price,
-      image: productImages[0]
+      image: productImages[0],
+      shipping_charges: product.shipping_charges,
+      cod_available: product.cod_available,
     };
 
     addToCart(productData, quantity);
@@ -790,6 +793,24 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 <div className={styles.feature}><span className={styles.featureIcon}>🧶</span><span>Handcrafted</span></div>
                 <div className={styles.feature}><span className={styles.featureIcon}>✨</span><span>Premium Quality</span></div>
                 <div className={styles.feature}><span className={styles.featureIcon}>💝</span><span>Gift Ready</span></div>
+              </div>
+
+              {/* Shipping & COD Info */}
+              <div className={styles.shippingInfoMain}>
+                <div className={`${styles.shippingBadgeMain} ${product.shipping_charges > 0 ? '' : styles.freeShipping}`}>
+                  <Truck size={18} />
+                  <span>
+                    {product.shipping_charges > 0
+                      ? `₹${product.shipping_charges} Shipping Charges`
+                      : 'Free Mumbai Delivery'}
+                  </span>
+                </div>
+                {product.cod_available && (
+                  <div className={styles.codBadgeMain}>
+                    <CreditCard size={18} />
+                    <span>Cash on Delivery Available</span>
+                  </div>
+                )}
               </div>
 
               {/* Cart Section */}

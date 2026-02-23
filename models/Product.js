@@ -70,6 +70,14 @@ const ProductSchema = new mongoose.Schema(
             default: 0,
             min: [0, 'Stock cannot be negative'],
         },
+        shipping_charges: {
+            type: Number,
+            default: 0,
+        },
+        cod_available: {
+            type: Boolean,
+            default: false,
+        },
         active: {
             type: Boolean,
             default: true,

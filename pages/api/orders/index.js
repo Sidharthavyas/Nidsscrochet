@@ -52,7 +52,7 @@ export default async function handler(req, res) {
                 return res.status(400).json({ success: false, message: 'orderId and status are required' });
             }
 
-            const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+            const validStatuses = ['pending', 'created', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'failed'];
             if (!validStatuses.includes(status)) {
                 return res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
             }

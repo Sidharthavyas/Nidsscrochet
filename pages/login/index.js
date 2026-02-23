@@ -53,8 +53,8 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>Sign In - Nidss Crochet</title>
-        <meta name="description" content="Sign in to your Nidss Crochet account" />
+        <title>Sign In - nidsscrochet</title>
+        <meta name="description" content="Sign in to your nidsscrochet account" />
         <style>{`
           @keyframes spin { to { transform: rotate(360deg); } }
           @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
@@ -111,7 +111,7 @@ export default function Login() {
               animation: 'float 3s ease-in-out infinite'
             }}>
               <ShoppingBag style={{ width: '22px', height: '22px', color: 'var(--pink)', WebkitTextFillColor: 'var(--pink)' }} />
-              Nidss Crochet
+              nidsscrochet
             </Link>
 
             <Link href="/cart" style={{

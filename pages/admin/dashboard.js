@@ -379,7 +379,7 @@ function AdminDashboard() {
   return (
     <>
       <Head>
-        <title>Admin Dashboard - Nidsscrochet</title>
+        <title>Admin Dashboard - nidsscrochet</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
@@ -392,7 +392,7 @@ function AdminDashboard() {
               transition={{ duration: 0.6 }}
               className={styles.headerBrand}
             >
-              <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 700 }}>Nidsscrochet</h1>
+              <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 700 }}>nidsscrochet</h1>
               <span className={styles.adminBadge}>📦 Admin</span>
             </motion.div>
             <div className={styles.headerActions}>

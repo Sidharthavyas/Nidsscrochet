@@ -21,8 +21,8 @@ export default function Document() {
         <meta name="theme-color" content="#FFB6C1" media="(prefers-color-scheme: dark)" />
         <meta name="msapplication-TileColor" content="#FFB6C1" />
         <meta name="msapplication-TileImage" content="/icon-192.png" />
-        <meta name="application-name" content="Nidsscrochet" />
-        <meta name="apple-mobile-web-app-title" content="Nidsscrochet" />
+        <meta name="application-name" content="nidsscrochet" />
+        <meta name="apple-mobile-web-app-title" content="nidsscrochet" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -43,7 +43,7 @@ export default function Document() {
         {/* Noscript fallback for SEO */}
         <noscript>
           <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'sans-serif' }}>
-            <h1>Nidsscrochet - Handcrafted Crochet by Nidhi Tripathi</h1>
+            <h1>nidsscrochet - Handcrafted Crochet by Nidhi Tripathi</h1>
             <p>Please enable JavaScript to browse our handcrafted crochet collections.
               Visit us on <a href="https://www.instagram.com/nidsscrochet">Instagram</a>
               or call <a href="tel:9029562156">9029562156</a>.</p>

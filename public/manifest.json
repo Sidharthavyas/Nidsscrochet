@@ -1,6 +1,6 @@
 {
-  "name": "Nidsscrochet - Handcrafted Crochet by Nidhi Tripathi",
-  "short_name": "Nidsscrochet",
+  "name": "nidsscrochet - Handcrafted Crochet by Nidhi Tripathi",
+  "short_name": "nidsscrochet",
   "description": "Premium handcrafted crochet creations in Mumbai, India. Shop luxury amigurumi, forever flowers, crochet bouquets, bag charms & personalized gifts.",
   "start_url": "/?source=pwa",
   "scope": "/",
@@ -10,7 +10,19 @@
   "theme_color": "#FFB6C1",
   "lang": "en-IN",
   "dir": "ltr",
-  "categories": ["shopping", "lifestyle","handcrafted", "crochet", "amigurumi", "forever flowers", "crochet bouquets", "bag charms", "keychains", "custom gifts","love"],
+  "categories": [
+    "shopping",
+    "lifestyle",
+    "handcrafted",
+    "crochet",
+    "amigurumi",
+    "forever flowers",
+    "crochet bouquets",
+    "bag charms",
+    "keychains",
+    "custom gifts",
+    "love"
+  ],
   "prefer_related_applications": false,
   "icons": [
     {
@@ -31,12 +43,17 @@
       "short_name": "Collections",
       "description": "View all crochet collections",
       "url": "/#collections",
-      "icons": [{ "src": "/rose.webp", "sizes": "200x200" }]
+      "icons": [
+        {
+          "src": "/rose.webp",
+          "sizes": "200x200"
+        }
+      ]
     },
     {
       "name": "Contact Us",
       "short_name": "Contact",
-      "description": "Call or message Nidsscrochet",
+      "description": "Call or message nidsscrochet",
       "url": "tel:9029562156"
     }
   ]

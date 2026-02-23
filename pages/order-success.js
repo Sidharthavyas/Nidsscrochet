@@ -15,7 +15,7 @@ export default function OrderSuccess() {
   return (
     <>
       <Head>
-        <title>Order Successful - Nidss Crochet</title>
+        <title>Order Successful - nidsscrochet</title>
         <meta name="description" content="Your order has been placed successfully" />
       </Head>
 
@@ -41,7 +41,7 @@ export default function OrderSuccess() {
                 <Package className="w-5 h-5 text-blue-600" />
                 <h2 className="text-lg font-semibold text-gray-900">Order Details</h2>
               </div>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Order Number:</span>
@@ -84,7 +84,7 @@ export default function OrderSuccess() {
                 <ShoppingBag className="w-5 h-5" />
                 Continue Shopping
               </Link>
-              
+
               <Link
                 href="/account/orders"
                 className="w-full flex items-center justify-center gap-2 border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium"
@@ -100,14 +100,14 @@ export default function OrderSuccess() {
                 Need help with your order?
               </p>
               <div className="space-y-1">
-                <a 
-                  href="tel:9029562156" 
+                <a
+                  href="tel:9029562156"
                   className="text-sm text-blue-600 hover:text-blue-700"
                 >
                   📞 Call Us: 9029562156
                 </a>
                 <br />
-                <a 
+                <a
                   href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
                   target="_blank"
                   rel="noopener noreferrer"

@@ -8,7 +8,7 @@ export default function Custom404() {
   return (
     <>
       <Head>
-        <title>Page Not Found | Nidsscrochet</title>
+        <title>Page Not Found | nidsscrochet</title>
         <meta name="description" content="Sorry, the page you're looking for doesn't exist. Browse our handcrafted crochet collections instead!" />
         <meta name="robots" content="noindex, follow" />
       </Head>

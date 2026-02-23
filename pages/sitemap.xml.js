@@ -33,7 +33,7 @@ function generateSiteMap(products, categories) {
     <priority>1.0</priority>
     <image:image>
       <image:loc>${SITE_URL}/rose.webp</image:loc>
-      <image:title>Nidsscrochet - Handcrafted Crochet Creations</image:title>
+      <image:title>nidsscrochet - Handcrafted Crochet Creations</image:title>
       <image:caption>Premium handmade crochet products by Nidhi Tripathi in Mumbai</image:caption>
     </image:image>
   </url>
@@ -57,7 +57,7 @@ ${products
           .map(
             (img) => `    <image:image>
       <image:loc>${escapeXml(img)}</image:loc>
-      <image:title>${escapeXml(product.name)} - Nidsscrochet</image:title>
+      <image:title>${escapeXml(product.name)} - nidsscrochet</image:title>
       <image:caption>${escapeXml(product.description || product.name)}</image:caption>
     </image:image>`
           )

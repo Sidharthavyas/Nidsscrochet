@@ -42,7 +42,7 @@ export default function Checkout() {
       // Here you would integrate with your payment processor
       // For now, we'll just show a success message
       alert('Payment integration would go here. This is a demo.');
-      
+
       // Clear cart after successful payment
       clearCart();
       router.push('/order-success');
@@ -82,7 +82,7 @@ export default function Checkout() {
   return (
     <>
       <Head>
-        <title>Checkout - Nidss Crochet</title>
+        <title>Checkout - nidsscrochet</title>
         <meta name="description" content="Complete your purchase securely" />
       </Head>
 
@@ -90,8 +90,8 @@ export default function Checkout() {
         <div className="max-w-6xl mx-auto px-4">
           {/* Header */}
           <div className="mb-8">
-            <Link 
-              href="/cart" 
+            <Link
+              href="/cart"
               className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -124,7 +124,7 @@ export default function Checkout() {
                   <ShoppingCart className="w-5 h-5 text-blue-600" />
                   <h2 className="text-lg font-semibold text-gray-900">Order Items ({itemCount})</h2>
                 </div>
-                
+
                 <div className="space-y-4">
                   {items.map((item) => (
                     <div key={item.id} className="flex items-center gap-4 pb-4 border-b border-gray-200 last:border-0">
@@ -202,7 +202,7 @@ export default function Checkout() {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-4">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
-                
+
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal ({itemCount} items)</span>

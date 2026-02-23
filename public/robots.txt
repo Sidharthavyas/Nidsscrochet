@@ -1,4 +1,4 @@
-# Robots.txt for Nidsscrochet
+# Robots.txt for nidsscrochet
 # https://www.nidsscrochet.in/
 
 # Allow all search engines

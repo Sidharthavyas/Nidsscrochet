@@ -42,7 +42,7 @@ export default function AdminLogin() {
   return (
     <>
       <Head>
-        <title>Admin Login - Nidsscrochet</title>
+        <title>Admin Login - nidsscrochet</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
@@ -66,7 +66,7 @@ export default function AdminLogin() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              Nidsscrochet Dashboard
+              nidsscrochet Dashboard
             </motion.p>
           </div>
 

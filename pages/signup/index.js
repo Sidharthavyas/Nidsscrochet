@@ -53,8 +53,8 @@ export default function Signup() {
   return (
     <>
       <Head>
-        <title>Sign Up - Nidss Crochet</title>
-        <meta name="description" content="Create your Nidss Crochet account" />
+        <title>Sign Up - nidsscrochet</title>
+        <meta name="description" content="Create your nidsscrochet account" />
         <style>{`
           @keyframes spin { to { transform: rotate(360deg); } }
           @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
@@ -110,7 +110,7 @@ export default function Signup() {
               animation: 'float 3s ease-in-out infinite'
             }}>
               <ShoppingBag style={{ width: '22px', height: '22px', color: 'var(--pink)', WebkitTextFillColor: 'var(--pink)' }} />
-              Nidss Crochet
+              nidsscrochet
             </Link>
 
             <Link href="/cart" style={{
@@ -181,7 +181,7 @@ export default function Signup() {
               border: '1px solid rgba(255,107,157,0.08)'
             }}>
               <p style={{ fontWeight: 700, color: 'var(--black)', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                Why join Nidss Crochet?
+                Why join nidsscrochet?
               </p>
               {[
                 { icon: '🛒', text: 'Save your cart for later' },

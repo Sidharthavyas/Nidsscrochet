@@ -32,7 +32,7 @@ function ShareModalComponent({ product, productUrl, onClose }) {
     }
   };
 
-  const shareText = `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`;
+  const shareText = `Check out this beautiful ${product.name} from nidsscrochet! ₹${product.price}`;
   const encodedText = encodeURIComponent(shareText);
   const encodedUrl = encodeURIComponent(productUrl);
 
@@ -1083,8 +1083,8 @@ function ProductCard({ product, index, onClick }) {
   const handleShare = async (e) => {
     e.stopPropagation();
     const shareData = {
-      title: `${product.name} | Nidsscrochet`,
-      text: `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`,
+      title: `${product.name} | nidsscrochet`,
+      text: `Check out this beautiful ${product.name} from nidsscrochet! ₹${product.price}`,
       url: productUrl,
     };
     if (navigator.share) {
@@ -1753,15 +1753,15 @@ export default function Home({ initialProducts, initialCategories, initialBanner
     <>
       <Head>
         {/* ===== Primary Meta Tags ===== */}
-        <title>Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Shop Mumbai</title>
-        <meta name="description" content="Shop premium handcrafted crochet at Nidsscrochet by Nidhi Tripathi, Mumbai. Luxury amigurumi, forever flowers, crochet bouquets, bag charms, keychains, AirPod cases & personalized gifts. Perfect for weddings, return gifts, corporate gifting & Diwali hampers. Order via Instagram or WhatsApp!" />
+        <title>nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Shop Mumbai</title>
+        <meta name="description" content="Shop premium handcrafted crochet at nidsscrochet by Nidhi Tripathi, Mumbai. Luxury amigurumi, forever flowers, crochet bouquets, bag charms, keychains, AirPod cases & personalized gifts. Perfect for weddings, return gifts, corporate gifting & Diwali hampers. Order via Instagram or WhatsApp!" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
 
         {/* ===== SEO Meta ===== */}
         <meta name="keywords" content="nidsscrochet, crochet shop mumbai, handmade crochet india, buy crochet online, amigurumi india, crochet flowers mumbai, forever flowers crochet, crochet bouquet, bag charms, crochet keychain, crochet airpod case, handmade gifts mumbai, return gifts mumbai, wedding return gifts, corporate gifts mumbai, diwali hampers mumbai, crochet soft toys, nidhi tripathi crochet, handcrafted gifts india, custom crochet" />
         <link rel="canonical" href="https://www.nidsscrochet.in/" />
         <meta name="author" content="Nidhi Tripathi" />
-        <meta name="copyright" content="Nidsscrochet" />
+        <meta name="copyright" content="nidsscrochet" />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
         <meta name="geo.region" content="IN-MH" />
@@ -1772,22 +1772,22 @@ export default function Home({ initialProducts, initialCategories, initialBanner
         {/* ===== Open Graph / Facebook ===== */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.nidsscrochet.in/" />
-        <meta property="og:title" content="Nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Mumbai" />
+        <meta property="og:title" content="nidsscrochet by Nidhi Tripathi | Handcrafted Crochet Mumbai" />
         <meta property="og:description" content="Premium handcrafted crochet in Mumbai — Luxury amigurumi, forever flowers, crochet bouquets, bag charms & custom gifts. Perfect for weddings, return gifts & corporate gifting!" />
         <meta property="og:image" content="https://www.nidsscrochet.in/og-image.jpg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="Nidsscrochet - Handcrafted Crochet Creations" />
-        <meta property="og:site_name" content="Nidsscrochet" />
+        <meta property="og:image:alt" content="nidsscrochet - Handcrafted Crochet Creations" />
+        <meta property="og:site_name" content="nidsscrochet" />
         <meta property="og:locale" content="en_IN" />
 
         {/* ===== Twitter ===== */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content="https://www.nidsscrochet.in/" />
-        <meta name="twitter:title" content="Nidsscrochet | Handcrafted Crochet Mumbai" />
+        <meta name="twitter:title" content="nidsscrochet | Handcrafted Crochet Mumbai" />
         <meta name="twitter:description" content="Luxury amigurumi, forever flowers, crochet bouquets & custom gifts. Handmade in Mumbai with love!" />
         <meta name="twitter:image" content="https://www.nidsscrochet.in/og-image.jpg" />
-        <meta name="twitter:image:alt" content="Nidsscrochet crochet creations" />
+        <meta name="twitter:image:alt" content="nidsscrochet crochet creations" />
 
         {/* ===== Structured Data: Organization + WebSite + LocalBusiness + ItemList + FAQ + BreadcrumbList ===== */}
         <script
@@ -1800,8 +1800,8 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 {
                   "@type": "Organization",
                   "@id": "https://www.nidsscrochet.in/#organization",
-                  "name": "Nidsscrochet",
-                  "alternateName": "Nidsscrochet by Nidhi Tripathi",
+                  "name": "nidsscrochet",
+                  "alternateName": "nidsscrochet by Nidhi Tripathi",
                   "url": "https://www.nidsscrochet.in",
                   "logo": {
                     "@type": "ImageObject",
@@ -1839,8 +1839,8 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                   "@type": "WebSite",
                   "@id": "https://www.nidsscrochet.in/#website",
                   "url": "https://www.nidsscrochet.in",
-                  "name": "Nidsscrochet",
-                  "alternateName": "Nidsscrochet by Nidhi Tripathi",
+                  "name": "nidsscrochet",
+                  "alternateName": "nidsscrochet by Nidhi Tripathi",
                   "description": "Shop premium handcrafted crochet creations online",
                   "publisher": { "@id": "https://www.nidsscrochet.in/#organization" },
                   "inLanguage": "en-IN",
@@ -1857,8 +1857,8 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 {
                   "@type": "LocalBusiness",
                   "@id": "https://www.nidsscrochet.in/#localbusiness",
-                  "name": "Nidsscrochet",
-                  "alternateName": "Nidsscrochet by Nidhi Tripathi",
+                  "name": "nidsscrochet",
+                  "alternateName": "nidsscrochet by Nidhi Tripathi",
                   "image": "https://www.nidsscrochet.in/og-image.jpg",
                   "description": "Premium handcrafted crochet studio in Mumbai offering amigurumi, flowers, bouquets, bag charms, keychains, tech accessories and custom gifts.",
                   "url": "https://www.nidsscrochet.in",
@@ -1948,7 +1948,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 // ---- CollectionPage ----
                 {
                   "@type": "CollectionPage",
-                  "name": "Nidsscrochet Collections",
+                  "name": "nidsscrochet Collections",
                   "description": "Browse all handcrafted crochet collections — flowers, amigurumi, bag charms, tech accessories & gifts",
                   "url": "https://www.nidsscrochet.in/#collections",
                   "isPartOf": { "@id": "https://www.nidsscrochet.in/#website" }
@@ -1959,7 +1959,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                   "mainEntity": [
                     {
                       "@type": "Question",
-                      "name": "How do I order from Nidsscrochet?",
+                      "name": "How do I order from nidsscrochet?",
                       "acceptedAnswer": {
                         "@type": "Answer",
                         "text": "You can order by DMing us on Instagram @nidsscrochet, messaging on WhatsApp at +91-9029562156, or calling us directly. Browse our collections on nidsscrochet.in and share the product you like!"
@@ -2028,8 +2028,8 @@ export default function Home({ initialProducts, initialCategories, initialBanner
               __html: JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "ItemList",
-                "name": "Nidsscrochet Products",
-                "description": "All handcrafted crochet products available at Nidsscrochet",
+                "name": "nidsscrochet Products",
+                "description": "All handcrafted crochet products available at nidsscrochet",
                 "url": "https://www.nidsscrochet.in/#collections",
                 "numberOfItems": products.length,
                 "itemListElement": products.slice(0, 30).map((product, index) => {
@@ -2047,7 +2047,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                       "description": product.description,
                       "image": product.images?.[0] || product.image,
                       "url": `https://www.nidsscrochet.in/product/${product._id}`,
-                      "brand": { "@type": "Brand", "name": "Nidsscrochet" },
+                      "brand": { "@type": "Brand", "name": "nidsscrochet" },
 
                       // ✅ FIX: Missing "aggregateRating"
                       "aggregateRating": {
@@ -2079,7 +2079,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                         "price": product.price?.toString().replace(/[^\d.]/g, '') || "0",
                         "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
                         "url": `https://www.nidsscrochet.in/product/${product._id}`,
-                        "seller": { "@type": "Organization", "name": "Nidsscrochet" },
+                        "seller": { "@type": "Organization", "name": "nidsscrochet" },
 
                         // ✅ FIX: Missing "priceValidUntil"
                         "priceValidUntil": priceValidUntil,
@@ -2148,7 +2148,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.4 }}
               >
-                Nidsscrochet
+                nidsscrochet
               </motion.div>
 
               {/* ===== SEARCH BAR — IMPROVED ===== */}
@@ -2237,9 +2237,9 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 >
                   Collections
                 </motion.a>
-                
+
                 <CartButton />
-                
+
                 <SignedOut>
                   <div className="flex items-center gap-2">
                     <SignInButton mode="modal">
@@ -2263,10 +2263,10 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                     </SignUpButton>
                   </div>
                 </SignedOut>
-                
+
                 <SignedIn>
                   <div className="flex items-center gap-2">
-                    <UserButton 
+                    <UserButton
                       appearance={{
                         elements: {
                           avatarBox: "w-8 h-8",
@@ -2275,7 +2275,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                     />
                   </div>
                 </SignedIn>
-                
+
                 <motion.a
                   href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
                   target="_blank"
@@ -2330,7 +2330,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
               >
-                Nidsscrochet
+                nidsscrochet
               </motion.h1>
 
               <motion.p
@@ -2578,7 +2578,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
             </AnimatedSection>
             <div className={styles.faqGrid}>
               <FAQItem
-                question="How do I order from Nidsscrochet?"
+                question="How do I order from nidsscrochet?"
                 answer="You can order by DMing us on Instagram @nidsscrochet, messaging on WhatsApp at +91-9029562156/+91-7021610623, or calling us directly. Browse our collections above and share the product you like!"
                 delay={0}
               />
@@ -2615,7 +2615,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
             <footer className={styles.footer}>
               <div className={styles.footerContent}>
                 <div className={styles.footerBrand}>
-                  <h3>Nidsscrochet</h3>
+                  <h3>nidsscrochet</h3>
                   <p>Crafting happiness, one stitch at a time</p>
                 </div>
                 <div className={styles.footerLinks}>
@@ -2636,7 +2636,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                     📞 9029562156
                   </motion.a>
                   <motion.a
-                    href="https://wa.me/919029562156?text=Hey%2C%20I%20would%20like%20to%20order%20from%20Nidsscrochet%21%20%F0%9F%A7%B6"
+                    href="https://wa.me/919029562156?text=Hey%2C%20I%20would%20like%20to%20order%20from%20nidsscrochet%21%20%F0%9F%A7%B6"
                     target="_blank"
                     rel="noopener noreferrer"
                     whileHover={{ y: -3, scale: 1.05 }}
@@ -2656,7 +2656,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                   <p>Made with 💖 by Nidhi Tripathi</p>
                 </div>
                 <div className={styles.footerCopyright}>
-                  <p>© {new Date().getFullYear()} Nidsscrochet. All rights reserved.</p>
+                  <p>© {new Date().getFullYear()} nidsscrochet. All rights reserved.</p>
                 </div>
               </div>
             </footer>

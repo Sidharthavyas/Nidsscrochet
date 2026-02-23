@@ -100,15 +100,16 @@ const nextConfig = {
             // next/font/google self-hosts fonts — no external font CDN needed
             value: `
               default-src 'self';
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://curious-magpie-74.clerk.accounts.dev https://*.clerk.accounts.dev;
+              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://*.clerk.accounts.dev https://*.clerk.com https://checkout.razorpay.com https://api.razorpay.com;
               style-src 'self' 'unsafe-inline';
               img-src 'self' data: https: blob:;
-              font-src 'self';
-              connect-src 'self' https://res.cloudinary.com https://curious-magpie-74.clerk.accounts.dev https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com;
+              font-src 'self' https://checkout.razorpay.com;
+              connect-src 'self' https://res.cloudinary.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com https://lumberjack.razorpay.com https://api.razorpay.com;
+              frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.clerk.accounts.dev https://*.clerk.com;
               worker-src 'self' blob:;
               frame-ancestors 'self';
               base-uri 'self';
-              form-action 'self';
+              form-action 'self' https://api.razorpay.com;
             `.replace(/\s{2,}/g, ' ').trim()
           }
         ],

@@ -104,8 +104,8 @@ const nextConfig = {
               style-src 'self' 'unsafe-inline';
               img-src 'self' data: https: blob:;
               font-src 'self' https://checkout.razorpay.com;
-              connect-src 'self' https://res.cloudinary.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://clerk-telemetry.com https://challenges.cloudflare.com https://lumberjack.razorpay.com https://api.razorpay.com;
-              frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://challenges.cloudflare.com;
+              connect-src 'self' https://res.cloudinary.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://clerk-telemetry.com https://challenges.cloudflare.com https://lumberjack.razorpay.com https://api.razorpay.com https://*.juspay.in;
+              frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://challenges.cloudflare.com https://*.juspay.in;
               worker-src 'self' blob:;
               frame-ancestors 'self';
               base-uri 'self';

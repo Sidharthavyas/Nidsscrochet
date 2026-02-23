@@ -38,6 +38,9 @@ export default function Document() {
 
         {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
+
+        {/* Razorpay Checkout SDK */}
+        <script src="https://checkout.razorpay.com/v1/checkout.js" async />
       </Head>
       <body>
         {/* Noscript fallback for SEO */}

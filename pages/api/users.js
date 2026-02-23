@@ -2,16 +2,17 @@
 // Fetch registered users from Clerk for admin dashboard
 
 import { clerkClient } from '@clerk/nextjs/server';
+import { verifyToken } from '../../lib/authMiddleware';
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ success: false, message: 'Method not allowed' });
     }
 
-    // Verify admin token
-    const token = req.headers.authorization?.split(' ')[1];
-    if (token !== process.env.ADMIN_SECRET) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    // Verify admin JWT token (same token used by all admin dashboard APIs)
+    const auth = verifyToken(req);
+    if (!auth.valid || auth.user?.role !== 'admin') {
+        return res.status(401).json({ success: false, message: auth.error || 'Unauthorized' });
     }
 
     try {

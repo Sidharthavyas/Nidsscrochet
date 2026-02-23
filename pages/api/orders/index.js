@@ -4,14 +4,15 @@
 
 import connectDB from '../../../lib/mongodb';
 import Order from '../../../models/Order';
+import { verifyToken } from '../../../lib/authMiddleware';
 
 export default async function handler(req, res) {
     await connectDB();
 
-    // Verify admin token
-    const token = req.headers.authorization?.split(' ')[1];
-    if (token !== process.env.ADMIN_SECRET) {
-        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    // Verify admin JWT token
+    const auth = verifyToken(req);
+    if (!auth.valid || auth.user?.role !== 'admin') {
+        return res.status(401).json({ success: false, message: auth.error || 'Unauthorized' });
     }
 
     if (req.method === 'GET') {

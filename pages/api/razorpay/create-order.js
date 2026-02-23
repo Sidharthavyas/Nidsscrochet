@@ -16,28 +16,30 @@ export default async function handler(req, res) {
 
     const { userId } = getAuth(req);
     if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'Unauthorized — please sign in' });
     }
 
     try {
         await connectDB();
 
-        const { amount, items, customer } = req.body;
+        const { amount, items, customer, shippingCharges } = req.body;
 
         if (!amount || amount <= 0) {
-            return res.status(400).json({ error: 'Invalid amount' });
+            return res.status(400).json({ error: `Invalid amount: ${amount}. Amount must be greater than 0.` });
         }
         if (!items || items.length === 0) {
             return res.status(400).json({ error: 'No items in order' });
         }
         if (!customer?.phone || !customer?.address) {
-            return res.status(400).json({ error: 'Phone and address are required' });
+            return res.status(400).json({ error: `Phone and address are required. Got phone: "${customer?.phone || ''}", address: "${customer?.address || ''}"` });
         }
 
         // Create Razorpay order (amount in paise)
+        const amountInPaise = Math.round(amount * 100);
         const receiptId = `rcpt_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+
         const razorpayOrder = await razorpay.orders.create({
-            amount: Math.round(amount * 100),
+            amount: amountInPaise,
             currency: 'INR',
             receipt: receiptId.slice(0, 40), // Razorpay max 40 chars
             notes: {
@@ -49,12 +51,14 @@ export default async function handler(req, res) {
             },
         });
 
-        // Save order to database
+        // Save order to database with shipping charges
         const order = await Order.create({
             orderId: razorpayOrder.id,
             amount,
             currency: 'INR',
             status: 'created',
+            paymentMethod: 'online',
+            shippingCharges: parseFloat(shippingCharges) || 0,
             items: items.map(item => ({
                 productId: item.id || item.productId,
                 name: item.name,
@@ -80,6 +84,6 @@ export default async function handler(req, res) {
         });
     } catch (error) {
         console.error('Create order error:', error);
-        return res.status(500).json({ error: 'Failed to create order' });
+        return res.status(500).json({ error: error.message || 'Failed to create order' });
     }
 }

@@ -1,6 +1,7 @@
 // pages/product/[id].js
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useReducedMotion } from 'framer-motion';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -379,6 +380,7 @@ function ShareModal({ product, productUrl, onClose }) {
 // PRODUCT PAGE
 // ================================================
 export default function ProductPage({ product, error, reviews: initialReviews, reviewStats: initialStats }) {
+  const prefersReducedMotion = useReducedMotion();
   const router = useRouter();
   const { addToCart } = useCart();
   const { isSignedIn } = useAuth();
@@ -397,7 +399,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
     return {
       averageRating: initialStats.averageRating || 0,
       reviewCount: initialStats.reviewCount || 0,
-      distribution: initialStats.distribution && typeof initialStats.distribution === 'object' 
+      distribution: initialStats.distribution && typeof initialStats.distribution === 'object'
         ? { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0, ...initialStats.distribution }
         : defaultStats.distribution
     };
@@ -535,7 +537,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
       price: product.salePrice || product.price,
       image: productImages[0]
     };
-    
+
     addToCart(productData, quantity);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 3000);
@@ -647,25 +649,22 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 <CartButton />
 
                 <SignedOut>
-                  <div className="flex items-center gap-2">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <SignInButton mode="modal">
-                      <motion.button
-                        whileHover={{ y: -2 }}
+                      <button
                         className={styles.navLink}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                        style={{ cursor: 'pointer', fontSize: 'inherit' }}
                       >
                         Sign In
-                      </motion.button>
+                      </button>
                     </SignInButton>
                     <SignUpButton mode="modal">
-                      <motion.button
-                        whileHover={{ y: -2, scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                      <button
                         className={styles.navCta}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                        style={{ cursor: 'pointer', fontSize: 'inherit' }}
                       >
                         Sign Up
-                      </motion.button>
+                      </button>
                     </SignUpButton>
                   </div>
                 </SignedOut>
@@ -673,29 +672,29 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 <SignedIn>
                   <UserButton afterSignOutUrl="/" />
                 </SignedIn>
+              </div>
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      {/* Breadcrumbs */}
-      <div className={styles.productPageContainer}>
-        <div className={styles.breadcrumbs}>
-          <Link href="/" className={styles.breadcrumbLink}>Home</Link>
-          <span className={styles.breadcrumbSeparator}>/</span>
-          <Link href="/#collections" className={styles.breadcrumbLink}>Collections</Link>
-          <span className={styles.breadcrumbSeparator}>/</span>
-          <span className={styles.breadcrumbLink}>{product.category}</span>
-          <span className={styles.breadcrumbSeparator}>/</span>
-          <span className={styles.breadcrumbCurrent}>{product.name}</span>
+        {/* Breadcrumbs */}
+        <div className={styles.productPageContainer}>
+          <div className={styles.breadcrumbs}>
+            <Link href="/" className={styles.breadcrumbLink}>Home</Link>
+            <span className={styles.breadcrumbSeparator}>/</span>
+            <Link href="/#collections" className={styles.breadcrumbLink}>Collections</Link>
+            <span className={styles.breadcrumbSeparator}>/</span>
+            <span className={styles.breadcrumbLink}>{product.category}</span>
+            <span className={styles.breadcrumbSeparator}>/</span>
+            <span className={styles.breadcrumbCurrent}>{product.name}</span>
+          </div>
         </div>
-      </div>
 
-      <div className={styles.productPageContainer}>
-        <div className={styles.productDetailGrid}>
-          {/* Image Gallery */}
-          <div className={styles.modalImageCarousel}>
-            <motion.div
+        <div className={styles.productPageContainer}>
+          <div className={styles.productDetailGrid}>
+            {/* Image Gallery */}
+            <div className={styles.modalImageCarousel}>
+              <motion.div
                 className={styles.zoomHintOverlay}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -707,13 +706,13 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentImageIndex}
-                  initial={{ opacity: 0, x: 100 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0, x: 60 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ duration: 0.3 }}
+                  exit={prefersReducedMotion ? false : { opacity: 0, x: -60 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
                   className={styles.modalImage}
                   onClick={() => handleImageClick(currentImageIndex)}
-                  style={{ cursor: 'zoom-in' }}
+                  style={{ cursor: 'zoom-in', willChange: 'transform, opacity' }}
                 >
                   <Image
                     src={productImages[currentImageIndex]}
@@ -722,6 +721,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                     className={styles.modalImg}
                     unoptimized
                     priority
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     style={{ objectFit: 'contain', objectPosition: 'center' }}
                   />
                 </motion.div>
@@ -743,7 +743,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 <div className={styles.thumbnailRow}>
                   {productImages.map((img, idx) => (
                     <button key={idx} className={`${styles.thumbnailButton} ${idx === currentImageIndex ? styles.thumbnailActive : ''}`} onClick={() => setCurrentImageIndex(idx)}>
-                      <Image src={img} alt={`${product.name} thumbnail ${idx + 1}`} width={70} height={70} style={{ objectFit: 'cover' }} unoptimized />
+                      <Image src={img} alt={`${product.name} thumbnail ${idx + 1}`} width={70} height={70} sizes="70px" style={{ objectFit: 'cover' }} unoptimized />
                     </button>
                   ))}
                 </div>
@@ -822,8 +822,8 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                   className={`${styles.modalBtn} ${styles.modalBtnPrimary}`}
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  style={{ 
-                    width: '100%', 
+                  style={{
+                    width: '100%',
                     backgroundColor: addedToCart ? '#10b981' : '#3b82f6',
                     display: 'flex',
                     alignItems: 'center',
@@ -840,10 +840,10 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    style={{ 
-                      marginTop: '0.5rem', 
-                      textAlign: 'center', 
-                      color: '#10b981', 
+                    style={{
+                      marginTop: '0.5rem',
+                      textAlign: 'center',
+                      color: '#10b981',
                       fontSize: '0.875rem',
                       fontWeight: '500'
                     }}

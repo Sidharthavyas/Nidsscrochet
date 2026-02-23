@@ -1,9 +1,9 @@
 import { useCart } from '@/context/CartContext';
-import { ShoppingCart, IndianRupee, ArrowLeft, Plus, Minus, Trash2, Package, Clock, CheckCircle } from 'lucide-react';
+import { ShoppingCart, IndianRupee, ArrowLeft, Trash2, Package, CheckCircle } from 'lucide-react';
 import CartItem from './CartItem';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { motion } from 'framer-motion';
+import styles from '../styles/Cart.module.css';
 
 const Cart = () => {
   const { items, getCartTotal, clearCart } = useCart();
@@ -23,39 +23,23 @@ const Cart = () => {
   };
 
   const estimatedShipping = cartTotal > 500 ? 0 : 50;
-  const estimatedTax = cartTotal * 0.18; // 18% GST
+  const estimatedTax = cartTotal * 0.18;
   const orderTotal = cartTotal + estimatedShipping + estimatedTax;
 
   if (items.length === 0) {
     return (
-      <div style={{ background: '#fff5f5', minHeight: '100vh' }} className="py-12">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-6" style={{ 
-              background: '#fce7f3',
-              border: '2px solid #ec4899'
-            }}>
-              <ShoppingCart className="w-10 h-10" style={{ color: '#ec4899' }} />
+      <div className={styles.cartPage}>
+        <div className={styles.cartContainer}>
+          <div className={styles.emptyCart}>
+            <div className={styles.emptyIconCircle}>
+              <ShoppingCart className={styles.emptyIcon} />
             </div>
-            <h1 className="text-2xl font-bold mb-2" style={{ 
-              fontFamily: 'Pacifico, cursive',
-              background: 'linear-gradient(135deg, #ec4899, #be185d)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>Your cart is empty</h1>
-            <p className="text-gray-600 mb-8">Looks like you haven't added any items to your cart yet.</p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all"
-              style={{
-                background: 'linear-gradient(135deg, #ec4899, #be185d)',
-                color: 'white',
-                boxShadow: '0 4px 14px rgba(236, 72, 153, 0.3)',
-                textDecoration: 'none'
-              }}
-            >
-              <ArrowLeft className="w-4 h-4" />
+            <h1 className={styles.emptyTitle}>Your cart is empty</h1>
+            <p className={styles.emptySubtitle}>
+              Looks like you haven't added any items yet. Explore our handcrafted crochet collection!
+            </p>
+            <Link href="/" className={styles.emptyShopBtn}>
+              <ArrowLeft className={styles.emptyShopBtnIcon} />
               Continue Shopping
             </Link>
           </div>
@@ -65,155 +49,125 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#fff5f5' }}>
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className={styles.cartPage}>
+      <div className={styles.cartContainer}>
+
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2" style={{ 
-            fontFamily: 'Pacifico, cursive',
-            background: 'linear-gradient(135deg, #ec4899, #be185d)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          }}>Shopping Cart</h1>
-          <p className="text-gray-600">{itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart</p>
+        <div className={styles.cartHeader}>
+          <h1 className={styles.cartTitle}>Shopping Cart 🛒</h1>
+          <p className={styles.cartSubtitle}>
+            {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className={styles.cartGrid}>
           {/* Cart Items */}
-          <div className="lg:col-span-2">
-            <div className="rounded-lg shadow-sm border" style={{ background: 'white', borderColor: '#fce7f3' }}>
+          <div>
+            <div className={styles.itemsList}>
               {items.map((item) => (
                 <CartItem key={item.id} item={item} />
               ))}
             </div>
 
             {/* Actions */}
-            <div className="mt-6 flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
+            <div className={styles.cartActions}>
+              <Link href="/" className={styles.continueBtn}>
+                <ArrowLeft className={styles.continueBtnIcon} />
                 Continue Shopping
               </Link>
-              
-              <motion.button
-                onClick={handleClearCart}
-                className="px-6 py-3 font-medium transition-all rounded-lg"
-                style={{
-                  background: 'transparent',
-                  color: '#ec4899',
-                  border: '2px solid #ec4899'
-                }}
-                whileHover={{ scale: 1.05, backgroundColor: '#fce7f3' }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <div className="flex items-center gap-2">
-                  <Trash2 className="w-4 h-4" />
-                  Clear Cart
-                </div>
-              </motion.button>
+              <button onClick={handleClearCart} className={styles.clearBtn}>
+                <Trash2 style={{ width: '14px', height: '14px', display: 'inline', marginRight: '6px' }} />
+                Clear Cart
+              </button>
             </div>
           </div>
 
           {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="rounded-lg shadow-sm border p-6 sticky top-4" style={{ background: 'white', borderColor: '#fce7f3' }}>
-              <h2 className="text-lg font-semibold mb-4" style={{ color: '#374151' }}>Order Summary</h2>
-              
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between" style={{ color: '#6b7280' }}>
-                  <span>Subtotal ({itemCount} items)</span>
-                  <span>
-                    <IndianRupee className="inline w-3 h-3" />
-                    {cartTotal.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between" style={{ color: '#6b7280' }}>
-                  <span className="flex items-center gap-2">
-                    <Package className="w-4 h-4" />
-                    Shipping
-                  </span>
-                  <span className="font-medium">
-                    {estimatedShipping === 0 ? (
-                      <span className="text-green-600">FREE</span>
-                    ) : (
-                      <>
-                        <IndianRupee className="inline w-3 h-3" />
-                        {estimatedShipping.toFixed(2)}
-                      </>
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between" style={{ color: '#6b7280' }}>
-                  <span className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4" />
-                    Estimated Tax
-                  </span>
-                  <span>
-                    <IndianRupee className="inline w-3 h-3" />
-                    {estimatedTax.toFixed(2)}
-                  </span>
-                </div>
-                {estimatedShipping === 0 && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-3 rounded-lg mb-4"
-                    style={{ 
-                      background: 'linear-gradient(135deg, #fce7f3, #dbeafe)',
-                      border: '1px solid #ec4899'
-                    }}
-                  >
-                    <p className="text-sm font-medium text-center" style={{ color: '#be185d' }}>
-                      🎉 Free shipping on orders above ₹500!
-                    </p>
-                  </motion.div>
-                )}
+          <div className={styles.summaryCard}>
+            <h2 className={styles.summaryTitle}>Order Summary</h2>
+
+            <div className={styles.summaryRows}>
+              <div className={styles.summaryRow}>
+                <span className={styles.summaryLabel}>Subtotal ({itemCount} items)</span>
+                <span className={styles.summaryValue}>
+                  <IndianRupee className={styles.summaryValueIcon} />
+                  {cartTotal.toFixed(2)}
+                </span>
               </div>
 
-              <div className="border-t border-pink-soft pt-4 mb-6">
-                <div className="flex justify-between text-lg font-semibold" style={{ color: '#111827' }}>
-                  <span>Order Total</span>
-                  <span>
-                    <IndianRupee className="inline w-4 h-4" />
-                    {orderTotal.toFixed(2)}
-                  </span>
-                </div>
-                {estimatedShipping === 0 && (
-                  <div className="text-center mt-2">
-                    <span className="text-sm font-medium" style={{ color: '#ec4899' }}>
-                      You saved ₹50 on shipping!
-                    </span>
-                  </div>
-                )}
+              <div className={styles.summaryRow}>
+                <span className={styles.summaryLabel} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <Package style={{ width: '14px', height: '14px' }} /> Shipping
+                </span>
+                <span className={styles.summaryValue}>
+                  {estimatedShipping === 0 ? (
+                    <span style={{ color: '#16a34a', fontWeight: 700 }}>FREE</span>
+                  ) : (
+                    <>
+                      <IndianRupee className={styles.summaryValueIcon} />
+                      {estimatedShipping.toFixed(2)}
+                    </>
+                  )}
+                </span>
               </div>
 
-              <motion.button
-                onClick={handleCheckout}
-                className="w-full py-3 rounded-lg font-medium transition-all"
-                style={{
-                  background: 'linear-gradient(135deg, #ec4899, #be185d)',
-                  color: 'white',
-                  boxShadow: '0 4px 14px rgba(236, 72, 153, 0.3)',
-                  border: 'none'
-                }}
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <ShoppingCart className="w-5 h-5" />
-                  Proceed to Checkout
-                </div>
-              </motion.button>
-
-              <div className="mt-4 text-center">
-                <Link href="/" className="text-sm hover:underline" style={{ color: '#ec4899' }}>
-                  Continue Shopping
-                </Link>
+              <div className={styles.summaryRow}>
+                <span className={styles.summaryLabel} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <CheckCircle style={{ width: '14px', height: '14px' }} /> GST (18%)
+                </span>
+                <span className={styles.summaryValue}>
+                  <IndianRupee className={styles.summaryValueIcon} />
+                  {estimatedTax.toFixed(2)}
+                </span>
               </div>
+
+              {estimatedShipping === 0 && (
+                <div style={{
+                  padding: '0.6rem 0.9rem',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, var(--pink-soft), rgba(168,218,255,0.2))',
+                  border: '1px solid var(--pink)',
+                  textAlign: 'center',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  color: 'var(--pink-dark)'
+                }}>
+                  🎉 Free shipping on orders above ₹500!
+                </div>
+              )}
             </div>
+
+            <div className={styles.summaryDivider} />
+
+            <div className={styles.totalRow}>
+              <span className={styles.totalLabel}>Order Total</span>
+              <span className={styles.totalValue}>
+                <IndianRupee className={styles.totalValueIcon} />
+                {orderTotal.toFixed(2)}
+              </span>
+            </div>
+
+            {estimatedShipping === 0 && (
+              <p style={{
+                textAlign: 'center',
+                fontSize: '0.82rem',
+                color: 'var(--pink)',
+                fontWeight: 600,
+                marginBottom: '1rem',
+                marginTop: '-0.5rem'
+              }}>
+                You saved ₹50 on shipping! 🎊
+              </p>
+            )}
+
+            <button onClick={handleCheckout} className={styles.checkoutBtn}>
+              <ShoppingCart style={{ width: '18px', height: '18px' }} />
+              Proceed to Checkout
+            </button>
+
+            <Link href="/" className={styles.summaryFooterLink}>
+              Continue Shopping
+            </Link>
           </div>
         </div>
       </div>

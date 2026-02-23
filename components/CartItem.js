@@ -1,6 +1,7 @@
 import { useCart } from '@/context/CartContext';
 import { Minus, Plus, Trash2, IndianRupee } from 'lucide-react';
 import Image from 'next/image';
+import styles from '../styles/Cart.module.css';
 
 const CartItem = ({ item }) => {
   const { updateQuantity, removeFromCart } = useCart();
@@ -17,16 +18,9 @@ const CartItem = ({ item }) => {
   const subtotal = safePrice * item.quantity;
 
   return (
-    <div className="flex items-center gap-4 p-4 border-b hover:bg-gray-50 transition-colors" style={{ background: 'white', borderColor: '#fce7f3' }}>
-      {/* Product Image - Fixed dimensions */}
-      <div style={{ 
-        position: 'relative', 
-        width: '80px', 
-        height: '80px', 
-        flexShrink: 0,
-        borderRadius: '8px',
-        overflow: 'hidden'
-      }}>
+    <div className={styles.cartItem}>
+      {/* Product Image */}
+      <div className={styles.itemImageWrap}>
         <Image
           src={item.image}
           alt={item.name}
@@ -37,53 +31,37 @@ const CartItem = ({ item }) => {
       </div>
 
       {/* Product Details */}
-      <div className="flex-1 min-w-0">
-        <h3 className="font-medium truncate" style={{ color: '#111827' }}>{item.name}</h3>
-        <p className="text-sm mt-1" style={{ color: '#6b7280' }}>
-          <IndianRupee className="inline w-3 h-3" />
+      <div className={styles.itemInfo}>
+        <h3 className={styles.itemName}>{item.name}</h3>
+        <p className={styles.itemPrice}>
+          <IndianRupee className={styles.itemPriceIcon} />
           {safePrice.toFixed(2)} each
         </p>
       </div>
 
       {/* Quantity Controls */}
-      <div className="flex items-center gap-2">
+      <div className={styles.qtyControls}>
         <button
           onClick={() => handleQuantityChange(item.quantity - 1)}
-          style={{ 
-            background: '#fce7f3', 
-            color: '#ec4899',
-            padding: '4px',
-            borderRadius: '50%',
-            border: 'none',
-            cursor: 'pointer'
-          }}
+          className={styles.qtyBtn}
           aria-label="Decrease quantity"
         >
-          <Minus className="w-4 h-4" />
+          <Minus className={styles.qtyBtnIcon} />
         </button>
-
-        <span style={{ width: '32px', textAlign: 'center', fontWeight: 500 }}>{item.quantity}</span>
-
+        <span className={styles.qtyValue}>{item.quantity}</span>
         <button
           onClick={() => handleQuantityChange(item.quantity + 1)}
-          style={{ 
-            background: '#fce7f3', 
-            color: '#ec4899',
-            padding: '4px',
-            borderRadius: '50%',
-            border: 'none',
-            cursor: 'pointer'
-          }}
+          className={styles.qtyBtn}
           aria-label="Increase quantity"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className={styles.qtyBtnIcon} />
         </button>
       </div>
 
       {/* Subtotal */}
-      <div style={{ textAlign: 'right', minWidth: '80px' }}>
-        <p style={{ fontWeight: 500, color: '#111827' }}>
-          <IndianRupee className="inline w-4 h-4" />
+      <div className={styles.itemSubtotal}>
+        <p className={styles.itemSubtotalPrice}>
+          <IndianRupee className={styles.subtotalIcon} />
           {subtotal.toFixed(2)}
         </p>
       </div>
@@ -91,17 +69,10 @@ const CartItem = ({ item }) => {
       {/* Remove Button */}
       <button
         onClick={() => removeFromCart(item.id)}
-        style={{ 
-          color: '#ec4899',
-          padding: '8px',
-          borderRadius: '8px',
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer'
-        }}
+        className={styles.removeBtn}
         aria-label="Remove item"
       >
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className={styles.removeBtnIcon} />
       </button>
     </div>
   );

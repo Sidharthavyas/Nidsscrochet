@@ -3,6 +3,13 @@ import { useAuth } from '@clerk/nextjs';
 
 const CartContext = createContext();
 
+// Ensures every cart item has shipping_charges and cod_available fields
+const normalizeItem = (item) => ({
+  ...item,
+  shipping_charges: parseFloat(item.shipping_charges) || 0,
+  cod_available: !!item.cod_available,
+});
+
 const cartReducer = (state, action) => {
   switch (action.type) {
     case 'ADD_TO_CART':
@@ -12,14 +19,20 @@ const cartReducer = (state, action) => {
           ...state,
           items: state.items.map(item =>
             item.id === action.payload.id
-              ? { ...item, quantity: item.quantity + action.payload.quantity }
+              ? {
+                ...item,
+                quantity: item.quantity + action.payload.quantity,
+                // Update shipping/cod in case product data changed
+                shipping_charges: parseFloat(action.payload.shipping_charges) || 0,
+                cod_available: !!action.payload.cod_available,
+              }
               : item
           )
         };
       }
       return {
         ...state,
-        items: [...state.items, action.payload]
+        items: [...state.items, normalizeItem(action.payload)]
       };
 
     case 'UPDATE_QUANTITY':
@@ -47,7 +60,7 @@ const cartReducer = (state, action) => {
     case 'LOAD_CART':
       return {
         ...state,
-        items: action.payload
+        items: (action.payload || []).map(normalizeItem)
       };
 
     default:

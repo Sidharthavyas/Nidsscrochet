@@ -18,13 +18,16 @@ export default async function handler(req, res) {
         const limit = parseInt(req.query.limit) || 50;
         const offset = parseInt(req.query.offset) || 0;
 
-        const response = await clerkClient.users.getUserList({
+        // Clerk v6+: clerkClient is an async function that must be awaited
+        const client = await clerkClient();
+
+        const response = await client.users.getUserList({
             limit,
             offset,
             orderBy: '-created_at',
         });
 
-        // Clerk v5+ returns { data, totalCount }; v4 returns array directly
+        // Clerk v6 returns { data, totalCount }
         const userList = Array.isArray(response) ? response : (response.data || []);
         const totalCount = response.totalCount || userList.length;
 

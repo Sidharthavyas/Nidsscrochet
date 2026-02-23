@@ -1178,10 +1178,33 @@ function AdminDashboard() {
                         </div>
                       )}
 
+                      {/* Payment Info */}
+                      {order.paymentId && (
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                          <span style={{ fontSize: '0.72rem', background: '#ede9fe', color: '#5b21b6', padding: '2px 8px', borderRadius: '6px', fontWeight: 500 }}>
+                            💳 {order.paymentId}
+                          </span>
+                        </div>
+                      )}
+
                       {/* Total */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.5rem', borderTop: '1.5px solid rgba(255,107,157,0.1)' }}>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1a1a2e' }}>Total</span>
-                        <span style={{ fontSize: '1rem', fontWeight: 700, color: '#e91e63' }}>₹{order.amount}</span>
+                      <div style={{ paddingTop: '0.5rem', borderTop: '1.5px solid rgba(255,107,157,0.1)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        {order.shippingCharges > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#666' }}>🚚 Shipping</span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#d97706' }}>₹{order.shippingCharges}</span>
+                          </div>
+                        )}
+                        {order.shippingCharges === 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#666' }}>🚚 Shipping</span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#059669' }}>Free</span>
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1a1a2e' }}>Total</span>
+                          <span style={{ fontSize: '1rem', fontWeight: 700, color: '#e91e63' }}>₹{order.amount}</span>
+                        </div>
                       </div>
                     </motion.div>
                   ))}

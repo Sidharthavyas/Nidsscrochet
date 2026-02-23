@@ -100,12 +100,12 @@ const nextConfig = {
             // next/font/google self-hosts fonts — no external font CDN needed
             value: `
               default-src 'self';
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://checkout.razorpay.com https://api.razorpay.com;
+              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://challenges.cloudflare.com https://checkout.razorpay.com https://api.razorpay.com;
               style-src 'self' 'unsafe-inline';
               img-src 'self' data: https: blob:;
               font-src 'self' https://checkout.razorpay.com;
-              connect-src 'self' https://res.cloudinary.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://clerk-telemetry.com https://lumberjack.razorpay.com https://api.razorpay.com;
-              frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in;
+              connect-src 'self' https://res.cloudinary.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://clerk-telemetry.com https://challenges.cloudflare.com https://lumberjack.razorpay.com https://api.razorpay.com;
+              frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://challenges.cloudflare.com;
               worker-src 'self' blob:;
               frame-ancestors 'self';
               base-uri 'self';

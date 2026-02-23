@@ -21,15 +21,26 @@ function AdminDashboard() {
   const [bannerActive, setBannerActive] = useState(false);
   const [bannerLoading, setBannerLoading] = useState(false);
 
+  // Orders state
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersFilter, setOrdersFilter] = useState('all');
+
+  // Users state
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
 
   const [formData, setFormData] = useState({
     category: '',
     name: '',
     description: '',
     price: '',
-    salePrice: '', // Sale price field
+    salePrice: '',
     stock: '0',
     featured: false,
+    shipping_charges: '0',
+    cod_available: false,
   });
 
   const [categoryFormData, setCategoryFormData] = useState({
@@ -87,11 +98,85 @@ function AdminDashboard() {
     }
   }, []);
 
+  const fetchOrders = useCallback(async () => {
+    setOrdersLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`/api/orders?status=${ordersFilter}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) setOrders(data.data);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [ordersFilter]);
+
+  const fetchUsers = useCallback(async () => {
+    setUsersLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch('/api/users', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) setUsers(data.data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setUsersLoading(false);
+    }
+  }, []);
+
+  // Revalidate homepage after product changes
+  const triggerRevalidation = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      await fetch('/api/revalidate', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (err) {
+      console.error('Revalidation failed (non-critical):', err);
+    }
+  };
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ orderId, status: newStatus }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+        setMessage({ type: 'success', text: '✓ Order status updated!' });
+        setTimeout(() => setMessage({ type: '', text: '' }), 2000);
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to update order status' });
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
     fetchBanner();
   }, [fetchProducts, fetchCategories, fetchBanner]);
+
+  // Fetch orders when Orders tab is active or filter changes
+  useEffect(() => {
+    if (activeTab === 'orders') fetchOrders();
+  }, [activeTab, fetchOrders]);
+
+  // Fetch users when Users tab is active
+  useEffect(() => {
+    if (activeTab === 'users') fetchUsers();
+  }, [activeTab, fetchUsers]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -139,11 +224,13 @@ function AdminDashboard() {
       name: product.name,
       description: product.description,
       price: product.price,
-      salePrice: product.salePrice || '', // Include sale price
+      salePrice: product.salePrice || '',
       stock: product.stock.toString(),
       featured: product.featured,
+      shipping_charges: (product.shipping_charges || 0).toString(),
+      cod_available: !!product.cod_available,
     });
-    setImagePreviews(product.images || [product.image]); // Show existing images
+    setImagePreviews(product.images || [product.image]);
     setImageFiles([]);
     setDrawerOpen(true);
   };
@@ -161,9 +248,11 @@ function AdminDashboard() {
       name: '',
       description: '',
       price: '',
-      salePrice: '', // Reset sale price
+      salePrice: '',
       stock: '0',
       featured: false,
+      shipping_charges: '0',
+      cod_available: false,
     });
     setImageFiles([]);
     setImagePreviews([]);
@@ -190,9 +279,11 @@ function AdminDashboard() {
       formDataToSend.append('name', formData.name);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('price', formData.price);
-      formDataToSend.append('salePrice', formData.salePrice || ''); // Add sale price
+      formDataToSend.append('salePrice', formData.salePrice || '');
       formDataToSend.append('stock', formData.stock);
       formDataToSend.append('featured', formData.featured);
+      formDataToSend.append('shipping_charges', formData.shipping_charges || '0');
+      formDataToSend.append('cod_available', formData.cod_available);
 
       // NEW: Append multiple images
       imageFiles.forEach((file) => {
@@ -229,6 +320,7 @@ function AdminDashboard() {
         resetForm();
         setEditingProduct(null);
         fetchProducts();
+        triggerRevalidation();
 
         setTimeout(() => {
           setDrawerOpen(false);
@@ -296,6 +388,7 @@ function AdminDashboard() {
       if (data.success) {
         setMessage({ type: 'success', text: '✓ Product deleted successfully' });
         fetchProducts();
+        triggerRevalidation();
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       } else {
         setMessage({ type: 'error', text: data.message || 'Delete failed' });
@@ -445,6 +538,22 @@ function AdminDashboard() {
             >
               🎉 Banner
             </motion.button>
+            <motion.button
+              className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.active : ''}`}
+              onClick={() => setActiveTab('orders')}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              📋 Orders
+            </motion.button>
+            <motion.button
+              className={`${styles.tabBtn} ${activeTab === 'users' ? styles.active : ''}`}
+              onClick={() => setActiveTab('users')}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              👥 Users
+            </motion.button>
           </div>
 
           {/* Products Tab */}
@@ -573,8 +682,34 @@ function AdminDashboard() {
                             min="0"
                           />
                         </div>
+                        <div className={styles.formGroup}>
+                          <label>Shipping Charges (₹)</label>
+                          <input
+                            type="number"
+                            name="shipping_charges"
+                            value={formData.shipping_charges}
+                            onChange={handleInputChange}
+                            min="0"
+                            placeholder="0 = Free Shipping"
+                          />
+                          <small>Set to 0 for free shipping</small>
+                        </div>
                       </div>
 
+                      <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                          <label className={styles.checkboxLabel}>
+                            <input
+                              type="checkbox"
+                              name="cod_available"
+                              checked={formData.cod_available}
+                              onChange={handleInputChange}
+                            />
+                            <span>📦 Cash on Delivery Available</span>
+                          </label>
+                        </div>
+
+                      </div>
 
                       <div className={styles.formGroup}>
                         <label className={styles.checkboxLabel}>
@@ -738,6 +873,16 @@ function AdminDashboard() {
                               <span className={styles.price}>{product.price}</span>
                             )}
                             <span className={styles.stock}>Stock: {product.stock}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
+                            {product.shipping_charges > 0 ? (
+                              <span style={{ fontSize: '0.7em', background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: '4px' }}>🚚 ₹{product.shipping_charges}</span>
+                            ) : (
+                              <span style={{ fontSize: '0.7em', background: '#d1fae5', color: '#065f46', padding: '2px 6px', borderRadius: '4px' }}>🚚 Free</span>
+                            )}
+                            {product.cod_available && (
+                              <span style={{ fontSize: '0.7em', background: '#ede9fe', color: '#5b21b6', padding: '2px 6px', borderRadius: '4px' }}>📦 COD</span>
+                            )}
                           </div>
                         </div>
                       </motion.div>
@@ -917,6 +1062,190 @@ function AdminDashboard() {
                   </motion.button>
                 </form>
               </motion.div>
+            </div>
+          )}
+
+          {/* Orders Tab */}
+          {activeTab === 'orders' && (
+            <div>
+              <div className={styles.sectionActions}>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {['all', 'pending', 'processing', 'shipped', 'delivered', 'paid', 'cancelled'].map(status => (
+                    <motion.button
+                      key={status}
+                      className={`${styles.tabBtn} ${ordersFilter === status ? styles.active : ''}`}
+                      onClick={() => setOrdersFilter(status)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+                    >
+                      {status === 'all' ? '📋 All' : status === 'pending' ? '⏳ Pending' : status === 'processing' ? '⚙️ Processing' : status === 'shipped' ? '🚚 Shipped' : status === 'delivered' ? '✅ Delivered' : status === 'paid' ? '💰 Paid' : '❌ Cancelled'}
+                    </motion.button>
+                  ))}
+                </div>
+                <motion.button
+                  onClick={fetchOrders}
+                  className={styles.addBtn}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  🔄 Refresh
+                </motion.button>
+              </div>
+
+              {ordersLoading ? (
+                <div className={styles.loading}>📋 Loading orders...</div>
+              ) : orders.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <p>No orders found{ordersFilter !== 'all' ? ` with status "${ordersFilter}"` : ''}.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                  {orders.map((order, index) => (
+                    <motion.div
+                      key={order._id}
+                      className={styles.formCard}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      style={{ padding: '1.2rem' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                        <div>
+                          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.25rem', color: '#1a1a2e' }}>
+                            {order.paymentMethod === 'cod' ? '📦' : '💳'} Order #{order.orderId?.slice(0, 20) || order._id?.slice(-8)}
+                          </h3>
+                          <p style={{ fontSize: '0.78rem', color: '#999' }}>
+                            {new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <span style={{
+                            fontSize: '0.75rem', padding: '3px 10px', borderRadius: '6px', fontWeight: 600,
+                            background: order.paymentMethod === 'cod' ? '#fef3c7' : '#d1fae5',
+                            color: order.paymentMethod === 'cod' ? '#92400e' : '#065f46',
+                          }}>
+                            {order.paymentMethod === 'cod' ? 'COD' : 'Online'}
+                          </span>
+                          <select
+                            value={order.status}
+                            onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                            style={{
+                              fontSize: '0.8rem', padding: '4px 8px', borderRadius: '8px', fontWeight: 600,
+                              border: '1.5px solid rgba(255,107,157,0.2)', background: 'var(--cream, #fff9f0)',
+                              cursor: 'pointer', fontFamily: 'inherit',
+                            }}
+                          >
+                            <option value="pending">⏳ Pending</option>
+                            <option value="created">🆕 Created</option>
+                            <option value="paid">💰 Paid</option>
+                            <option value="processing">⚙️ Processing</option>
+                            <option value="shipped">🚚 Shipped</option>
+                            <option value="delivered">✅ Delivered</option>
+                            <option value="cancelled">❌ Cancelled</option>
+                            <option value="failed">🔴 Failed</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Customer Info */}
+                      <div style={{ background: 'rgba(255,107,157,0.04)', borderRadius: '10px', padding: '0.75rem', marginBottom: '0.75rem' }}>
+                        <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                          👤 {order.customer?.name || 'N/A'}
+                        </p>
+                        <p style={{ fontSize: '0.78rem', color: '#666' }}>📧 {order.customer?.email || 'N/A'}</p>
+                        <p style={{ fontSize: '0.78rem', color: '#666' }}>📱 {order.customer?.phone || 'N/A'}</p>
+                        <p style={{ fontSize: '0.78rem', color: '#666' }}>📍 {order.customer?.address || 'N/A'}</p>
+                        {order.customer?.notes && <p style={{ fontSize: '0.78rem', color: '#666', fontStyle: 'italic' }}>📝 {order.customer.notes}</p>}
+                      </div>
+
+                      {/* Items */}
+                      {order.items && order.items.length > 0 && (
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          {order.items.map((item, idx) => (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0', borderBottom: idx < order.items.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
+                              {item.image && (
+                                <div style={{ width: '36px', height: '36px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0 }}>
+                                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                </div>
+                              )}
+                              <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 500 }}>{item.name}</span>
+                              <span style={{ fontSize: '0.78rem', color: '#666' }}>x{item.quantity}</span>
+                              <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>₹{item.price}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Total */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.5rem', borderTop: '1.5px solid rgba(255,107,157,0.1)' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1a1a2e' }}>Total</span>
+                        <span style={{ fontSize: '1rem', fontWeight: 700, color: '#e91e63' }}>₹{order.amount}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Users Tab */}
+          {activeTab === 'users' && (
+            <div>
+              <div className={styles.sectionActions}>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>👥 Registered Users ({users.length})</h2>
+                <motion.button
+                  onClick={fetchUsers}
+                  className={styles.addBtn}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  🔄 Refresh
+                </motion.button>
+              </div>
+
+              {usersLoading ? (
+                <div className={styles.loading}>👥 Loading users...</div>
+              ) : users.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <p>No registered users found.</p>
+                </div>
+              ) : (
+                <div className={styles.categoriesGrid} style={{ marginTop: '1rem' }}>
+                  {users.map((usr, index) => (
+                    <motion.div
+                      key={usr.id}
+                      className={styles.categoryItem}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
+                        {usr.imageUrl ? (
+                          <img src={usr.imageUrl} alt={usr.firstName} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #ff6b9d, #c44569)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '1rem' }}>
+                            {(usr.firstName?.[0] || usr.email?.[0] || '?').toUpperCase()}
+                          </div>
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>
+                            {usr.firstName} {usr.lastName}
+                          </h3>
+                          <p style={{ fontSize: '0.78rem', color: '#666', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {usr.email}
+                          </p>
+                          <p style={{ fontSize: '0.72rem', color: '#999', margin: '2px 0 0' }}>
+                            Joined {new Date(usr.createdAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

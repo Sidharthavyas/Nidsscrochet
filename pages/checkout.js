@@ -22,7 +22,7 @@ function loadRazorpaySDK() {
 }
 
 export default function Checkout() {
-  const { items, getCartTotal, clearCart } = useCart();
+  const { items, getCartTotal, getShippingTotal, allItemsSupportCOD, clearCart } = useCart();
   const { isSignedIn, user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -30,9 +30,13 @@ export default function Checkout() {
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('online'); // 'online' or 'cod'
 
   const cartTotal = getCartTotal();
+  const shippingTotal = getShippingTotal();
+  const grandTotal = cartTotal + shippingTotal;
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
+  const codAvailable = allItemsSupportCOD();
 
   useEffect(() => {
     if (!isSignedIn && items.length > 0) {
@@ -47,23 +51,47 @@ export default function Checkout() {
     }
   }, [items.length, router, loading]);
 
-  const handleProceedToPayment = async () => {
-    if (!isSignedIn) {
-      router.push('/login');
-      return;
-    }
-
-    // Validate delivery details
-    if (!address.trim()) {
-      setError('Please enter your delivery address');
-      return;
-    }
-    if (!phone.trim() || phone.trim().length < 10) {
-      setError('Please enter a valid phone number');
-      return;
-    }
-    setError('');
+  // ─── COD Order Handler ───────────────────────────────────
+  const handleCODOrder = async () => {
     setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/orders/create-cod', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: grandTotal,
+          shippingCharges: shippingTotal,
+          items,
+          customer: {
+            name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '',
+            email: user?.emailAddresses?.[0]?.emailAddress || '',
+            phone: phone.trim(),
+            address: address.trim(),
+            notes: notes.trim(),
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Failed to create COD order');
+      }
+
+      clearCart();
+      router.push(`/order-success?orderId=${data.orderId}&paymentMethod=cod`);
+    } catch (err) {
+      console.error('COD order error:', err);
+      setError(err.message || 'Something went wrong. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  // ─── Razorpay (Online) Payment Handler ─── UNCHANGED LOGIC ───
+  const handleOnlinePayment = async () => {
+    setLoading(true);
+    setError('');
 
     try {
       // 1. Create Razorpay order via API
@@ -71,7 +99,7 @@ export default function Checkout() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: cartTotal,
+          amount: grandTotal,
           items,
           customer: {
             name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '',
@@ -168,12 +196,37 @@ export default function Checkout() {
     }
   };
 
+  // ─── Main Handler ─────────────────────────────────────────
+  const handleProceedToPayment = async () => {
+    if (!isSignedIn) {
+      router.push('/login');
+      return;
+    }
+
+    // Validate delivery details
+    if (!address.trim()) {
+      setError('Please enter your delivery address');
+      return;
+    }
+    if (!phone.trim() || phone.trim().length < 10) {
+      setError('Please enter a valid phone number');
+      return;
+    }
+    setError('');
+
+    if (paymentMethod === 'cod') {
+      await handleCODOrder();
+    } else {
+      await handleOnlinePayment();
+    }
+  };
+
   // Loading / redirect states
   if (!isSignedIn && items.length > 0) {
     return (
-      <div style={styles.loadingPage}>
+      <div style={pageStyles.loadingPage}>
         <div style={{ textAlign: 'center' }}>
-          <div style={styles.spinner} />
+          <div style={pageStyles.spinner} />
           <p style={{ color: 'var(--text-gray)' }}>Redirecting to login...</p>
         </div>
       </div>
@@ -182,7 +235,7 @@ export default function Checkout() {
 
   if (items.length === 0 && !loading) {
     return (
-      <div style={styles.loadingPage}>
+      <div style={pageStyles.loadingPage}>
         <div style={{ textAlign: 'center' }}>
           <ShoppingCart style={{ width: '56px', height: '56px', color: 'var(--pink-soft)', margin: '0 auto 1rem' }} />
           <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--black)', marginBottom: '0.5rem' }}>Your cart is empty</h2>
@@ -212,10 +265,10 @@ export default function Checkout() {
 
       <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
         {/* Navbar */}
-        <header style={styles.header}>
-          <div style={styles.headerInner}>
-            <Link href="/" style={styles.logo}>nidsscrochet</Link>
-            <Link href="/cart" style={styles.backBtn}>
+        <header style={pageStyles.header}>
+          <div style={pageStyles.headerInner}>
+            <Link href="/" style={pageStyles.logo}>nidsscrochet</Link>
+            <Link href="/cart" style={pageStyles.backBtn}>
               <ArrowLeft style={{ width: '15px', height: '15px' }} />
               Back to Cart
             </Link>
@@ -242,10 +295,10 @@ export default function Checkout() {
             {/* Left column */}
             <div className="checkout-main" style={{ flex: '1 1 65%', minWidth: 0 }}>
               {/* Account Info */}
-              <div style={{ ...styles.card, marginBottom: '1rem', animation: 'fadeInUp 0.4s ease 0.05s both' }}>
-                <div style={styles.sectionHeader}>
+              <div style={{ ...pageStyles.card, marginBottom: '1rem', animation: 'fadeInUp 0.4s ease 0.05s both' }}>
+                <div style={pageStyles.sectionHeader}>
                   <Shield style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
-                  <h2 style={styles.sectionTitle}>Account</h2>
+                  <h2 style={pageStyles.sectionTitle}>Account</h2>
                 </div>
                 <div style={{
                   background: 'var(--pink-soft)', borderRadius: '10px', padding: '0.75rem 1rem',
@@ -258,10 +311,10 @@ export default function Checkout() {
               </div>
 
               {/* Order Items */}
-              <div style={{ ...styles.card, marginBottom: '1rem', animation: 'fadeInUp 0.4s ease 0.1s both' }}>
-                <div style={styles.sectionHeader}>
+              <div style={{ ...pageStyles.card, marginBottom: '1rem', animation: 'fadeInUp 0.4s ease 0.1s both' }}>
+                <div style={pageStyles.sectionHeader}>
                   <ShoppingCart style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
-                  <h2 style={styles.sectionTitle}>Order Items ({itemCount})</h2>
+                  <h2 style={pageStyles.sectionTitle}>Order Items ({itemCount})</h2>
                 </div>
                 {items.map((item, idx) => (
                   <div key={item.id} style={{
@@ -286,40 +339,109 @@ export default function Checkout() {
               </div>
 
               {/* Delivery Information */}
-              <div style={{ ...styles.card, animation: 'fadeInUp 0.4s ease 0.15s both' }}>
-                <div style={styles.sectionHeader}>
+              <div style={{ ...pageStyles.card, marginBottom: '1rem', animation: 'fadeInUp 0.4s ease 0.15s both' }}>
+                <div style={pageStyles.sectionHeader}>
                   <Truck style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
-                  <h2 style={styles.sectionTitle}>Delivery Information</h2>
+                  <h2 style={pageStyles.sectionTitle}>Delivery Information</h2>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                   <div>
-                    <label style={styles.label}>Delivery Address *</label>
+                    <label style={pageStyles.label}>Delivery Address *</label>
                     <textarea
-                      style={{ ...styles.input, minHeight: '70px', resize: 'vertical' }}
+                      style={{ ...pageStyles.input, minHeight: '70px', resize: 'vertical' }}
                       rows={3} placeholder="Enter your full delivery address"
                       value={address} onChange={(e) => setAddress(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label style={styles.label}>Phone Number *</label>
-                    <input type="tel" style={styles.input} placeholder="Enter your phone number"
+                    <label style={pageStyles.label}>Phone Number *</label>
+                    <input type="tel" style={pageStyles.input} placeholder="Enter your phone number"
                       value={phone} onChange={(e) => setPhone(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label style={styles.label}>Order Notes (Optional)</label>
-                    <textarea style={{ ...styles.input, minHeight: '50px', resize: 'vertical' }}
+                    <label style={pageStyles.label}>Order Notes (Optional)</label>
+                    <textarea style={{ ...pageStyles.input, minHeight: '50px', resize: 'vertical' }}
                       rows={2} placeholder="Special instructions for delivery"
                       value={notes} onChange={(e) => setNotes(e.target.value)}
                     />
                   </div>
                 </div>
               </div>
+
+              {/* Payment Method */}
+              <div style={{ ...pageStyles.card, animation: 'fadeInUp 0.4s ease 0.2s both' }}>
+                <div style={pageStyles.sectionHeader}>
+                  <CreditCard style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
+                  <h2 style={pageStyles.sectionTitle}>Payment Method</h2>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {/* Online Payment */}
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem',
+                    borderRadius: '12px', cursor: 'pointer', transition: 'all 0.3s ease',
+                    border: paymentMethod === 'online' ? '2px solid var(--pink)' : '2px solid rgba(255,107,157,0.15)',
+                    background: paymentMethod === 'online' ? 'var(--pink-soft)' : 'var(--cream)',
+                  }}>
+                    <input
+                      type="radio" name="paymentMethod" value="online"
+                      checked={paymentMethod === 'online'}
+                      onChange={() => setPaymentMethod('online')}
+                      style={{ accentColor: 'var(--pink)', width: '18px', height: '18px' }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--black)', marginBottom: '2px' }}>
+                        💳 Online Payment
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-gray)' }}>
+                        UPI, Cards, Netbanking, Wallets via Razorpay
+                      </div>
+                    </div>
+                    {paymentMethod === 'online' && (
+                      <span style={{ fontSize: '0.75rem', background: 'var(--pink)', color: 'white', padding: '3px 8px', borderRadius: '6px', fontWeight: 600 }}>
+                        Selected
+                      </span>
+                    )}
+                  </label>
+
+                  {/* COD Option */}
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem',
+                    borderRadius: '12px', transition: 'all 0.3s ease',
+                    cursor: codAvailable ? 'pointer' : 'not-allowed',
+                    opacity: codAvailable ? 1 : 0.5,
+                    border: paymentMethod === 'cod' ? '2px solid var(--pink)' : '2px solid rgba(255,107,157,0.15)',
+                    background: paymentMethod === 'cod' ? 'var(--pink-soft)' : 'var(--cream)',
+                  }}>
+                    <input
+                      type="radio" name="paymentMethod" value="cod"
+                      checked={paymentMethod === 'cod'}
+                      onChange={() => codAvailable && setPaymentMethod('cod')}
+                      disabled={!codAvailable}
+                      style={{ accentColor: 'var(--pink)', width: '18px', height: '18px' }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--black)', marginBottom: '2px' }}>
+                        📦 Cash on Delivery
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-gray)' }}>
+                        {codAvailable ? 'Pay when you receive your order' : 'Not available for all items in your cart'}
+                      </div>
+                    </div>
+                    {paymentMethod === 'cod' && (
+                      <span style={{ fontSize: '0.75rem', background: 'var(--pink)', color: 'white', padding: '3px 8px', borderRadius: '6px', fontWeight: 600 }}>
+                        Selected
+                      </span>
+                    )}
+                  </label>
+                </div>
+              </div>
             </div>
 
             {/* Right column: Order Summary */}
             <div className="checkout-sidebar" style={{ flex: '0 0 340px', position: 'sticky', top: '1rem' }}>
-              <div style={{ ...styles.card, animation: 'fadeInUp 0.4s ease 0.2s both' }}>
+              <div style={{ ...pageStyles.card, animation: 'fadeInUp 0.4s ease 0.2s both' }}>
                 <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--black)', marginBottom: '1rem' }}>Order Summary</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-gray)', fontSize: '0.88rem' }}>
@@ -330,8 +452,20 @@ export default function Checkout() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-gray)', fontSize: '0.88rem' }}>
                     <span>Shipping</span>
-                    <span style={{ color: 'var(--pink)', fontWeight: 600 }}>Free</span>
+                    {shippingTotal > 0 ? (
+                      <span style={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
+                        <IndianRupee style={{ width: '12px', height: '12px' }} />{shippingTotal.toFixed(2)}
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--pink)', fontWeight: 600 }}>Free</span>
+                    )}
                   </div>
+                  {paymentMethod === 'cod' && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-gray)', fontSize: '0.88rem' }}>
+                      <span>Payment</span>
+                      <span style={{ color: '#f59e0b', fontWeight: 600 }}>📦 COD</span>
+                    </div>
+                  )}
                 </div>
 
                 <div style={{
@@ -340,31 +474,36 @@ export default function Checkout() {
                 }}>
                   <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--black)' }}>Total</span>
                   <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--pink-dark)', display: 'flex', alignItems: 'center' }}>
-                    <IndianRupee style={{ width: '16px', height: '16px' }} />{cartTotal.toFixed(2)}
+                    <IndianRupee style={{ width: '16px', height: '16px' }} />{grandTotal.toFixed(2)}
                   </span>
                 </div>
 
                 <button onClick={handleProceedToPayment} disabled={loading} style={{
                   width: '100%', padding: '0.8rem', borderRadius: '12px', border: 'none',
-                  background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
+                  background: paymentMethod === 'cod'
+                    ? 'linear-gradient(135deg, #f59e0b, #d97706)'
+                    : 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
                   color: '#fff', fontSize: '0.95rem', fontWeight: 700,
                   cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
                   boxShadow: 'var(--shadow-pink)', transition: 'all 0.3s ease', fontFamily: 'inherit',
                 }}>
                   {loading ? (
-                    <><div style={{ ...styles.spinner, width: '16px', height: '16px', borderWidth: '2px', margin: 0 }} />Processing...</>
+                    <><div style={{ ...pageStyles.spinner, width: '16px', height: '16px', borderWidth: '2px', margin: 0 }} />Processing...</>
+                  ) : paymentMethod === 'cod' ? (
+                    <><Truck style={{ width: '18px', height: '18px' }} />Place COD Order — ₹{grandTotal.toFixed(2)}</>
                   ) : (
-                    <><CreditCard style={{ width: '18px', height: '18px' }} />Pay ₹{cartTotal.toFixed(2)}</>
+                    <><CreditCard style={{ width: '18px', height: '18px' }} />Pay ₹{grandTotal.toFixed(2)}</>
                   )}
                 </button>
 
                 <div style={{ textAlign: 'center', marginTop: '0.85rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', color: 'var(--text-gray)', fontSize: '0.82rem', marginBottom: '0.25rem' }}>
-                    <Lock style={{ width: '13px', height: '13px' }} />Secure Checkout via Razorpay
+                    <Lock style={{ width: '13px', height: '13px' }} />
+                    {paymentMethod === 'cod' ? 'Pay cash when your order arrives' : 'Secure Checkout via Razorpay'}
                   </div>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-gray)', opacity: 0.7 }}>
-                    Your payment is encrypted and secure
+                    {paymentMethod === 'cod' ? 'Your order will be confirmed by the seller' : 'Your payment is encrypted and secure'}
                   </p>
                 </div>
               </div>
@@ -376,7 +515,7 @@ export default function Checkout() {
   );
 }
 
-const styles = {
+const pageStyles = {
   loadingPage: { minHeight: '100vh', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   spinner: { width: '40px', height: '40px', border: '3px solid var(--pink-soft)', borderTop: '3px solid var(--pink)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' },
   header: { background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,107,157,0.1)', boxShadow: '0 2px 20px rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 100 },

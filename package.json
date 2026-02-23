@@ -20,6 +20,7 @@
     "lucide-react": "^0.574.0",
     "mongoose": "^8.19.1",
     "next": "15.5.9",
+    "rate-limiter-flexible": "^9.1.1",
     "razorpay": "^2.9.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

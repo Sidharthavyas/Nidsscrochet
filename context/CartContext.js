@@ -129,8 +129,8 @@ export const CartProvider = ({ children }) => {
   };
 
   const addToCart = (product, quantity = 1) => {
-    // Sanitize price: strip non-numeric chars (e.g. ₹) and convert to number
-    const rawPrice = product.price;
+    // Use salePrice if available, otherwise use regular price
+    const rawPrice = product.salePrice || product.price;
     const numericPrice = parseFloat(String(rawPrice).replace(/[^\d.]/g, '')) || 0;
 
     const cartItem = {
@@ -138,7 +138,9 @@ export const CartProvider = ({ children }) => {
       name: product.name || product.title,
       price: numericPrice,
       image: product.image || product.imageUrl,
-      quantity
+      quantity,
+      shipping_charges: parseFloat(product.shipping_charges) || 0,
+      cod_available: !!product.cod_available,
     };
     dispatch({ type: 'ADD_TO_CART', payload: cartItem });
 
@@ -196,6 +198,17 @@ export const CartProvider = ({ children }) => {
     }, 0);
   };
 
+  const getShippingTotal = () => {
+    return state.items.reduce((total, item) => {
+      return total + (parseFloat(item.shipping_charges) || 0);
+    }, 0);
+  };
+
+  const allItemsSupportCOD = () => {
+    if (state.items.length === 0) return false;
+    return state.items.every(item => item.cod_available === true);
+  };
+
   const getCartCount = () => {
     return state.items.reduce((count, item) => count + item.quantity, 0);
   };
@@ -207,6 +220,8 @@ export const CartProvider = ({ children }) => {
     removeFromCart,
     clearCart,
     getCartTotal,
+    getShippingTotal,
+    allItemsSupportCOD,
     getCartCount,
     syncCartWithBackend
   };

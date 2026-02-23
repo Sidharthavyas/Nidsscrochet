@@ -25,9 +25,18 @@ const OrderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['created', 'paid', 'failed'],
+        enum: ['created', 'paid', 'failed', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'],
         default: 'created',
         index: true,
+    },
+    paymentMethod: {
+        type: String,
+        enum: ['online', 'cod'],
+        default: 'online',
+    },
+    shippingCharges: {
+        type: Number,
+        default: 0,
     },
     items: [{
         productId: String,

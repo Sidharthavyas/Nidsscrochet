@@ -1,0 +1,59 @@
+// pages/api/orders/create-cod.js
+// Create a Cash on Delivery order — bypasses Razorpay entirely
+
+import connectDB from '../../../lib/mongodb';
+import Order from '../../../models/Order';
+
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ success: false, message: 'Method not allowed' });
+    }
+
+    try {
+        await connectDB();
+
+        const { amount, items, customer, shippingCharges } = req.body;
+
+        if (!amount || !items || !customer) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+
+        if (!customer.phone || !customer.address) {
+            return res.status(400).json({ success: false, message: 'Phone and address are required' });
+        }
+
+        // Generate a unique COD order ID
+        const codOrderId = `COD_${Date.now()}_${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+
+        const order = await Order.create({
+            orderId: codOrderId,
+            amount: amount,
+            currency: 'INR',
+            status: 'pending',
+            paymentMethod: 'cod',
+            shippingCharges: shippingCharges || 0,
+            items: items.map(item => ({
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                image: item.image,
+            })),
+            customer: {
+                name: customer.name || '',
+                email: customer.email || '',
+                phone: customer.phone,
+                address: customer.address,
+                notes: customer.notes || '',
+            },
+        });
+
+        return res.status(201).json({
+            success: true,
+            orderId: order.orderId,
+            dbOrderId: order._id.toString(),
+        });
+    } catch (error) {
+        console.error('COD order creation error:', error);
+        return res.status(500).json({ success: false, message: 'Failed to create COD order' });
+    }
+}

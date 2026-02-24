@@ -1,13 +1,18 @@
+import { useState } from 'react';
 import { useCart } from '@/context/CartContext';
-import { ShoppingCart, IndianRupee, ArrowLeft, Trash2, Package } from 'lucide-react';
+import { ShoppingCart, IndianRupee, ArrowLeft, Trash2, Package, Tag, X } from 'lucide-react';
 import CartItem from './CartItem';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import styles from '../styles/Cart.module.css';
 
 const Cart = () => {
-  const { items, getCartTotal, getShippingTotal, clearCart } = useCart();
+  const { items, getCartTotal, getShippingTotal, clearCart, appliedCoupon, applyCoupon, removeCoupon } = useCart();
   const router = useRouter();
+
+  const [couponCode, setCouponCode] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
 
   const cartTotal = getCartTotal();
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
@@ -22,8 +27,46 @@ const Cart = () => {
     }
   };
 
+  const handleApplyCoupon = async (e) => {
+    e.preventDefault();
+    setCouponError('');
+    if (!couponCode.trim()) return;
+
+    setIsValidating(true);
+    try {
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponCode, orderValue: cartTotal })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        applyCoupon(data.data);
+        setCouponCode('');
+      } else {
+        setCouponError(data.message);
+      }
+    } catch (error) {
+      setCouponError('Error validating coupon. Please try again.');
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
   const shippingTotal = getShippingTotal();
-  const orderTotal = cartTotal + shippingTotal;
+
+  let discountAmount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.discountType === 'percentage') {
+      discountAmount = Math.floor(cartTotal * (appliedCoupon.discountValue / 100));
+    } else {
+      discountAmount = appliedCoupon.discountValue;
+    }
+    if (discountAmount > cartTotal) discountAmount = cartTotal;
+  }
+
+  const orderTotal = cartTotal - discountAmount + shippingTotal;
 
   if (items.length === 0) {
     return (
@@ -110,6 +153,52 @@ const Cart = () => {
                 </span>
               </div>
             </div>
+
+            {/* Coupon Code Section */}
+            {!appliedCoupon ? (
+              <div style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+                <form onSubmit={handleApplyCoupon} style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Enter Promo Code"
+                    style={{ flex: 1, padding: '0.6rem 0.8rem', border: '1px solid #f9a8d4', borderRadius: '8px', fontSize: '0.9rem', outline: 'none' }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isValidating || !couponCode.trim()}
+                    style={{ background: 'var(--pink)', color: 'white', border: 'none', borderRadius: '8px', padding: '0 1rem', cursor: isValidating ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: isValidating ? 0.7 : 1 }}
+                  >
+                    {isValidating ? '...' : 'Apply'}
+                  </button>
+                </form>
+                {couponError && <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.5rem', marginBottom: 0 }}>{couponError}</p>}
+              </div>
+            ) : (
+              <div style={{ marginTop: '1.5rem', marginBottom: '1.5rem', padding: '0.8rem', background: '#fdf2f8', border: '1px dashed #fbcfe8', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Tag style={{ width: '16px', height: '16px', color: '#db2777' }} />
+                  <div>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#9d174d', display: 'block' }}>{appliedCoupon.code}</span>
+                    <span style={{ fontSize: '0.75rem', color: '#be185d' }}>Coupon applied</span>
+                  </div>
+                </div>
+                <button onClick={removeCoupon} style={{ background: 'none', border: 'none', color: '#f43f5e', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                  <X style={{ width: '16px', height: '16px' }} />
+                </button>
+              </div>
+            )}
+
+            {appliedCoupon && (
+              <div className={styles.summaryRow}>
+                <span className={styles.summaryLabel} style={{ color: '#db2777' }}>Discount ({appliedCoupon.code})</span>
+                <span className={styles.summaryValue} style={{ color: '#db2777' }}>
+                  -<IndianRupee className={styles.summaryValueIcon} />
+                  {discountAmount.toFixed(2)}
+                </span>
+              </div>
+            )}
 
             <div className={styles.summaryDivider} />
 

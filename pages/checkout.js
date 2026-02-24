@@ -64,6 +64,8 @@ export default function Checkout() {
         body: JSON.stringify({
           amount: grandTotal,
           shippingCharges: shippingTotal,
+          couponCode: appliedCoupon?.code || null,
+          discountAmount: discountAmount || 0,
           items,
           customer: {
             name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '',
@@ -102,6 +104,8 @@ export default function Checkout() {
         body: JSON.stringify({
           amount: grandTotal,
           shippingCharges: shippingTotal,
+          couponCode: appliedCoupon?.code || null,
+          discountAmount: discountAmount || 0,
           items,
           customer: {
             name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '',

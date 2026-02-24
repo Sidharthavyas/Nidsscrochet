@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     try {
         await connectDB();
 
-        const { amount, items, customer, shippingCharges } = req.body;
+        const { amount, items, customer, shippingCharges, couponCode, discountAmount } = req.body;
 
         if (!amount || amount <= 0) {
             return res.status(400).json({ error: `Invalid amount: ${amount}. Amount must be greater than 0.` });
@@ -59,6 +59,8 @@ export default async function handler(req, res) {
             status: 'created',
             paymentMethod: 'online',
             shippingCharges: parseFloat(shippingCharges) || 0,
+            couponCode: couponCode || null,
+            discountAmount: parseFloat(discountAmount) || 0,
             items: items.map(item => ({
                 productId: item.id || item.productId,
                 name: item.name,

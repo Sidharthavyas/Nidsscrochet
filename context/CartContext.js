@@ -71,6 +71,7 @@ const cartReducer = (state, action) => {
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, { items: [] });
   const [isClient, setIsClient] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const { isSignedIn, userId } = useAuth();
 
   // Mark as client-side only after mount
@@ -88,6 +89,15 @@ export const CartProvider = ({ children }) => {
           dispatch({ type: 'LOAD_CART', payload: cartItems });
         } catch (error) {
           console.error('Error loading cart from localStorage:', error);
+        }
+      }
+
+      const savedCoupon = localStorage.getItem('appliedCoupon');
+      if (savedCoupon) {
+        try {
+          setAppliedCoupon(JSON.parse(savedCoupon));
+        } catch (error) {
+          console.error('Error loading coupon from localStorage:', error);
         }
       }
     }
@@ -183,10 +193,25 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     dispatch({ type: 'CLEAR_CART' });
+    removeCoupon();
 
     // Update backend if user is authenticated
     if (isSignedIn) {
       updateCartBackend();
+    }
+  };
+
+  const applyCoupon = (couponData) => {
+    setAppliedCoupon(couponData);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('appliedCoupon', JSON.stringify(couponData));
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('appliedCoupon');
     }
   };
 
@@ -228,6 +253,7 @@ export const CartProvider = ({ children }) => {
 
   const value = {
     items: state.items,
+    appliedCoupon,
     addToCart,
     updateQuantity,
     removeFromCart,
@@ -236,7 +262,9 @@ export const CartProvider = ({ children }) => {
     getShippingTotal,
     allItemsSupportCOD,
     getCartCount,
-    syncCartWithBackend
+    syncCartWithBackend,
+    applyCoupon,
+    removeCoupon
   };
 
   return (

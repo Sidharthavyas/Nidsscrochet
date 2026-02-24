@@ -30,6 +30,20 @@ function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
 
+  // Coupons state
+  const [coupons, setCoupons] = useState([]);
+  const [couponsLoading, setCouponsLoading] = useState(false);
+  const [showCouponForm, setShowCouponForm] = useState(false);
+  const [couponFormData, setCouponFormData] = useState({
+    code: '',
+    discountType: 'percentage',
+    discountValue: '',
+    minOrderValue: '0',
+    maxUses: '',
+    validUntil: '',
+    isActive: true
+  });
+
 
   const [formData, setFormData] = useState({
     category: '',
@@ -54,7 +68,7 @@ function AdminDashboard() {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [activeTab, setActiveTab] = useState('products');
+  const [activeTab, setActiveTab] = useState('analytics');
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -168,15 +182,109 @@ function AdminDashboard() {
     fetchBanner();
   }, [fetchProducts, fetchCategories, fetchBanner]);
 
-  // Fetch orders when Orders tab is active or filter changes
+  // Fetch orders when Orders or Analytics tab is active or filter changes
   useEffect(() => {
-    if (activeTab === 'orders') fetchOrders();
-  }, [activeTab, fetchOrders]);
+    if (activeTab === 'orders' || activeTab === 'analytics') fetchOrders();
+  }, [activeTab, fetchOrders, ordersFilter]); // Added ordersFilter to ensure stability
 
-  // Fetch users when Users tab is active
+  // Fetch users when Users or Analytics tab is active
   useEffect(() => {
-    if (activeTab === 'users') fetchUsers();
+    if (activeTab === 'users' || activeTab === 'analytics') fetchUsers();
   }, [activeTab, fetchUsers]);
+
+  const fetchCoupons = useCallback(async () => {
+    setCouponsLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch('/api/coupons', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCoupons(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching coupons:', error);
+    } finally {
+      setCouponsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'coupons') fetchCoupons();
+  }, [activeTab, fetchCoupons]);
+
+  const handleCouponInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setCouponFormData({
+      ...couponFormData,
+      [name]: type === 'checkbox' ? checked : value,
+    });
+  };
+
+  const handleCouponSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch('/api/coupons', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(couponFormData)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMessage({ type: 'success', text: '✓ Coupon created!' });
+        fetchCoupons();
+        setShowCouponForm(false);
+        setCouponFormData({
+          code: '', discountType: 'percentage', discountValue: '', minOrderValue: '0', maxUses: '', validUntil: '', isActive: true
+        });
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to create coupon' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Error creating coupon' });
+    }
+  };
+
+  const handleCouponToggle = async (id, currentStatus) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch('/api/coupons', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ id, isActive: !currentStatus })
+      });
+      if (res.ok) fetchCoupons();
+    } catch (error) {
+      console.error('Error toggling coupon', error);
+    }
+  };
+
+  const handleDeleteCoupon = async (id) => {
+    if (!window.confirm('Delete this coupon?')) return;
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`/api/coupons?id=${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setMessage({ type: 'success', text: '✓ Coupon deleted!' });
+        fetchCoupons();
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      }
+    } catch (error) {
+      console.error('Error deleting coupon', error);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -430,6 +538,45 @@ function AdminDashboard() {
     router.push('/admin');
   };
 
+  const handleExportEmails = () => {
+    if (users.length === 0) {
+      setMessage({ type: 'error', text: 'No users to export' });
+      return;
+    }
+
+    // Create CSV header (using Blob to handle special characters properly)
+    let csvContent = "First Name,Last Name,Email,Joined Date\n";
+
+    // Add user data
+    users.forEach(usr => {
+      const firstName = (usr.firstName || '').replace(/"/g, '""');
+      const lastName = (usr.lastName || '').replace(/"/g, '""');
+      const email = (usr.email || '').replace(/"/g, '""');
+      const joinedDate = new Date(usr.createdAt).toLocaleDateString('en-IN');
+
+      csvContent += `"${firstName}","${lastName}","${email}","${joinedDate}"\n`;
+    });
+
+    // Create document Blob
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    // Create download link
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `customers_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+
+    // Trigger download
+    link.click();
+
+    // Cleanup
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setMessage({ type: 'success', text: `✓ Exported ${users.length} customer emails` });
+  };
+
   const handleBannerSubmit = async (e) => {
     e.preventDefault();
     setBannerLoading(true);
@@ -515,6 +662,14 @@ function AdminDashboard() {
           {/* Tab Navigation */}
           <div className={styles.tabNavigation}>
             <motion.button
+              className={`${styles.tabBtn} ${activeTab === 'analytics' ? styles.active : ''}`}
+              onClick={() => setActiveTab('analytics')}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              📊 Overview
+            </motion.button>
+            <motion.button
               className={`${styles.tabBtn} ${activeTab === 'products' ? styles.active : ''}`}
               onClick={() => setActiveTab('products')}
               whileHover={{ scale: 1.02 }}
@@ -554,7 +709,117 @@ function AdminDashboard() {
             >
               👥 Users
             </motion.button>
+            <motion.button
+              className={`${styles.tabBtn} ${activeTab === 'coupons' ? styles.active : ''}`}
+              onClick={() => setActiveTab('coupons')}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              🎫 Coupons
+            </motion.button>
           </div>
+
+          {/* Analytics Overview Tab */}
+          {activeTab === 'analytics' && (
+            <div>
+              <div className={styles.sectionActions}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--black)' }}>📊 Dashboard Overview</h2>
+                <motion.button
+                  onClick={() => { fetchOrders(); fetchUsers(); fetchProducts(); }}
+                  className={styles.addBtn}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  🔄 Refresh Data
+                </motion.button>
+              </div>
+
+              {ordersLoading || usersLoading ? (
+                <div className={styles.loading}>📊 Loading analytics...</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1rem' }}>
+
+                  {/* KPI Cards */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+
+                    {/* Revenue Card */}
+                    <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #e91e63' }}>
+                      <div style={pageStyles.kpiHeader}>
+                        <span style={pageStyles.kpiTitle}>Total Revenue</span>
+                        <span style={{ fontSize: '1.2rem' }}>💰</span>
+                      </div>
+                      <div style={pageStyles.kpiValue}>₹{orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').reduce((sum, o) => sum + (o.amount || 0), 0).toFixed(0)}</div>
+                      <div style={pageStyles.kpiSubtext}>From {orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').length} successful orders</div>
+                    </div>
+
+                    {/* Orders Card */}
+                    <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #059669' }}>
+                      <div style={pageStyles.kpiHeader}>
+                        <span style={pageStyles.kpiTitle}>Total Orders</span>
+                        <span style={{ fontSize: '1.2rem' }}>📦</span>
+                      </div>
+                      <div style={pageStyles.kpiValue}>{orders.length}</div>
+                      <div style={pageStyles.kpiSubtext}>{orders.filter(o => o.status === 'pending').length} pending processing</div>
+                    </div>
+
+                    {/* Products Card */}
+                    <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #8b5cf6' }}>
+                      <div style={pageStyles.kpiHeader}>
+                        <span style={pageStyles.kpiTitle}>Total Products</span>
+                        <span style={{ fontSize: '1.2rem' }}>🛍️</span>
+                      </div>
+                      <div style={pageStyles.kpiValue}>{products.length}</div>
+                      <div style={pageStyles.kpiSubtext}>{products.filter(p => Number(p.stock) === 0).length} items out of stock</div>
+                    </div>
+
+                    {/* Users Card */}
+                    <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #f59e0b' }}>
+                      <div style={pageStyles.kpiHeader}>
+                        <span style={pageStyles.kpiTitle}>Registered Users</span>
+                        <span style={{ fontSize: '1.2rem' }}>👥</span>
+                      </div>
+                      <div style={pageStyles.kpiValue}>{users.length}</div>
+                      <div style={pageStyles.kpiSubtext}>Active customers</div>
+                    </div>
+
+                  </div>
+
+                  {/* Recent Activity */}
+                  <div style={{ background: 'white', borderRadius: '12px', padding: '1.25rem', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--black)', marginBottom: '1rem' }}>⏱️ Recent Orders</h3>
+                    {orders.length === 0 ? (
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-gray)' }}>No orders yet.</p>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {orders.slice(0, 5).map(order => (
+                          <div key={order._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'var(--bg-cream)', borderRadius: '8px', border: '1px solid rgba(255,107,157,0.1)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                              <div style={{
+                                width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.2rem',
+                                background: order.status === 'delivered' ? '#d1fae5' : order.status === 'processing' ? '#ede9fe' : order.status === 'cancelled' ? '#fee2e2' : '#fef3c7',
+                                color: order.status === 'delivered' ? '#065f46' : order.status === 'processing' ? '#5b21b6' : order.status === 'cancelled' ? '#991b1b' : '#d97706'
+                              }}>
+                                {order.customer?.name?.[0]?.toUpperCase() || '👤'}
+                              </div>
+                              <div>
+                                <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--black)', margin: 0 }}>{order.customer?.name || 'Unknown'} <span style={{ fontWeight: 400, color: 'var(--text-gray)' }}>ordered</span> {order.items?.length || 0} items</p>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-gray)', margin: '0.2rem 0 0' }}>{new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })} • #{order.orderId?.slice(0, 8) || order._id?.slice(-8)}</p>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <p style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--pink)', margin: 0 }}>₹{order.amount}</p>
+                              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: 700, background: 'rgba(0,0,0,0.05)', padding: '2px 6px', borderRadius: '4px', color: '#666' }}>{order.status}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Products Tab */}
           {activeTab === 'products' && (
@@ -1007,6 +1272,69 @@ function AdminDashboard() {
             </>
           )}
 
+          {/* Inventory Tab */}
+          {activeTab === 'inventory' && (
+            <div className={styles.categoriesSection}>
+              <h2>📦 Inventory Manager ({products.length})</h2>
+              {products.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <p>No products available to manage.</p>
+                </div>
+              ) : (
+                <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #f9a8d4', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead style={{ background: '#fdf2f8', borderBottom: '2px solid #f9a8d4' }}>
+                      <tr>
+                        <th style={{ padding: '1rem', color: '#db2777', fontWeight: 600 }}>Product</th>
+                        <th style={{ padding: '1rem', color: '#db2777', fontWeight: 600 }}>Stock</th>
+                        <th style={{ padding: '1rem', color: '#db2777', fontWeight: 600, textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {products.map((product) => (
+                        <tr key={product._id} style={{ borderBottom: '1px solid #fce7f3' }}>
+                          <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ width: '40px', height: '40px', borderRadius: '8px', overflow: 'hidden', background: '#fdf2f8' }}>
+                              <img src={product.images?.[0] || product.image || '/placeholder.png'} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 600, color: '#1a1a2e', fontSize: '0.95rem' }}>{product.name}</div>
+                              <div style={{ fontSize: '0.8rem', color: product.stock < 5 ? '#e11d48' : '#64748b' }}>
+                                {product.stock === 0 ? 'Out of Stock' : product.stock < 5 ? 'Low Stock' : 'In Stock'}
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '1rem' }}>
+                            <input
+                              type="number"
+                              defaultValue={product.stock}
+                              min="0"
+                              id={`stock-input-${product._id}`}
+                              style={{ width: '80px', padding: '0.5rem', border: '1px solid #f9a8d4', borderRadius: '6px', outline: 'none' }}
+                            />
+                          </td>
+                          <td style={{ padding: '1rem', textAlign: 'right' }}>
+                            <motion.button
+                              onClick={() => {
+                                const newStock = document.getElementById(`stock-input-${product._id}`).value;
+                                handleStockUpdate(product._id, newStock);
+                              }}
+                              style={{ background: '#ec4899', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              Update
+                            </motion.button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Banner Tab */}
           {activeTab === 'banner' && (
             <div className={styles.bannerSection}>
@@ -1255,7 +1583,15 @@ function AdminDashboard() {
                             <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#059669' }}>Free</span>
                           </div>
                         )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        {order.discountAmount > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#db2777', display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                              🎫 Discount {order.couponCode ? `(${order.couponCode})` : ''}
+                            </span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#db2777' }}>-₹{order.discountAmount}</span>
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.3rem', paddingTop: '0.3rem', borderTop: '1px dashed rgba(0,0,0,0.05)' }}>
                           <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1a1a2e' }}>Total</span>
                           <span style={{ fontSize: '1rem', fontWeight: 700, color: '#e91e63' }}>₹{order.amount}</span>
                         </div>
@@ -1267,20 +1603,141 @@ function AdminDashboard() {
             </div>
           )}
 
+          {/* Coupons Tab */}
+          {activeTab === 'coupons' && (
+            <div>
+              <div className={styles.sectionActions}>
+                <motion.button
+                  onClick={() => setShowCouponForm(!showCouponForm)}
+                  className={styles.addBtn}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {showCouponForm ? '✕ Close' : '+ Add Coupon'}
+                </motion.button>
+              </div>
+
+              {showCouponForm && (
+                <motion.div className={styles.formCard} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                  <h2>Create Discount Code</h2>
+                  <form onSubmit={handleCouponSubmit} className={styles.categoryForm}>
+                    <div className={styles.formRow}>
+                      <div className={styles.formGroup}>
+                        <label>Coupon Code *</label>
+                        <input type="text" name="code" value={couponFormData.code} onChange={handleCouponInputChange} placeholder="e.g., WELCOME10" required style={{ textTransform: 'uppercase' }} />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label>Discount Type *</label>
+                        <select name="discountType" value={couponFormData.discountType} onChange={handleCouponInputChange} required>
+                          <option value="percentage">Percentage (%)</option>
+                          <option value="fixed">Fixed Amount (₹)</option>
+                        </select>
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label>Discount Value *</label>
+                        <input type="number" name="discountValue" value={couponFormData.discountValue} onChange={handleCouponInputChange} placeholder={couponFormData.discountType === 'percentage' ? 'e.g., 10' : 'e.g., 100'} required min="1" />
+                      </div>
+                    </div>
+                    <div className={styles.formRow}>
+                      <div className={styles.formGroup}>
+                        <label>Minimum Order Value (₹)</label>
+                        <input type="number" name="minOrderValue" value={couponFormData.minOrderValue} onChange={handleCouponInputChange} min="0" />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label>Max Uses (optional)</label>
+                        <input type="number" name="maxUses" value={couponFormData.maxUses} onChange={handleCouponInputChange} placeholder="Leave blank for unlimited" min="1" />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label>Expiry Date (optional)</label>
+                        <input type="date" name="validUntil" value={couponFormData.validUntil} onChange={handleCouponInputChange} />
+                      </div>
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.checkboxLabel}>
+                        <input type="checkbox" name="isActive" checked={couponFormData.isActive} onChange={handleCouponInputChange} />
+                        <span>🟢 Active and usable immediately</span>
+                      </label>
+                    </div>
+                    <motion.button type="submit" className={styles.submitBtn} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      ✓ Create Coupon
+                    </motion.button>
+                  </form>
+                </motion.div>
+              )}
+
+              <div className={styles.categoriesSection}>
+                <h2>Manage Coupons</h2>
+                {couponsLoading ? (
+                  <div className={styles.loading}>🎫 Loading coupons...</div>
+                ) : coupons.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <p>No coupons active. Create one to incentivize your customers!</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+                    {coupons.map((coupon, idx) => (
+                      <motion.div key={coupon._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} style={{
+                        background: 'white', borderRadius: '12px', padding: '1.25rem', border: '1px solid rgba(255,107,157,0.15)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', position: 'relative', overflow: 'hidden'
+                      }}>
+                        <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '100%', background: coupon.isActive ? '#059669' : '#9ca3af' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div>
+                            <h3 style={{ margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: 800 }}>
+                              <span style={{ fontFamily: 'monospace', background: 'var(--bg-cream)', padding: '2px 8px', borderRadius: '4px', border: '1px dashed var(--pink)', color: 'var(--pink)' }}>{coupon.code}</span>
+                            </h3>
+                            <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem', color: '#4b5563', fontWeight: 600 }}>
+                              {coupon.discountType === 'percentage' ? `${coupon.discountValue}% OFF` : `₹${coupon.discountValue} OFF`}
+                            </p>
+                            <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280' }}>
+                              Min Order: ₹{coupon.minOrderValue}
+                            </p>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button onClick={() => handleCouponToggle(coupon._id, coupon.isActive)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0.2rem' }} title={coupon.isActive ? "Deactivate" : "Activate"}>
+                              {coupon.isActive ? '🟢' : '⚪'}
+                            </button>
+                            <button onClick={() => handleDeleteCoupon(coupon._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0.2rem' }} title="Delete">
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #f3f4f6', fontSize: '0.75rem', color: '#6b7280' }}>
+                          <span>Used: {coupon.usageCount} {coupon.maxUses ? `/ ${coupon.maxUses}` : ''}</span>
+                          <span>{coupon.validUntil ? `Valid till ${new Date(coupon.validUntil).toLocaleDateString()}` : 'No Expiry'}</span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Users Tab */}
           {activeTab === 'users' && (
             <div>
               <div className={styles.sectionActions}>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>👥 Registered Users ({users.length})</h2>
-                <motion.button
-                  onClick={fetchUsers}
-                  className={styles.addBtn}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  style={{ fontSize: '0.85rem' }}
-                >
-                  🔄 Refresh
-                </motion.button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <motion.button
+                    onClick={handleExportEmails}
+                    className={styles.addBtn}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{ fontSize: '0.85rem', background: '#059669', color: 'white' }}
+                  >
+                    📥 Export CSV
+                  </motion.button>
+                  <motion.button
+                    onClick={fetchUsers}
+                    className={styles.addBtn}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{ fontSize: '0.85rem' }}
+                  >
+                    🔄 Refresh
+                  </motion.button>
+                </div>
               </div>
 
               {usersLoading ? (
@@ -1325,8 +1782,8 @@ function AdminDashboard() {
               )}
             </div>
           )}
-        </div>
-      </div>
+        </div >
+      </div >
     </>
   );
 }

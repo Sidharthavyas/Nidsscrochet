@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { getAuth } from '@clerk/nextjs/server';
 import connectDB from '../../../lib/mongodb';
 import Order from '../../../models/Order';
+import Coupon from '../../../models/Coupon';
 import { sendOrderConfirmationEmail } from '../../../lib/email';
 
 export default async function handler(req, res) {
@@ -53,6 +54,18 @@ export default async function handler(req, res) {
         if (!order) {
             // Order may exist but belong to another user, or not exist at all
             return res.status(404).json({ error: 'Order not found or unauthorized' });
+        }
+
+        // Increment coupon usage count if applied
+        if (order.couponCode) {
+            try {
+                await Coupon.findOneAndUpdate(
+                    { code: order.couponCode.toUpperCase() },
+                    { $inc: { usageCount: 1 } }
+                );
+            } catch (err) {
+                console.error('Failed to increment coupon usage:', err);
+            }
         }
 
         // Send confirmation email asynchronously (never block the response)

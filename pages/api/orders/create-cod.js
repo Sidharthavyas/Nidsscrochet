@@ -3,6 +3,7 @@
 
 import connectDB from '../../../lib/mongodb';
 import Order from '../../../models/Order';
+import Coupon from '../../../models/Coupon';
 import { sendOrderConfirmationEmail } from '../../../lib/email';
 
 export default async function handler(req, res) {
@@ -13,7 +14,7 @@ export default async function handler(req, res) {
     try {
         await connectDB();
 
-        const { amount, items, customer, shippingCharges } = req.body;
+        const { amount, items, customer, shippingCharges, couponCode, discountAmount } = req.body;
 
         if (!amount || !items || !customer) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -33,6 +34,8 @@ export default async function handler(req, res) {
             status: 'pending',
             paymentMethod: 'cod',
             shippingCharges: shippingCharges || 0,
+            couponCode: couponCode || null,
+            discountAmount: parseFloat(discountAmount) || 0,
             items: items.map(item => ({
                 name: item.name,
                 price: item.price,
@@ -52,6 +55,18 @@ export default async function handler(req, res) {
         sendOrderConfirmationEmail(order, order.customer, 'cod').catch((err) =>
             console.error('[email] Failed to send COD confirmation:', err)
         );
+
+        // Increment coupon usage count if applied
+        if (couponCode) {
+            try {
+                await Coupon.findOneAndUpdate(
+                    { code: couponCode.toUpperCase() },
+                    { $inc: { usageCount: 1 } }
+                );
+            } catch (err) {
+                console.error('Failed to increment coupon usage:', err);
+            }
+        }
 
         return res.status(201).json({
             success: true,

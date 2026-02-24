@@ -22,7 +22,7 @@ function loadRazorpaySDK() {
 }
 
 export default function Checkout() {
-  const { items, getCartTotal, getShippingTotal, allItemsSupportCOD, clearCart } = useCart();
+  const { items, getCartTotal, getShippingTotal, allItemsSupportCOD, clearCart, appliedCoupon } = useCart();
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,18 @@ export default function Checkout() {
 
   const cartTotal = getCartTotal();
   const shippingTotal = getShippingTotal();
-  const grandTotal = cartTotal + shippingTotal;
+
+  let discountAmount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.discountType === 'percentage') {
+      discountAmount = Math.floor(cartTotal * (appliedCoupon.discountValue / 100));
+    } else {
+      discountAmount = appliedCoupon.discountValue;
+    }
+    if (discountAmount > cartTotal) discountAmount = cartTotal;
+  }
+
+  const grandTotal = cartTotal + shippingTotal - discountAmount;
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
   const codAvailable = allItemsSupportCOD();
 
@@ -473,6 +484,14 @@ export default function Checkout() {
                       <span style={{ color: 'var(--pink)', fontWeight: 600 }}>Free</span>
                     )}
                   </div>
+                  {appliedCoupon && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#db2777', fontSize: '0.88rem' }}>
+                      <span>Discount ({appliedCoupon.code})</span>
+                      <span style={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}>
+                        -<IndianRupee style={{ width: '12px', height: '12px' }} />{discountAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                   {paymentMethod === 'cod' && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-gray)', fontSize: '0.88rem' }}>
                       <span>Payment</span>

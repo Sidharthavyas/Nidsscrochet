@@ -1447,355 +1447,356 @@ function AdminDashboard() {
                     borderRadius: '14px', padding: '1rem 1.25rem',
                     border: '1px solid rgba(255,107,157,0.15)',
                     display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center',
-                    < div style={{ flex: 1, minWidth: '120px' }}>
-                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Valid Orders</p>
-                    <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#1a1a2e', margin: 0 }}>
-                      {orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').length}
-                    </p>
-                  </div>
-                  <div style={{ flex: 1, minWidth: '120px' }}>
-                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Total Revenue</p>
-                    <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#e91e63', margin: 0 }}>
-                      ₹{orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').reduce((sum, o) => sum + (o.amount || 0), 0).toFixed(0)}
-                    </p>
-                  </div>
-                  <div style={{ flex: 1, minWidth: '120px' }}>
-                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Online Paid</p>
-                    <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#059669', margin: 0 }}>
-                      {orders.filter(o => o.paymentMethod !== 'cod' && o.status !== 'cancelled' && o.status !== 'failed').length}
-                    </p>
-                  </div>
-                  <div style={{ flex: 1, minWidth: '120px' }}>
-                    <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>COD Orders</p>
-                    <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#d97706', margin: 0 }}>
-                      {orders.filter(o => o.paymentMethod === 'cod' && o.status !== 'cancelled' && o.status !== 'failed').length}
-                    </p>
-                  </div>
-                </div>
-
-                  {orders.map((order, index) => {
-                  <motion.div
-                    key={order._id}
-                    className={styles.formCard}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    style={{ padding: '1.2rem' }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                      <div>
-                        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.25rem', color: '#1a1a2e' }}>
-                          {order.paymentMethod === 'cod' ? '📦' : '💳'} Order #{order.orderId?.slice(0, 20) || order._id?.slice(-8)}
-                        </h3>
-                        <p style={{ fontSize: '0.78rem', color: '#999' }}>
-                          {new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
-                        </p>
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <span style={{
-                          fontSize: '0.75rem', padding: '3px 10px', borderRadius: '6px', fontWeight: 600,
-                          background: order.paymentMethod === 'cod' ? '#fef3c7' : '#d1fae5',
-                          color: order.paymentMethod === 'cod' ? '#92400e' : '#065f46',
-                        }}>
-                          {order.paymentMethod === 'cod' ? 'COD' : 'Online'}
-                        </span>
-                        <select
-                          value={order.status}
-                          onChange={(e) => updateOrderStatus(order._id, e.target.value)}
-                          style={{
-                            fontSize: '0.8rem', padding: '4px 8px', borderRadius: '8px', fontWeight: 600,
-                            border: '1.5px solid rgba(255,107,157,0.2)', fontFamily: 'inherit',
-                            cursor: 'pointer',
-                            background:
-                              order.status === 'delivered' ? '#d1fae5' :
-                                order.status === 'shipped' ? '#dbeafe' :
-                                  order.status === 'paid' ? '#d1fae5' :
-                                    order.status === 'processing' ? '#ede9fe' :
-                                      order.status === 'cancelled' || order.status === 'failed' ? '#fee2e2' :
-                                        '#fef3c7',
-                            color:
-                              order.status === 'delivered' || order.status === 'paid' ? '#065f46' :
-                                order.status === 'shipped' ? '#1e40af' :
-                                  order.status === 'processing' ? '#5b21b6' :
-                                    order.status === 'cancelled' || order.status === 'failed' ? '#991b1b' :
-                                      '#92400e',
-                          }}
-                        >
-                          <option value="pending">⏳ Pending</option>
-                          <option value="created">🆕 Created</option>
-                          <option value="paid">💰 Paid</option>
-                          <option value="processing">⚙️ Processing</option>
-                          <option value="shipped">🚚 Shipped</option>
-                          <option value="delivered">✅ Delivered</option>
-                          <option value="cancelled">❌ Cancelled</option>
-                          <option value="failed">🔴 Failed</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Customer Info */}
-                    <div style={{ background: 'rgba(255,107,157,0.04)', borderRadius: '10px', padding: '0.75rem', marginBottom: '0.75rem' }}>
-                      <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                        👤 {order.customer?.name || 'N/A'}
+                  }}>
+                    <div style={{ flex: 1, minWidth: '120px' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Valid Orders</p>
+                      <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#1a1a2e', margin: 0 }}>
+                        {orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').length}
                       </p>
-                      <p style={{ fontSize: '0.78rem', color: '#666' }}>📧 {order.customer?.email || 'N/A'}</p>
-                      <p style={{ fontSize: '0.78rem', color: '#666' }}>📱 {order.customer?.phone || 'N/A'}</p>
-                      <p style={{ fontSize: '0.78rem', color: '#666' }}>📍 {order.customer?.address || 'N/A'}</p>
-                      {order.customer?.notes && <p style={{ fontSize: '0.78rem', color: '#666', fontStyle: 'italic' }}>📝 {order.customer.notes}</p>}
                     </div>
-
-                    {/* Items */}
-                    {order.items && order.items.length > 0 && (
-                      <div style={{ marginBottom: '0.75rem' }}>
-                        {order.items.map((item, idx) => (
-                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0', borderBottom: idx < order.items.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
-                            {item.image && (
-                              <div style={{ width: '36px', height: '36px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0 }}>
-                                <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              </div>
-                            )}
-                            <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 500 }}>{item.name}</span>
-                            <span style={{ fontSize: '0.78rem', color: '#666' }}>x{item.quantity}</span>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>₹{(item.price * item.quantity).toFixed(2)}</span>
-                            {/* Availability badge */}
-                            {item.stock !== undefined && (
-                              <span style={{
-                                fontSize: '0.68rem', padding: '2px 6px', borderRadius: '6px', fontWeight: 600,
-                                background: item.stock === 0 ? '#fee2e2' : item.stock <= 3 ? '#fef3c7' : '#d1fae5',
-                                color: item.stock === 0 ? '#991b1b' : item.stock <= 3 ? '#92400e' : '#065f46',
-                              }}>
-                                {item.stock === 0 ? 'Out of Stock' : item.stock <= 3 ? `Low: ${item.stock}` : 'In Stock'}
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Payment Info */}
-                    {order.paymentId && (
-                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
-                        <span style={{ fontSize: '0.72rem', background: '#ede9fe', color: '#5b21b6', padding: '2px 8px', borderRadius: '6px', fontWeight: 500 }}>
-                          💳 {order.paymentId}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Total */}
-                    <div style={{ paddingTop: '0.5rem', borderTop: '1.5px solid rgba(255,107,157,0.1)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                      {order.shippingCharges > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.8rem', color: '#666' }}>🚚 Shipping</span>
-                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#d97706' }}>₹{order.shippingCharges}</span>
-                        </div>
-                      )}
-                      {order.shippingCharges === 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.8rem', color: '#666' }}>🚚 Shipping</span>
-                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#059669' }}>Free</span>
-                        </div>
-                      )}
-                      {order.discountAmount > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.8rem', color: '#db2777', display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
-                            🎫 Discount {order.couponCode ? `(${order.couponCode})` : ''}
-                          </span>
-                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#db2777' }}>-₹{order.discountAmount}</span>
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.3rem', paddingTop: '0.3rem', borderTop: '1px dashed rgba(0,0,0,0.05)' }}>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1a1a2e' }}>Total</span>
-                        <span style={{ fontSize: '1rem', fontWeight: 700, color: '#e91e63' }}>₹{order.amount}</span>
-                      </div>
+                    <div style={{ flex: 1, minWidth: '120px' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Total Revenue</p>
+                      <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#e91e63', margin: 0 }}>
+                        ₹{orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').reduce((sum, o) => sum + (o.amount || 0), 0).toFixed(0)}
+                      </p>
                     </div>
-                  </motion.div>
-                })}
-            </div>
-          )}
-        </div>
-          )}
-
-        {/* Coupons Tab */}
-        {activeTab === 'coupons' && (
-          <div>
-            <div className={styles.sectionActions}>
-              <motion.button
-                onClick={() => setShowCouponForm(!showCouponForm)}
-                className={styles.addBtn}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {showCouponForm ? '✕ Close' : '+ Add Coupon'}
-              </motion.button>
-            </div>
-
-            {showCouponForm && (
-              <motion.div className={styles.formCard} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                <h2>Create Discount Code</h2>
-                <form onSubmit={handleCouponSubmit} className={styles.categoryForm}>
-                  <div className={styles.formRow}>
-                    <div className={styles.formGroup}>
-                      <label>Coupon Code *</label>
-                      <input type="text" name="code" value={couponFormData.code} onChange={handleCouponInputChange} placeholder="e.g., WELCOME10" required style={{ textTransform: 'uppercase' }} />
+                    <div style={{ flex: 1, minWidth: '120px' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Online Paid</p>
+                      <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#059669', margin: 0 }}>
+                        {orders.filter(o => o.paymentMethod !== 'cod' && o.status !== 'cancelled' && o.status !== 'failed').length}
+                      </p>
                     </div>
-                    <div className={styles.formGroup}>
-                      <label>Discount Type *</label>
-                      <select name="discountType" value={couponFormData.discountType} onChange={handleCouponInputChange} required>
-                        <option value="percentage">Percentage (%)</option>
-                        <option value="fixed">Fixed Amount (₹)</option>
-                      </select>
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>Discount Value *</label>
-                      <input type="number" name="discountValue" value={couponFormData.discountValue} onChange={handleCouponInputChange} placeholder={couponFormData.discountType === 'percentage' ? 'e.g., 10' : 'e.g., 100'} required min="1" />
+                    <div style={{ flex: 1, minWidth: '120px' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>COD Orders</p>
+                      <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#d97706', margin: 0 }}>
+                        {orders.filter(o => o.paymentMethod === 'cod' && o.status !== 'cancelled' && o.status !== 'failed').length}
+                      </p>
                     </div>
                   </div>
-                  <div className={styles.formRow}>
-                    <div className={styles.formGroup}>
-                      <label>Minimum Order Value (₹)</label>
-                      <input type="number" name="minOrderValue" value={couponFormData.minOrderValue} onChange={handleCouponInputChange} min="0" />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>Max Uses (optional)</label>
-                      <input type="number" name="maxUses" value={couponFormData.maxUses} onChange={handleCouponInputChange} placeholder="Leave blank for unlimited" min="1" />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>Expiry Date (optional)</label>
-                      <input type="date" name="validUntil" value={couponFormData.validUntil} onChange={handleCouponInputChange} />
-                    </div>
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.checkboxLabel}>
-                      <input type="checkbox" name="isActive" checked={couponFormData.isActive} onChange={handleCouponInputChange} />
-                      <span>🟢 Active and usable immediately</span>
-                    </label>
-                  </div>
-                  <motion.button type="submit" className={styles.submitBtn} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    ✓ Create Coupon
-                  </motion.button>
-                </form>
-              </motion.div>
-            )}
 
-            <div className={styles.categoriesSection}>
-              <h2>Manage Coupons</h2>
-              {couponsLoading ? (
-                <div className={styles.loading}>🎫 Loading coupons...</div>
-              ) : coupons.length === 0 ? (
-                <div className={styles.emptyState}>
-                  <p>No coupons active. Create one to incentivize your customers!</p>
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
-                  {coupons.map((coupon, idx) => (
-                    <motion.div key={coupon._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} style={{
-                      background: 'white', borderRadius: '12px', padding: '1.25rem', border: '1px solid rgba(255,107,157,0.15)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', position: 'relative', overflow: 'hidden'
-                    }}>
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '100%', background: coupon.isActive ? '#059669' : '#9ca3af' }} />
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  {orders.map((order, index) => (
+                    <motion.div
+                      key={order._id}
+                      className={styles.formCard}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      style={{ padding: '1.2rem' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
                         <div>
-                          <h3 style={{ margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: 800 }}>
-                            <span style={{ fontFamily: 'monospace', background: 'var(--bg-cream)', padding: '2px 8px', borderRadius: '4px', border: '1px dashed var(--pink)', color: 'var(--pink)' }}>{coupon.code}</span>
+                          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.25rem', color: '#1a1a2e' }}>
+                            {order.paymentMethod === 'cod' ? '📦' : '💳'} Order #{order.orderId?.slice(0, 20) || order._id?.slice(-8)}
                           </h3>
-                          <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem', color: '#4b5563', fontWeight: 600 }}>
-                            {coupon.discountType === 'percentage' ? `${coupon.discountValue}% OFF` : `₹${coupon.discountValue} OFF`}
-                          </p>
-                          <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280' }}>
-                            Min Order: ₹{coupon.minOrderValue}
+                          <p style={{ fontSize: '0.78rem', color: '#999' }}>
+                            {new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
                           </p>
                         </div>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button onClick={() => handleCouponToggle(coupon._id, coupon.isActive)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0.2rem' }} title={coupon.isActive ? "Deactivate" : "Activate"}>
-                            {coupon.isActive ? '🟢' : '⚪'}
-                          </button>
-                          <button onClick={() => handleDeleteCoupon(coupon._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0.2rem' }} title="Delete">
-                            🗑️
-                          </button>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <span style={{
+                            fontSize: '0.75rem', padding: '3px 10px', borderRadius: '6px', fontWeight: 600,
+                            background: order.paymentMethod === 'cod' ? '#fef3c7' : '#d1fae5',
+                            color: order.paymentMethod === 'cod' ? '#92400e' : '#065f46',
+                          }}>
+                            {order.paymentMethod === 'cod' ? 'COD' : 'Online'}
+                          </span>
+                          <select
+                            value={order.status}
+                            onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                            style={{
+                              fontSize: '0.8rem', padding: '4px 8px', borderRadius: '8px', fontWeight: 600,
+                              border: '1.5px solid rgba(255,107,157,0.2)', fontFamily: 'inherit',
+                              cursor: 'pointer',
+                              background:
+                                order.status === 'delivered' ? '#d1fae5' :
+                                  order.status === 'shipped' ? '#dbeafe' :
+                                    order.status === 'paid' ? '#d1fae5' :
+                                      order.status === 'processing' ? '#ede9fe' :
+                                        order.status === 'cancelled' || order.status === 'failed' ? '#fee2e2' :
+                                          '#fef3c7',
+                              color:
+                                order.status === 'delivered' || order.status === 'paid' ? '#065f46' :
+                                  order.status === 'shipped' ? '#1e40af' :
+                                    order.status === 'processing' ? '#5b21b6' :
+                                      order.status === 'cancelled' || order.status === 'failed' ? '#991b1b' :
+                                        '#92400e',
+                            }}
+                          >
+                            <option value="pending">⏳ Pending</option>
+                            <option value="created">🆕 Created</option>
+                            <option value="paid">💰 Paid</option>
+                            <option value="processing">⚙️ Processing</option>
+                            <option value="shipped">🚚 Shipped</option>
+                            <option value="delivered">✅ Delivered</option>
+                            <option value="cancelled">❌ Cancelled</option>
+                            <option value="failed">🔴 Failed</option>
+                          </select>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #f3f4f6', fontSize: '0.75rem', color: '#6b7280' }}>
-                        <span>Used: {coupon.usageCount} {coupon.maxUses ? `/ ${coupon.maxUses}` : ''}</span>
-                        <span>{coupon.validUntil ? `Valid till ${new Date(coupon.validUntil).toLocaleDateString()}` : 'No Expiry'}</span>
+
+                      {/* Customer Info */}
+                      <div style={{ background: 'rgba(255,107,157,0.04)', borderRadius: '10px', padding: '0.75rem', marginBottom: '0.75rem' }}>
+                        <p style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                          👤 {order.customer?.name || 'N/A'}
+                        </p>
+                        <p style={{ fontSize: '0.78rem', color: '#666' }}>📧 {order.customer?.email || 'N/A'}</p>
+                        <p style={{ fontSize: '0.78rem', color: '#666' }}>📱 {order.customer?.phone || 'N/A'}</p>
+                        <p style={{ fontSize: '0.78rem', color: '#666' }}>📍 {order.customer?.address || 'N/A'}</p>
+                        {order.customer?.notes && <p style={{ fontSize: '0.78rem', color: '#666', fontStyle: 'italic' }}>📝 {order.customer.notes}</p>}
+                      </div>
+
+                      {/* Items */}
+                      {order.items && order.items.length > 0 && (
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          {order.items.map((item, idx) => (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0', borderBottom: idx < order.items.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
+                              {item.image && (
+                                <div style={{ width: '36px', height: '36px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0 }}>
+                                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                </div>
+                              )}
+                              <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 500 }}>{item.name}</span>
+                              <span style={{ fontSize: '0.78rem', color: '#666' }}>x{item.quantity}</span>
+                              <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>₹{(item.price * item.quantity).toFixed(2)}</span>
+                              {/* Availability badge */}
+                              {item.stock !== undefined && (
+                                <span style={{
+                                  fontSize: '0.68rem', padding: '2px 6px', borderRadius: '6px', fontWeight: 600,
+                                  background: item.stock === 0 ? '#fee2e2' : item.stock <= 3 ? '#fef3c7' : '#d1fae5',
+                                  color: item.stock === 0 ? '#991b1b' : item.stock <= 3 ? '#92400e' : '#065f46',
+                                }}>
+                                  {item.stock === 0 ? 'Out of Stock' : item.stock <= 3 ? `Low: ${item.stock}` : 'In Stock'}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Payment Info */}
+                      {order.paymentId && (
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                          <span style={{ fontSize: '0.72rem', background: '#ede9fe', color: '#5b21b6', padding: '2px 8px', borderRadius: '6px', fontWeight: 500 }}>
+                            💳 {order.paymentId}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Total */}
+                      <div style={{ paddingTop: '0.5rem', borderTop: '1.5px solid rgba(255,107,157,0.1)', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        {order.shippingCharges > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#666' }}>🚚 Shipping</span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#d97706' }}>₹{order.shippingCharges}</span>
+                          </div>
+                        )}
+                        {order.shippingCharges === 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#666' }}>🚚 Shipping</span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#059669' }}>Free</span>
+                          </div>
+                        )}
+                        {order.discountAmount > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#db2777', display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+                              🎫 Discount {order.couponCode ? `(${order.couponCode})` : ''}
+                            </span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#db2777' }}>-₹{order.discountAmount}</span>
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.3rem', paddingTop: '0.3rem', borderTop: '1px dashed rgba(0,0,0,0.05)' }}>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1a1a2e' }}>Total</span>
+                          <span style={{ fontSize: '1rem', fontWeight: 700, color: '#e91e63' }}>₹{order.amount}</span>
+                        </div>
                       </div>
                     </motion.div>
                   ))}
                 </div>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Users Tab */}
-        {activeTab === 'users' && (
-          <div>
-            <div className={styles.sectionActions}>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>👥 Registered Users ({users.length})</h2>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {/* Coupons Tab */}
+          {activeTab === 'coupons' && (
+            <div>
+              <div className={styles.sectionActions}>
                 <motion.button
-                  onClick={handleExportEmails}
+                  onClick={() => setShowCouponForm(!showCouponForm)}
                   className={styles.addBtn}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  style={{ fontSize: '0.85rem', background: '#059669', color: 'white' }}
                 >
-                  📥 Export CSV
-                </motion.button>
-                <motion.button
-                  onClick={fetchUsers}
-                  className={styles.addBtn}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  style={{ fontSize: '0.85rem' }}
-                >
-                  🔄 Refresh
+                  {showCouponForm ? '✕ Close' : '+ Add Coupon'}
                 </motion.button>
               </div>
-            </div>
 
-            {usersLoading ? (
-              <div className={styles.loading}>👥 Loading users...</div>
-            ) : users.length === 0 ? (
-              <div className={styles.emptyState}>
-                <p>No registered users found.</p>
-              </div>
-            ) : (
-              <div className={styles.categoriesGrid} style={{ marginTop: '1rem' }}>
-                {users.map((usr, index) => (
-                  <motion.div
-                    key={usr.id}
-                    className={styles.categoryItem}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
-                      {usr.imageUrl ? (
-                        <img src={usr.imageUrl} alt={usr.firstName} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #ff6b9d, #c44569)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '1rem' }}>
-                          {(usr.firstName?.[0] || usr.email?.[0] || '?').toUpperCase()}
-                        </div>
-                      )}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>
-                          {usr.firstName} {usr.lastName}
-                        </h3>
-                        <p style={{ fontSize: '0.78rem', color: '#666', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {usr.email}
-                        </p>
-                        <p style={{ fontSize: '0.72rem', color: '#999', margin: '2px 0 0' }}>
-                          Joined {new Date(usr.createdAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
-                        </p>
+              {showCouponForm && (
+                <motion.div className={styles.formCard} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                  <h2>Create Discount Code</h2>
+                  <form onSubmit={handleCouponSubmit} className={styles.categoryForm}>
+                    <div className={styles.formRow}>
+                      <div className={styles.formGroup}>
+                        <label>Coupon Code *</label>
+                        <input type="text" name="code" value={couponFormData.code} onChange={handleCouponInputChange} placeholder="e.g., WELCOME10" required style={{ textTransform: 'uppercase' }} />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label>Discount Type *</label>
+                        <select name="discountType" value={couponFormData.discountType} onChange={handleCouponInputChange} required>
+                          <option value="percentage">Percentage (%)</option>
+                          <option value="fixed">Fixed Amount (₹)</option>
+                        </select>
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label>Discount Value *</label>
+                        <input type="number" name="discountValue" value={couponFormData.discountValue} onChange={handleCouponInputChange} placeholder={couponFormData.discountType === 'percentage' ? 'e.g., 10' : 'e.g., 100'} required min="1" />
                       </div>
                     </div>
-                  </motion.div>
-                ))}
+                    <div className={styles.formRow}>
+                      <div className={styles.formGroup}>
+                        <label>Minimum Order Value (₹)</label>
+                        <input type="number" name="minOrderValue" value={couponFormData.minOrderValue} onChange={handleCouponInputChange} min="0" />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label>Max Uses (optional)</label>
+                        <input type="number" name="maxUses" value={couponFormData.maxUses} onChange={handleCouponInputChange} placeholder="Leave blank for unlimited" min="1" />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label>Expiry Date (optional)</label>
+                        <input type="date" name="validUntil" value={couponFormData.validUntil} onChange={handleCouponInputChange} />
+                      </div>
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.checkboxLabel}>
+                        <input type="checkbox" name="isActive" checked={couponFormData.isActive} onChange={handleCouponInputChange} />
+                        <span>🟢 Active and usable immediately</span>
+                      </label>
+                    </div>
+                    <motion.button type="submit" className={styles.submitBtn} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      ✓ Create Coupon
+                    </motion.button>
+                  </form>
+                </motion.div>
+              )}
+
+              <div className={styles.categoriesSection}>
+                <h2>Manage Coupons</h2>
+                {couponsLoading ? (
+                  <div className={styles.loading}>🎫 Loading coupons...</div>
+                ) : coupons.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <p>No coupons active. Create one to incentivize your customers!</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+                    {coupons.map((coupon, idx) => (
+                      <motion.div key={coupon._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} style={{
+                        background: 'white', borderRadius: '12px', padding: '1.25rem', border: '1px solid rgba(255,107,157,0.15)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', position: 'relative', overflow: 'hidden'
+                      }}>
+                        <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '100%', background: coupon.isActive ? '#059669' : '#9ca3af' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div>
+                            <h3 style={{ margin: '0 0 0.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', fontWeight: 800 }}>
+                              <span style={{ fontFamily: 'monospace', background: 'var(--bg-cream)', padding: '2px 8px', borderRadius: '4px', border: '1px dashed var(--pink)', color: 'var(--pink)' }}>{coupon.code}</span>
+                            </h3>
+                            <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem', color: '#4b5563', fontWeight: 600 }}>
+                              {coupon.discountType === 'percentage' ? `${coupon.discountValue}% OFF` : `₹${coupon.discountValue} OFF`}
+                            </p>
+                            <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280' }}>
+                              Min Order: ₹{coupon.minOrderValue}
+                            </p>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button onClick={() => handleCouponToggle(coupon._id, coupon.isActive)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0.2rem' }} title={coupon.isActive ? "Deactivate" : "Activate"}>
+                              {coupon.isActive ? '🟢' : '⚪'}
+                            </button>
+                            <button onClick={() => handleDeleteCoupon(coupon._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', padding: '0.2rem' }} title="Delete">
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #f3f4f6', fontSize: '0.75rem', color: '#6b7280' }}>
+                          <span>Used: {coupon.usageCount} {coupon.maxUses ? `/ ${coupon.maxUses}` : ''}</span>
+                          <span>{coupon.validUntil ? `Valid till ${new Date(coupon.validUntil).toLocaleDateString()}` : 'No Expiry'}</span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+
+          {/* Users Tab */}
+          {activeTab === 'users' && (
+            <div>
+              <div className={styles.sectionActions}>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>👥 Registered Users ({users.length})</h2>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <motion.button
+                    onClick={handleExportEmails}
+                    className={styles.addBtn}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{ fontSize: '0.85rem', background: '#059669', color: 'white' }}
+                  >
+                    📥 Export CSV
+                  </motion.button>
+                  <motion.button
+                    onClick={fetchUsers}
+                    className={styles.addBtn}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{ fontSize: '0.85rem' }}
+                  >
+                    🔄 Refresh
+                  </motion.button>
+                </div>
+              </div>
+
+              {usersLoading ? (
+                <div className={styles.loading}>👥 Loading users...</div>
+              ) : users.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <p>No registered users found.</p>
+                </div>
+              ) : (
+                <div className={styles.categoriesGrid} style={{ marginTop: '1rem' }}>
+                  {users.map((usr, index) => (
+                    <motion.div
+                      key={usr.id}
+                      className={styles.categoryItem}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
+                        {usr.imageUrl ? (
+                          <img src={usr.imageUrl} alt={usr.firstName} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #ff6b9d, #c44569)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '1rem' }}>
+                            {(usr.firstName?.[0] || usr.email?.[0] || '?').toUpperCase()}
+                          </div>
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>
+                            {usr.firstName} {usr.lastName}
+                          </h3>
+                          <p style={{ fontSize: '0.78rem', color: '#666', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {usr.email}
+                          </p>
+                          <p style={{ fontSize: '0.72rem', color: '#999', margin: '2px 0 0' }}>
+                            Joined {new Date(usr.createdAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div >
       </div >
-    </div >
     </>
   );
 }

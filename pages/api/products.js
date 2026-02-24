@@ -262,6 +262,7 @@ export default async function handler(req, res) {
           cloudinaryIds: cloudinaryIds, // All IDs
           featured: getFieldValue(fields.featured) === 'true',
           stock: parseInt(getFieldValue(fields.stock)) || 0,
+          cod_available: getFieldValue(fields.cod_available) === 'true',
         };
 
         console.log('💾 Creating product:', productData.name);
@@ -337,6 +338,9 @@ export default async function handler(req, res) {
         }
         if (fields.stock !== undefined) {
           updates.stock = parseInt(getFieldValue(fields.stock)) || 0;
+        }
+        if (fields.cod_available !== undefined) {
+          updates.cod_available = getFieldValue(fields.cod_available) === 'true';
         }
         if (fields.active !== undefined) {
           updates.active = getFieldValue(fields.active) === 'true';

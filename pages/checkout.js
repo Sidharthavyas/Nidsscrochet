@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
-import { useAuth } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -23,10 +23,11 @@ function loadRazorpaySDK() {
 
 export default function Checkout() {
   const { items, getCartTotal, getShippingTotal, allItemsSupportCOD, clearCart } = useCart();
-  const { isSignedIn, user } = useAuth();
+  const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [address, setAddress] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
@@ -67,7 +68,7 @@ export default function Checkout() {
           customer: {
             name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '',
             email: user?.emailAddresses?.[0]?.emailAddress || '',
-            phone: phone.trim(),
+            phone: `${countryCode} ${phone.trim()}`,
             address: address.trim(),
             notes: notes.trim(),
           },
@@ -105,7 +106,7 @@ export default function Checkout() {
           customer: {
             name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '',
             email: user?.emailAddresses?.[0]?.emailAddress || '',
-            phone: phone.trim(),
+            phone: `${countryCode} ${phone.trim()}`,
             address: address.trim(),
             notes: notes.trim(),
           },
@@ -347,9 +348,25 @@ export default function Checkout() {
                   </div>
                   <div>
                     <label style={pageStyles.label}>Phone Number *</label>
-                    <input type="tel" style={pageStyles.input} placeholder="Enter your phone number"
-                      value={phone} onChange={(e) => setPhone(e.target.value)}
-                    />
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <select
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value)}
+                        style={{ ...pageStyles.input, width: '100px', flexShrink: 0, cursor: 'pointer', paddingRight: '0.5rem' }}
+                      >
+                        <option value="+91">🇮🇳 +91</option>
+                        <option value="+1">🇺🇸 +1</option>
+                        <option value="+44">🇬🇧 +44</option>
+                        <option value="+61">🇦🇺 +61</option>
+                        <option value="+971">🇦🇪 +971</option>
+                        <option value="+65">🇸🇬 +65</option>
+                        <option value="+xyz">🌍 Other</option>
+                      </select>
+                      <input type="tel" style={{ ...pageStyles.input, flex: 1 }} placeholder="10-digit mobile number"
+                        value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                        maxLength={15}
+                      />
+                    </div>
                   </div>
                   <div>
                     <label style={pageStyles.label}>Order Notes (Optional)</label>

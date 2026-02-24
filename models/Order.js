@@ -49,7 +49,7 @@ const OrderSchema = new mongoose.Schema({
         clerkUserId: { type: String, index: true },
         name: String,
         email: String,
-        phone: String,
+        phone: { type: String, index: true },
         address: String,
         notes: String,
     },

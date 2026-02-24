@@ -24,7 +24,7 @@ const nextConfig = {
 
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_SITE_URL: 'https://www.nidsscrochet.in',
+    NEXT_PUBLIC_SITE_URL: 'https://www.Nidsscrochet.in',
   },
 
   // Compiler optimizations
@@ -100,12 +100,12 @@ const nextConfig = {
             // next/font/google self-hosts fonts — no external font CDN needed
             value: `
               default-src 'self';
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://challenges.cloudflare.com https://checkout.razorpay.com https://api.razorpay.com;
+              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.Nidsscrochet.in https://challenges.cloudflare.com https://checkout.razorpay.com https://api.razorpay.com;
               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
               img-src 'self' data: https: blob:;
               font-src 'self' https://checkout.razorpay.com https://fonts.gstatic.com;
-              connect-src 'self' https://res.cloudinary.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://clerk-telemetry.com https://challenges.cloudflare.com https://lumberjack.razorpay.com https://api.razorpay.com https://*.juspay.in;
-              frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.nidsscrochet.in https://challenges.cloudflare.com https://*.juspay.in;
+              connect-src 'self' https://res.cloudinary.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.Nidsscrochet.in https://clerk-telemetry.com https://challenges.cloudflare.com https://lumberjack.razorpay.com https://api.razorpay.com https://*.juspay.in;
+              frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.Nidsscrochet.in https://challenges.cloudflare.com https://*.juspay.in;
               worker-src 'self' blob:;
               frame-ancestors 'self';
               base-uri 'self';

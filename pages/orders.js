@@ -58,7 +58,7 @@ export default function MyOrders() {
     return (
         <div style={{ backgroundColor: 'var(--bg-color)', minHeight: '100vh', fontFamily: 'var(--font-poppins)' }}>
             <Head>
-                <title>My Orders | nidsscrochet</title>
+                <title>My Orders | Nidsscrochet</title>
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
 
@@ -67,7 +67,7 @@ export default function MyOrders() {
                 <div className={styles.navWrapper} style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Link href="/" style={{ textDecoration: 'none', color: 'var(--black)', fontSize: '1.5rem', fontWeight: 'bold' }}>
-                            nidsscrochet
+                            Nidsscrochet
                         </Link>
                         <Link href="/" style={{ textDecoration: 'none', color: 'var(--pink)', fontWeight: '500' }}>
                             ← Back to Shop

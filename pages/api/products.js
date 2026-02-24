@@ -68,7 +68,7 @@ const uploadToCloudinary = async (filePath) => {
     }
 
     const result = await cloudinary.uploader.upload(filePath, {
-      folder: 'nidsscrochet',
+      folder: 'Nidsscrochet',
       transformation: [
         { width: 1200, height: 1200, crop: 'limit', quality: 'auto:good' },
         { fetch_format: 'auto' },

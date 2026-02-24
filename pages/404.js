@@ -8,7 +8,7 @@ export default function Custom404() {
   return (
     <>
       <Head>
-        <title>Page Not Found | nidsscrochet</title>
+        <title>Page Not Found | Nidsscrochet</title>
         <meta name="description" content="Sorry, the page you're looking for doesn't exist. Browse our handcrafted crochet collections instead!" />
         <meta name="robots" content="noindex, follow" />
       </Head>
@@ -64,7 +64,7 @@ export default function Custom404() {
             </a>{' '}
             or DM on{' '}
             <a
-              href="https://www.instagram.com/nidsscrochet"
+              href="https://www.instagram.com/Nidsscrochet"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.errorPageLink}

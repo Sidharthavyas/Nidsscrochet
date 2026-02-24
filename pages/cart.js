@@ -5,7 +5,7 @@ export default function CartPage() {
   return (
     <>
       <Head>
-        <title>Shopping Cart - nidsscrochet</title>
+        <title>Shopping Cart - Nidsscrochet</title>
         <meta name="description" content="View and manage your shopping cart" />
       </Head>
       <Cart />

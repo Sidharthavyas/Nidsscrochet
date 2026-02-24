@@ -28,7 +28,7 @@ export default function OrderSuccess() {
   return (
     <>
       <Head>
-        <title>Order Successful - nidsscrochet</title>
+        <title>Order Successful - Nidsscrochet</title>
         <meta name="description" content="Your order has been placed successfully" />
         <style>{`
           @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
@@ -56,7 +56,7 @@ export default function OrderSuccess() {
               fontFamily: "'Pacifico', cursive", fontSize: '1.4rem',
               background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', textDecoration: 'none',
-            }}>nidsscrochet</Link>
+            }}>Nidsscrochet</Link>
           </div>
         </header>
 
@@ -215,7 +215,7 @@ export default function OrderSuccess() {
               <a href="tel:9029562156" style={{ fontSize: '0.85rem', color: 'var(--pink)', textDecoration: 'none', fontWeight: 500 }}>
                 📞 Call Us: 9029562156
               </a>
-              <a href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+              <a href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3"
                 target="_blank" rel="noopener noreferrer"
                 style={{ fontSize: '0.85rem', color: 'var(--pink)', textDecoration: 'none', fontWeight: 500 }}
               >📷 Message on Instagram</a>

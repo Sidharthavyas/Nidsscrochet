@@ -325,7 +325,7 @@ function ShareModal({ product, productUrl, onClose }) {
     }
   };
 
-  const shareText = `Check out this beautiful ${product.name} from nidsscrochet! ₹${product.price}`;
+  const shareText = `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`;
   const encodedText = encodeURIComponent(shareText);
   const encodedUrl = encodeURIComponent(productUrl);
 
@@ -506,12 +506,12 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
 
   const productUrl = typeof window !== 'undefined'
     ? window.location.href
-    : `https://www.nidsscrochet.in/product/${product._id}`;
+    : `https://www.Nidsscrochet.in/product/${product._id}`;
 
   const handleShare = async () => {
     const shareData = {
-      title: `${product.name} | nidsscrochet`,
-      text: `Check out this beautiful ${product.name} from nidsscrochet! ₹${product.price}`,
+      title: `${product.name} | Nidsscrochet`,
+      text: `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`,
       url: productUrl,
     };
     if (navigator.share) {
@@ -559,33 +559,33 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
   return (
     <>
       <Head>
-        <title>{product.name} | Buy Handcrafted Crochet | nidsscrochet</title>
+        <title>{product.name} | Buy Handcrafted Crochet | Nidsscrochet</title>
         <meta name="description" content={`Buy ${product.name} - ${product.description}. Handcrafted crochet by Nidhi Tripathi. ₹${product.price}. Order on Instagram or WhatsApp. Free Mumbai delivery available!`} />
-        <meta name="keywords" content={`${product.name}, ${product.category}, buy ${product.category?.toLowerCase()} online, crochet ${product.category?.toLowerCase()}, handmade ${product.name?.toLowerCase()}, nidsscrochet, crochet shop Mumbai, handcrafted gifts India`} />
-        <link rel="canonical" href={`https://www.nidsscrochet.in/product/${product._id}`} />
+        <meta name="keywords" content={`${product.name}, ${product.category}, buy ${product.category?.toLowerCase()} online, crochet ${product.category?.toLowerCase()}, handmade ${product.name?.toLowerCase()}, Nidsscrochet, crochet shop Mumbai, handcrafted gifts India`} />
+        <link rel="canonical" href={`https://www.Nidsscrochet.in/product/${product._id}`} />
         <meta name="robots" content="index, follow, max-image-preview:large" />
         <meta name="author" content="Nidhi Tripathi" />
 
         <meta property="og:type" content="product" />
-        <meta property="og:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
-        <meta property="og:title" content={`${product.name} | nidsscrochet`} />
+        <meta property="og:url" content={`https://www.Nidsscrochet.in/product/${product._id}`} />
+        <meta property="og:title" content={`${product.name} | Nidsscrochet`} />
         <meta property="og:description" content={`${product.description} — Handmade with love by Nidhi Tripathi. ₹${product.price}`} />
         <meta property="og:image" content={productImages[0]} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="1200" />
-        <meta property="og:image:alt" content={`${product.name} - Handcrafted crochet by nidsscrochet`} />
-        <meta property="og:site_name" content="nidsscrochet" />
+        <meta property="og:image:alt" content={`${product.name} - Handcrafted crochet by Nidsscrochet`} />
+        <meta property="og:site_name" content="Nidsscrochet" />
         <meta property="og:locale" content="en_IN" />
         <meta property="product:price:amount" content={product.price?.toString().replace(/[^\d.]/g, '')} />
         <meta property="product:price:currency" content="INR" />
         <meta property="product:availability" content={product.stock > 0 ? 'in stock' : 'out of stock'} />
-        <meta property="product:brand" content="nidsscrochet" />
+        <meta property="product:brand" content="Nidsscrochet" />
         <meta property="product:condition" content="new" />
         <meta property="product:category" content={product.category} />
 
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content={`https://www.nidsscrochet.in/product/${product._id}`} />
-        <meta name="twitter:title" content={`${product.name} — ₹${product.price} | nidsscrochet`} />
+        <meta name="twitter:url" content={`https://www.Nidsscrochet.in/product/${product._id}`} />
+        <meta name="twitter:title" content={`${product.name} — ₹${product.price} | Nidsscrochet`} />
         <meta name="twitter:description" content={`${product.description}. Handcrafted in Mumbai.`} />
         <meta name="twitter:image" content={productImages[0]} />
         <meta name="twitter:image:alt" content={product.name} />
@@ -598,35 +598,35 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
               '@graph': [
                 {
                   '@type': 'Product',
-                  '@id': `https://www.nidsscrochet.in/product/${product._id}#product`,
+                  '@id': `https://www.Nidsscrochet.in/product/${product._id}#product`,
                   name: product.name,
                   description: product.description,
                   image: productImages,
                   sku: product._id,
                   mpn: product._id,
-                  brand: { '@type': 'Brand', name: 'nidsscrochet' },
-                  manufacturer: { '@type': 'Organization', name: 'nidsscrochet', url: 'https://www.nidsscrochet.in' },
+                  brand: { '@type': 'Brand', name: 'Nidsscrochet' },
+                  manufacturer: { '@type': 'Organization', name: 'Nidsscrochet', url: 'https://www.Nidsscrochet.in' },
                   category: product.category,
                   material: 'Premium cotton and acrylic yarn',
                   countryOfOrigin: 'IN',
                   offers: {
                     '@type': 'Offer',
-                    url: `https://www.nidsscrochet.in/product/${product._id}`,
+                    url: `https://www.Nidsscrochet.in/product/${product._id}`,
                     priceCurrency: 'INR',
                     price: (product.salePrice || product.price)?.toString().replace(/[^\d.]/g, '') || '0',
                     availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
                     itemCondition: 'https://schema.org/NewCondition',
-                    seller: { '@type': 'Organization', name: 'nidsscrochet' },
+                    seller: { '@type': 'Organization', name: 'Nidsscrochet' },
                   },
                   aggregateRating: { '@type': 'AggregateRating', ratingValue: '5', reviewCount: '3', bestRating: '5', worstRating: '1' },
                 },
                 {
                   '@type': 'BreadcrumbList',
                   itemListElement: [
-                    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.nidsscrochet.in' },
-                    { '@type': 'ListItem', position: 2, name: 'Collections', item: 'https://www.nidsscrochet.in/#collections' },
-                    { '@type': 'ListItem', position: 3, name: product.category, item: 'https://www.nidsscrochet.in/#collections' },
-                    { '@type': 'ListItem', position: 4, name: product.name, item: `https://www.nidsscrochet.in/product/${product._id}` },
+                    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.Nidsscrochet.in' },
+                    { '@type': 'ListItem', position: 2, name: 'Collections', item: 'https://www.Nidsscrochet.in/#collections' },
+                    { '@type': 'ListItem', position: 3, name: product.category, item: 'https://www.Nidsscrochet.in/#collections' },
+                    { '@type': 'ListItem', position: 4, name: product.name, item: `https://www.Nidsscrochet.in/product/${product._id}` },
                   ],
                 },
               ],
@@ -641,7 +641,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
           <div className={styles.navWrapper}>
             <div className={styles.navContent}>
               <Link href="/" className={styles.navBrand} style={{ cursor: 'pointer', textDecoration: 'none' }}>
-                nidsscrochet
+                Nidsscrochet
               </Link>
 
               <div className={styles.navLinks}>
@@ -884,7 +884,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 <motion.button onClick={handleShare} className={`${styles.modalBtn} ${styles.modalBtnShare}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
                   <span className={styles.btnIcon}>🔗</span>Share this Product
                 </motion.button>
-                <motion.a href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3" target="_blank" rel="noopener noreferrer" className={`${styles.modalBtn} ${styles.modalBtnPrimary}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
+                <motion.a href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3" target="_blank" rel="noopener noreferrer" className={`${styles.modalBtn} ${styles.modalBtnPrimary}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
                   <span className={styles.btnIcon}>📷</span>Order on Instagram
                 </motion.a>
                 <motion.a href="tel:9029562156" className={`${styles.modalBtn} ${styles.modalBtnSecondary}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
@@ -1068,7 +1068,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
 
         {/* Sticky mobile CTA */}
         <div className={styles.stickyCta}>
-          <a href="https://www.instagram.com/nidsscrochet?igsh=cXp1NWFtNWplaHc3" target="_blank" rel="noopener noreferrer" className={styles.stickyCtaButton}>
+          <a href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3" target="_blank" rel="noopener noreferrer" className={styles.stickyCtaButton}>
             📷 Order on Instagram
           </a>
         </div>

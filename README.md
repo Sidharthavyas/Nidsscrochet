@@ -1,4 +1,4 @@
-# nidsscrochet – Business Landing Page  
+# Nidsscrochet – Business Landing Page  
 A responsive landing page built with Next.js for showcasing a business brand.
 
 ## 📋 Table of Contents  
@@ -15,7 +15,7 @@ A responsive landing page built with Next.js for showcasing a business brand.
 ---
 
 ## 🧐 About  
-This project serves as the landing site for “nidsscrochet” — a business front-end showcasing products/services via a clean, modern interface. Deployed live at https://nidsscrochet-shopping.vercel.app (as per repo).  
+This project serves as the landing site for “Nidsscrochet” — a business front-end showcasing products/services via a clean, modern interface. Deployed live at https://Nidsscrochet-shopping.vercel.app (as per repo).  
 It’s built to be easily customizable and deployable with a production-ready stack.
 
 ---
@@ -58,8 +58,8 @@ Copy code
 ## 🚀 Getting Started  
 ### Clone the project  
 ```bash
-git clone https://github.com/Sidharthavyas/nidsscrochet.git  
-cd nidsscrochet  
+git clone https://github.com/Sidharthavyas/Nidsscrochet.git  
+cd Nidsscrochet  
 Install dependencies
 bash
 Copy code
@@ -109,9 +109,9 @@ Specify the license under which this project is available (for example, MIT).
 yaml
 Copy code
 MIT License  
-© 2025 nidsscrochet  
+© 2025 Nidsscrochet  
 📬 Contact
 Maintainer: Sidhartha (Software Engineer)
 GitHub: Sidharthavyas
-Project: nidsscrochet
+Project: Nidsscrochet
 For queries or suggestions: Please open an issue or pull request.

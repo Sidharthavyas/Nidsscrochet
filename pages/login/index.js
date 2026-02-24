@@ -52,8 +52,8 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>Sign In - nidsscrochet</title>
-        <meta name="description" content="Sign in to your nidsscrochet account" />
+        <title>Sign In - Nidsscrochet</title>
+        <meta name="description" content="Sign in to your Nidsscrochet account" />
         <style>{`
           @keyframes spin { to { transform: rotate(360deg); } }
           @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
@@ -102,7 +102,7 @@ export default function Login() {
               backgroundClip: 'text',
               textDecoration: 'none',
             }}>
-              nidsscrochet
+              Nidsscrochet
             </Link>
 
             <Link href="/" style={{

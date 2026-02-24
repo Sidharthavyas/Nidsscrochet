@@ -1,5 +1,5 @@
-# Robots.txt for nidsscrochet
-# https://www.nidsscrochet.in/
+# Robots.txt for Nidsscrochet
+# https://www.Nidsscrochet.in/
 # Optimized for SEO + Generative Engine Optimization (GEO)
 
 # ===== Default: All Crawlers =====
@@ -320,4 +320,4 @@ User-agent: BLEXBot
 Disallow: /
 
 # ===== Sitemap =====
-Sitemap: https://www.nidsscrochet.in/sitemap.xml
+Sitemap: https://www.Nidsscrochet.in/sitemap.xml

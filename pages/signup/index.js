@@ -52,8 +52,8 @@ export default function Signup() {
   return (
     <>
       <Head>
-        <title>Sign Up - nidsscrochet</title>
-        <meta name="description" content="Create your nidsscrochet account" />
+        <title>Sign Up - Nidsscrochet</title>
+        <meta name="description" content="Create your Nidsscrochet account" />
         <style>{`
           @keyframes spin { to { transform: rotate(360deg); } }
           @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
@@ -102,7 +102,7 @@ export default function Signup() {
               backgroundClip: 'text',
               textDecoration: 'none',
             }}>
-              nidsscrochet
+              Nidsscrochet
             </Link>
 
             <Link href="/" style={{
@@ -172,7 +172,7 @@ export default function Signup() {
               border: '1px solid rgba(255,107,157,0.08)'
             }}>
               <p style={{ fontWeight: 700, color: 'var(--black)', marginBottom: '0.75rem', fontSize: '0.88rem' }}>
-                Why join nidsscrochet?
+                Why join Nidsscrochet?
               </p>
               {[
                 { icon: '🛒', text: 'Save your cart for later' },

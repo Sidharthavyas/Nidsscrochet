@@ -140,7 +140,7 @@ export default function Checkout() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'nidsscrochet',
+        name: 'Nidsscrochet',
         description: `Order of ${itemCount} item${itemCount > 1 ? 's' : ''}`,
         image: '/rose.webp',
         order_id: orderData.orderId,
@@ -258,7 +258,7 @@ export default function Checkout() {
   return (
     <>
       <Head>
-        <title>Checkout - nidsscrochet</title>
+        <title>Checkout - Nidsscrochet</title>
         <meta name="description" content="Complete your purchase securely" />
         <style>{`
           @keyframes spin { to { transform: rotate(360deg); } }
@@ -275,7 +275,7 @@ export default function Checkout() {
         {/* Navbar */}
         <header style={pageStyles.header}>
           <div style={pageStyles.headerInner}>
-            <Link href="/" style={pageStyles.logo}>nidsscrochet</Link>
+            <Link href="/" style={pageStyles.logo}>Nidsscrochet</Link>
             <Link href="/cart" style={pageStyles.backBtn}>
               <ArrowLeft style={{ width: '15px', height: '15px' }} />
               Back to Cart

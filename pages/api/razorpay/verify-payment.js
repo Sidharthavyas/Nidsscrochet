@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { getAuth } from '@clerk/nextjs/server';
 import connectDB from '../../../lib/mongodb';
 import Order from '../../../models/Order';
+import { sendOrderConfirmationEmail } from '../../../lib/email';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -53,6 +54,11 @@ export default async function handler(req, res) {
             // Order may exist but belong to another user, or not exist at all
             return res.status(404).json({ error: 'Order not found or unauthorized' });
         }
+
+        // Send confirmation email asynchronously (never block the response)
+        sendOrderConfirmationEmail(order, order.customer, 'online').catch((err) =>
+            console.error('[email] Failed to send order confirmation:', err)
+        );
 
         return res.status(200).json({
             success: true,

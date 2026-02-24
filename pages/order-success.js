@@ -6,7 +6,7 @@ import { CheckCircle, ShoppingBag, Package, IndianRupee } from 'lucide-react';
 
 export default function OrderSuccess() {
   const router = useRouter();
-  const { orderId, paymentId } = router.query;
+  const { orderId, paymentId, paymentMethod } = router.query;
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,6 +34,13 @@ export default function OrderSuccess() {
           @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
           @keyframes scaleIn { from{opacity:0;transform:scale(0.7)} to{opacity:1;transform:scale(1)} }
           @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+          @media print {
+            body { background: white !important; }
+            header, .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            div { box-shadow: none !important; border: 1px solid #eee !important; }
+          }
+          .print-only { display: none; }
         `}</style>
       </Head>
 
@@ -110,6 +117,12 @@ export default function OrderSuccess() {
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
+                  <span style={{ color: 'var(--text-gray)' }}>Payment Method</span>
+                  <span style={{ fontWeight: 600, color: paymentMethod === 'cod' ? '#d97706' : '#059669', fontSize: '0.85rem' }}>
+                    {paymentMethod === 'cod' ? '📦 Cash on Delivery' : '✅ Paid Online'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
                   <span style={{ color: 'var(--text-gray)' }}>Date</span>
                   <span style={{ fontWeight: 600, color: 'var(--black)' }}>
                     {new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -118,7 +131,7 @@ export default function OrderSuccess() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
                   <span style={{ color: 'var(--text-gray)' }}>Status</span>
                   <span style={{ fontWeight: 600, color: '#28a745' }}>
-                    {order?.status === 'paid' ? '✅ Paid' : 'Confirmed'}
+                    {paymentMethod === 'cod' ? '📦 Confirmed' : '✅ Paid'}
                   </span>
                 </div>
               </div>
@@ -181,6 +194,18 @@ export default function OrderSuccess() {
             }}>
               <ShoppingBag style={{ width: '18px', height: '18px' }} />Continue Shopping
             </Link>
+            <button
+              onClick={() => window.print()}
+              className="no-print"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                padding: '0.75rem', borderRadius: '12px', border: '1.5px solid var(--pink)',
+                background: 'var(--white)', color: 'var(--pink)', fontWeight: 600, fontSize: '0.9rem',
+                cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s ease',
+              }}
+            >
+              🖨️ Download / Print Receipt
+            </button>
           </div>
 
           {/* Help */}

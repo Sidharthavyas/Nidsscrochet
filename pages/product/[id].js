@@ -709,13 +709,13 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentImageIndex}
-                  initial={prefersReducedMotion ? false : { opacity: 0, x: 60 }}
+                  initial={prefersReducedMotion ? false : { opacity: 0, x: 30 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={prefersReducedMotion ? false : { opacity: 0, x: -60 }}
-                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  exit={prefersReducedMotion ? false : { opacity: 0, x: -30 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
                   className={styles.modalImage}
                   onClick={() => handleImageClick(currentImageIndex)}
-                  style={{ cursor: 'zoom-in', willChange: 'transform, opacity' }}
+                  style={{ cursor: 'zoom-in', touchAction: 'pan-y' }}
                 >
                   <Image
                     src={productImages[currentImageIndex]}

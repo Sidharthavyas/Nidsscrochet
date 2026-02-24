@@ -1102,7 +1102,38 @@ function AdminDashboard() {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-                  {orders.map((order, index) => (
+                  {/* Revenue Summary */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, rgba(255,107,157,0.08), rgba(168,218,255,0.08))',
+                    borderRadius: '14px', padding: '1rem 1.25rem',
+                    border: '1px solid rgba(255,107,157,0.15)',
+                    display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center',
+                  }}>
+                    <div style={{ flex: 1, minWidth: '120px' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Total Orders</p>
+                      <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#1a1a2e', margin: 0 }}>{orders.length}</p>
+                    </div>
+                    <div style={{ flex: 1, minWidth: '120px' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Total Revenue</p>
+                      <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#e91e63', margin: 0 }}>
+                        ₹{orders.reduce((sum, o) => sum + (o.amount || 0), 0).toFixed(0)}
+                      </p>
+                    </div>
+                    <div style={{ flex: 1, minWidth: '120px' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Online Paid</p>
+                      <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#059669', margin: 0 }}>
+                        {orders.filter(o => o.paymentMethod !== 'cod').length}
+                      </p>
+                    </div>
+                    <div style={{ flex: 1, minWidth: '120px' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>COD Orders</p>
+                      <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#d97706', margin: 0 }}>
+                        {orders.filter(o => o.paymentMethod === 'cod').length}
+                      </p>
+                    </div>
+                  </div>
+
+                  {orders.map((order, index) => {
                     <motion.div
                       key={order._id}
                       className={styles.formCard}
@@ -1133,8 +1164,21 @@ function AdminDashboard() {
                             onChange={(e) => updateOrderStatus(order._id, e.target.value)}
                             style={{
                               fontSize: '0.8rem', padding: '4px 8px', borderRadius: '8px', fontWeight: 600,
-                              border: '1.5px solid rgba(255,107,157,0.2)', background: 'var(--cream, #fff9f0)',
-                              cursor: 'pointer', fontFamily: 'inherit',
+                              border: '1.5px solid rgba(255,107,157,0.2)', fontFamily: 'inherit',
+                              cursor: 'pointer',
+                              background:
+                                order.status === 'delivered' ? '#d1fae5' :
+                                  order.status === 'shipped' ? '#dbeafe' :
+                                    order.status === 'paid' ? '#d1fae5' :
+                                      order.status === 'processing' ? '#ede9fe' :
+                                        order.status === 'cancelled' || order.status === 'failed' ? '#fee2e2' :
+                                          '#fef3c7',
+                              color:
+                                order.status === 'delivered' || order.status === 'paid' ? '#065f46' :
+                                  order.status === 'shipped' ? '#1e40af' :
+                                    order.status === 'processing' ? '#5b21b6' :
+                                      order.status === 'cancelled' || order.status === 'failed' ? '#991b1b' :
+                                        '#92400e',
                             }}
                           >
                             <option value="pending">⏳ Pending</option>
@@ -1172,7 +1216,17 @@ function AdminDashboard() {
                               )}
                               <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 500 }}>{item.name}</span>
                               <span style={{ fontSize: '0.78rem', color: '#666' }}>x{item.quantity}</span>
-                              <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>₹{item.price}</span>
+                              <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>₹{(item.price * item.quantity).toFixed(2)}</span>
+                              {/* Availability badge */}
+                              {item.stock !== undefined && (
+                                <span style={{
+                                  fontSize: '0.68rem', padding: '2px 6px', borderRadius: '6px', fontWeight: 600,
+                                  background: item.stock === 0 ? '#fee2e2' : item.stock <= 3 ? '#fef3c7' : '#d1fae5',
+                                  color: item.stock === 0 ? '#991b1b' : item.stock <= 3 ? '#92400e' : '#065f46',
+                                }}>
+                                  {item.stock === 0 ? 'Out of Stock' : item.stock <= 3 ? `Low: ${item.stock}` : 'In Stock'}
+                                </span>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -1207,7 +1261,7 @@ function AdminDashboard() {
                         </div>
                       </div>
                     </motion.div>
-                  ))}
+                  })}
                 </div>
               )}
             </div>

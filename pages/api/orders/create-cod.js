@@ -3,6 +3,7 @@
 
 import connectDB from '../../../lib/mongodb';
 import Order from '../../../models/Order';
+import { sendOrderConfirmationEmail } from '../../../lib/email';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -46,6 +47,11 @@ export default async function handler(req, res) {
                 notes: customer.notes || '',
             },
         });
+
+        // Send confirmation email asynchronously (never block the response)
+        sendOrderConfirmationEmail(order, order.customer, 'cod').catch((err) =>
+            console.error('[email] Failed to send COD confirmation:', err)
+        );
 
         return res.status(201).json({
             success: true,

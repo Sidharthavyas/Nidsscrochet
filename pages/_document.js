@@ -28,6 +28,14 @@ export default function Document() {
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="format-detection" content="telephone=yes" />
 
+        {/* Google Fonts — Pacifico for brand logo (preconnect must come first) */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap"
+        />
+
         {/* Preconnect critical origins */}
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />

@@ -649,6 +649,12 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                   Collections
                 </Link>
 
+                <SignedIn>
+                  <Link href="/orders" className={styles.navLink} style={{ cursor: 'pointer', textDecoration: 'none' }}>
+                    My Orders
+                  </Link>
+                </SignedIn>
+
                 <CartButton />
 
                 <SignedOut>

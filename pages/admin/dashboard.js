@@ -741,49 +741,60 @@ function AdminDashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1rem' }}>
 
                   {/* KPI Cards */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                  {(() => {
+                    const pageStyles = {
+                      kpiCard: { background: 'white', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '0.5rem' },
+                      kpiHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+                      kpiTitle: { fontSize: '0.9rem', color: 'var(--text-gray)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' },
+                      kpiValue: { fontSize: '2rem', fontWeight: 700, color: 'var(--black)', lineHeight: 1 },
+                      kpiSubtext: { fontSize: '0.8rem', color: 'var(--text-gray)' }
+                    };
+                    return (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
 
-                    {/* Revenue Card */}
-                    <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #e91e63' }}>
-                      <div style={pageStyles.kpiHeader}>
-                        <span style={pageStyles.kpiTitle}>Total Revenue</span>
-                        <span style={{ fontSize: '1.2rem' }}>💰</span>
+                        {/* Revenue Card */}
+                        <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #e91e63' }}>
+                          <div style={pageStyles.kpiHeader}>
+                            <span style={pageStyles.kpiTitle}>Total Revenue</span>
+                            <span style={{ fontSize: '1.2rem' }}>💰</span>
+                          </div>
+                          <div style={pageStyles.kpiValue}>₹{orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').reduce((sum, o) => sum + (o.amount || 0), 0).toFixed(0)}</div>
+                          <div style={pageStyles.kpiSubtext}>From {orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').length} successful orders</div>
+                        </div>
+
+                        {/* Orders Card */}
+                        <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #059669' }}>
+                          <div style={pageStyles.kpiHeader}>
+                            <span style={pageStyles.kpiTitle}>Total Orders</span>
+                            <span style={{ fontSize: '1.2rem' }}>📦</span>
+                          </div>
+                          <div style={pageStyles.kpiValue}>{orders.length}</div>
+                          <div style={pageStyles.kpiSubtext}>{orders.filter(o => o.status === 'pending').length} pending processing</div>
+                        </div>
+
+                        {/* Products Card */}
+                        <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #8b5cf6' }}>
+                          <div style={pageStyles.kpiHeader}>
+                            <span style={pageStyles.kpiTitle}>Total Products</span>
+                            <span style={{ fontSize: '1.2rem' }}>🛍️</span>
+                          </div>
+                          <div style={pageStyles.kpiValue}>{products.length}</div>
+                          <div style={pageStyles.kpiSubtext}>{products.filter(p => Number(p.stock) === 0).length} items out of stock</div>
+                        </div>
+
+                        {/* Users Card */}
+                        <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #f59e0b' }}>
+                          <div style={pageStyles.kpiHeader}>
+                            <span style={pageStyles.kpiTitle}>Registered Users</span>
+                            <span style={{ fontSize: '1.2rem' }}>👥</span>
+                          </div>
+                          <div style={pageStyles.kpiValue}>{users.length}</div>
+                          <div style={pageStyles.kpiSubtext}>Active customers</div>
+                        </div>
+
                       </div>
-                      <div style={pageStyles.kpiValue}>₹{orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').reduce((sum, o) => sum + (o.amount || 0), 0).toFixed(0)}</div>
-                      <div style={pageStyles.kpiSubtext}>From {orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').length} successful orders</div>
-                    </div>
-
-                    {/* Orders Card */}
-                    <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #059669' }}>
-                      <div style={pageStyles.kpiHeader}>
-                        <span style={pageStyles.kpiTitle}>Total Orders</span>
-                        <span style={{ fontSize: '1.2rem' }}>📦</span>
-                      </div>
-                      <div style={pageStyles.kpiValue}>{orders.length}</div>
-                      <div style={pageStyles.kpiSubtext}>{orders.filter(o => o.status === 'pending').length} pending processing</div>
-                    </div>
-
-                    {/* Products Card */}
-                    <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #8b5cf6' }}>
-                      <div style={pageStyles.kpiHeader}>
-                        <span style={pageStyles.kpiTitle}>Total Products</span>
-                        <span style={{ fontSize: '1.2rem' }}>🛍️</span>
-                      </div>
-                      <div style={pageStyles.kpiValue}>{products.length}</div>
-                      <div style={pageStyles.kpiSubtext}>{products.filter(p => Number(p.stock) === 0).length} items out of stock</div>
-                    </div>
-
-                    {/* Users Card */}
-                    <div style={{ ...pageStyles.kpiCard, borderTop: '4px solid #f59e0b' }}>
-                      <div style={pageStyles.kpiHeader}>
-                        <span style={pageStyles.kpiTitle}>Registered Users</span>
-                        <span style={{ fontSize: '1.2rem' }}>👥</span>
-                      </div>
-                      <div style={pageStyles.kpiValue}>{users.length}</div>
-                      <div style={pageStyles.kpiSubtext}>Active customers</div>
-                    </div>
-
-                  </div>
+                    );
+                  })()}
 
                   {/* Recent Activity */}
                   <div style={{ background: 'white', borderRadius: '12px', padding: '1.25rem', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>

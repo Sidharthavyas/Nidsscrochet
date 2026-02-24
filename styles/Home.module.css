@@ -3303,13 +3303,15 @@
         right: -100%;
         height: 100vh;
         height: 100dvh;
-        width: 75%;
+        width: 80%;
         max-width: 320px;
-        background: var(--white);
-        box-shadow: -10px 0 40px rgba(0, 0, 0, 0.15);
+        background: rgba(255, 245, 245, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: -10px 0 50px rgba(255, 107, 157, 0.15);
         flex-direction: column;
-        align-items: stretch;
-        padding: 5rem 1.5rem 2rem;
+        align-items: flex-start;
+        padding: 5rem 2rem 2rem;
         gap: 0;
         transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 1000;
@@ -3321,10 +3323,17 @@
     }
 
     .navLink {
-        font-size: 1rem;
+        font-family: var(--font-poppins, 'Poppins');
+        font-size: 1.1rem;
+        font-weight: 500;
         width: 100%;
-        padding: 1rem 0.5rem;
-        border-bottom: 1px solid var(--gray);
+        padding: 1.2rem 0;
+        border-bottom: 1px solid rgba(255, 182, 193, 0.3);
+        color: var(--black);
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        text-align: left;
     }
 
     .navLink::after {
@@ -3332,8 +3341,9 @@
     }
 
     .navLink:hover {
-        transform: none;
-        background: rgba(255, 107, 157, 0.05);
+        transform: translateX(5px);
+        color: var(--pink);
+        background: transparent;
     }
 
     .navCta {
@@ -3342,6 +3352,10 @@
         padding: 1rem 1.5rem;
         margin-top: 1.5rem;
         border-radius: 12px;
+        background: linear-gradient(135deg, var(--pink) 0%, var(--dark-pink) 100%);
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
     }
 
     /* -- HERO -- */

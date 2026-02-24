@@ -49,12 +49,6 @@
           "sizes": "200x200"
         }
       ]
-    },
-    {
-      "name": "Contact Us",
-      "short_name": "Contact",
-      "description": "Call or message nidsscrochet",
-      "url": "tel:9029562156"
     }
   ]
 }

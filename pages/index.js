@@ -2238,6 +2238,18 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                   Collections
                 </motion.a>
 
+                <SignedIn>
+                  <Link href="/orders" passHref legacyBehavior>
+                    <motion.a
+                      whileHover={{ y: -2 }}
+                      className={styles.navLink}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      My Orders
+                    </motion.a>
+                  </Link>
+                </SignedIn>
+
                 <CartButton />
 
                 <SignedOut>

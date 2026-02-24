@@ -4,6 +4,7 @@
 import connectDB from '../../../lib/mongodb';
 import Order from '../../../models/Order';
 import Coupon from '../../../models/Coupon';
+import Product from '../../../models/Product';
 import { sendOrderConfirmationEmail } from '../../../lib/email';
 
 export default async function handler(req, res) {
@@ -37,6 +38,7 @@ export default async function handler(req, res) {
             couponCode: couponCode || null,
             discountAmount: parseFloat(discountAmount) || 0,
             items: items.map(item => ({
+                productId: item.id || item.productId,
                 name: item.name,
                 price: item.price,
                 quantity: item.quantity,
@@ -65,6 +67,19 @@ export default async function handler(req, res) {
                 );
             } catch (err) {
                 console.error('Failed to increment coupon usage:', err);
+            }
+        }
+
+        // Deduct stock for each item
+        if (order.items && order.items.length > 0) {
+            for (const item of order.items) {
+                if (item.productId) {
+                    try {
+                        await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -Math.abs(item.quantity) } });
+                    } catch (err) {
+                        console.error('Failed to deduct stock for', item.productId, err);
+                    }
+                }
             }
         }
 

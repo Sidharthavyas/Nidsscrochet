@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import styles from '../../styles/Admin.module.css';
+import imageCompression from 'browser-image-compression';
 
 function AdminDashboard() {
   const router = useRouter();
@@ -393,10 +394,22 @@ function AdminDashboard() {
       formDataToSend.append('shipping_charges', formData.shipping_charges || '0');
       formDataToSend.append('cod_available', formData.cod_available);
 
-      // NEW: Append multiple images
-      imageFiles.forEach((file) => {
-        formDataToSend.append('images', file);
-      });
+      // Compress and append multiple images before upload
+      for (const file of imageFiles) {
+        try {
+          const options = {
+            maxSizeMB: 0.5,
+            maxWidthOrHeight: 1200,
+            useWebWorker: true,
+          };
+          const compressedFile = await imageCompression(file, options);
+          formDataToSend.append('images', compressedFile);
+        } catch (error) {
+          console.error("Image compression error:", error);
+          // Fallback to original file if compression fails
+          formDataToSend.append('images', file);
+        }
+      }
 
       // NEW: If editing, add product ID and existing images
       if (editingProduct) {

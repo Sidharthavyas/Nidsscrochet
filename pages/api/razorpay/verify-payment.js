@@ -3,6 +3,7 @@ import { getAuth } from '@clerk/nextjs/server';
 import connectDB from '../../../lib/mongodb';
 import Order from '../../../models/Order';
 import Coupon from '../../../models/Coupon';
+import Product from '../../../models/Product';
 import { sendOrderConfirmationEmail } from '../../../lib/email';
 
 export default async function handler(req, res) {
@@ -65,6 +66,19 @@ export default async function handler(req, res) {
                 );
             } catch (err) {
                 console.error('Failed to increment coupon usage:', err);
+            }
+        }
+
+        // Deduct stock for each item since payment is successfully verified
+        if (order.items && order.items.length > 0) {
+            for (const item of order.items) {
+                if (item.productId) {
+                    try {
+                        await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -Math.abs(item.quantity) } });
+                    } catch (err) {
+                        console.error('Failed to deduct stock for', item.productId, err);
+                    }
+                }
             }
         }
 

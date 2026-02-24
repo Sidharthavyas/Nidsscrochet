@@ -1,47 +1,323 @@
 # Robots.txt for nidsscrochet
 # https://www.nidsscrochet.in/
+# Optimized for SEO + Generative Engine Optimization (GEO)
 
-# Allow all search engines
+# ===== Default: All Crawlers =====
 User-agent: *
+Allow: /
+Allow: /product/
+Allow: /_next/static/
+Allow: /_next/image/
+Disallow: /_next/data/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /signup
+Disallow: /checkout
+Disallow: /cart
+Disallow: /orders
+Disallow: /order-success
+Disallow: /404
+Disallow: /login/sso-callback
+Disallow: /signup/sso-callback
+
+# ===== Google =====
+User-agent: Googlebot
+Allow: /
+Allow: /product/
+Allow: /sitemap.xml
+Allow: /_next/static/
+Allow: /_next/image/
+Disallow: /_next/data/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /signup
+Disallow: /checkout
+Disallow: /cart
+Disallow: /orders
+Disallow: /order-success
+
+User-agent: Googlebot-Image
+Allow: /
+Allow: /*.webp$
+Allow: /*.jpg$
+Allow: /*.png$
+Allow: /*.avif$
+
+User-agent: Googlebot-Video
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
+# ===== Bing / Microsoft Copilot (MERGED) =====
+User-agent: Bingbot
 Allow: /
 Allow: /product/
 Disallow: /admin/
 Disallow: /api/
-Disallow: /_next/
-Disallow: /404
+Disallow: /login
+Disallow: /signup
+Disallow: /checkout
 
-# Google Bot specific
-User-agent: Googlebot
+User-agent: BingPreview
 Allow: /
-Allow: /product/*
+Allow: /product/
+
+# ===== Yandex =====
+User-agent: YandexBot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /signup
+Disallow: /checkout
+
+User-agent: YandexImages
+Allow: /
+Allow: /*.webp$
+Allow: /*.jpg$
+Allow: /*.png$
+
+# ===== Apple (Siri / Spotlight / Apple Intelligence) =====
+User-agent: Applebot
+Allow: /
+Allow: /product/
 Disallow: /admin/
 Disallow: /api/
 
-# Google Image Bot - allow crawling product images
-User-agent: Googlebot-Image
+User-agent: Applebot-Extended
 Allow: /
-Allow: *.webp
-Allow: *.jpg
-Allow: *.png
 
-# Bing Bot
-User-agent: Bingbot
+# ===== DuckDuckGo =====
+User-agent: DuckDuckBot
 Allow: /
 Disallow: /admin/
 Disallow: /api/
 
-# Block bad bots
+# ===== Baidu =====
+User-agent: Baiduspider
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+
+# ===== Social / Preview Bots =====
+User-agent: Pinterest
+Allow: /
+Allow: /product/
+Allow: /*.webp$
+Allow: /*.jpg$
+Allow: /*.png$
+
+User-agent: FacebookBot
+Allow: /
+Allow: /product/
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+Allow: /product/
+
+User-agent: LinkedInBot
+Allow: /
+Allow: /product/
+
+User-agent: WhatsApp
+Allow: /
+Allow: /product/
+
+User-agent: TelegramBot
+Allow: /
+Allow: /product/
+
+User-agent: Slackbot
+Allow: /
+Allow: /product/
+
+User-agent: Discordbot
+Allow: /
+Allow: /product/
+
+# ============================================
+# ===== GENERATIVE ENGINE OPTIMIZATION =====
+# ============================================
+
+# OpenAI (ChatGPT / SearchGPT)
+User-agent: GPTBot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /signup
+Disallow: /checkout
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Google AI (Gemini / AI Overviews)
+User-agent: Google-Extended
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Anthropic (Claude)
+User-agent: anthropic-ai
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Claude-Web
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Cohere AI
+User-agent: cohere-ai
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Common Crawl
+User-agent: CCBot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# ByteDance / TikTok AI
+User-agent: Bytespider
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Amazon (Alexa / Amazon Q)
+User-agent: Amazonbot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Meta AI (Llama)
+User-agent: Meta-ExternalAgent
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: meta-externalfetcher
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# You.com
+User-agent: YouBot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Brave Search
+User-agent: BraveBot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Phind AI
+User-agent: PhindBot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Kagi Search
+User-agent: KagiBot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Diffbot
+User-agent: Diffbot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# Archive.org
+User-agent: ia_archiver
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# DataForSEO
+User-agent: DataForSeoBot
+Allow: /
+Allow: /product/
+Disallow: /admin/
+Disallow: /api/
+
+# ===== Rate-Limited SEO Tool Bots =====
 User-agent: AhrefsBot
 Crawl-delay: 10
+Disallow: /admin/
+Disallow: /api/
 
 User-agent: SemrushBot
 Crawl-delay: 10
+Disallow: /admin/
+Disallow: /api/
 
+User-agent: DotBot
+Crawl-delay: 10
+Disallow: /admin/
+Disallow: /api/
+
+# ===== Blocked Bots =====
 User-agent: MJ12bot
 Disallow: /
 
-# Sitemap
-Sitemap: https://www.nidsscrochet.in/sitemap.xml
+User-agent: PetalBot
+Disallow: /
 
-# Host
-Host: https://www.nidsscrochet.in
+User-agent: Sogou
+Disallow: /
+
+User-agent: Yisou
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+# ===== Sitemap =====
+Sitemap: https://www.nidsscrochet.in/sitemap.xml

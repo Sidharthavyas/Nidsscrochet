@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { motion, useScroll, useMotionValue, AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
@@ -549,19 +550,19 @@ function ImageLightbox({ images, currentIndex, onClose, onNext, onPrev }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeIndex, onClose, handleNext, handlePrev]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (images.length > 1) {
       setActiveIndex((prev) => (prev + 1) % images.length);
       setScale(1);
     }
-  };
+  }, [images.length]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (images.length > 1) {
       setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
       setScale(1);
     }
-  };
+  }, [images.length]);
 
   const toggleZoom = () => {
     setScale((prev) => (prev === 1 ? 2 : 1));

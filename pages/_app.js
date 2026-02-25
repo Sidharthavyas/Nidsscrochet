@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import { Poppins } from 'next/font/google';
+import Script from 'next/script';
 import Head from 'next/head';
 import { Analytics } from "@vercel/analytics/react";
 import { useEffect } from 'react';
@@ -32,7 +33,7 @@ export default function App({ Component, pageProps }) {
   }, [router]);
 
   return (
-    <ClerkProvider 
+    <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       appearance={{
         layout: {
@@ -61,6 +62,22 @@ export default function App({ Component, pageProps }) {
           />
         </Head>
         <main className={poppins.className}>
+          {/* Google Analytics */}
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=G-09GH5HGWGX"
+            strategy="afterInteractive"
+          />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+
+              gtag('config', 'G-09GH5HGWGX', {
+                page_path: window.location.pathname,
+              });
+            `}
+          </Script>
           <Component {...pageProps} />
           <Analytics />
         </main>

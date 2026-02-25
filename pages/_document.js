@@ -51,6 +51,7 @@ export default function Document() {
         <script src="https://checkout.razorpay.com/v1/checkout.js" async />
       </Head>
       <body>
+
         {/* Noscript fallback for SEO */}
         <noscript>
           <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'sans-serif' }}>

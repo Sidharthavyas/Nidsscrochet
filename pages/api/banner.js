@@ -42,26 +42,20 @@ export default async function handler(req, res) {
 
         // ===== PUT: Update banner =====
         if (method === 'PUT') {
-            // Rate limiting check
-            const rateLimitResult = limiter(req);
-            if (!rateLimitResult.allowed) {
-                return res.status(429).json({
+            const { text, active } = req.body;
+
+            // Basic validation
+            if (active !== undefined && typeof active !== 'boolean') {
+                return res.status(400).json({
                     success: false,
-                    message: 'Too many requests. Please try again later.',
-                    retryAfter: rateLimitResult.retryAfter,
+                    message: 'Validation failed: active must be a boolean',
                 });
             }
 
-            const { text, active } = req.body;
-
-            // Validate and sanitize input
-            const validation = validateBannerData({ text, active });
-
-            if (!validation.valid) {
+            if (text !== undefined && typeof text === 'string' && text.length > 500) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Validation failed',
-                    errors: validation.errors,
+                    message: 'Validation failed: text must be 500 characters or fewer',
                 });
             }
 
@@ -69,15 +63,13 @@ export default async function handler(req, res) {
             let banner = await Banner.findOne();
 
             if (banner) {
-                // Update existing banner with sanitized data
-                if (validation.data.text !== undefined) banner.text = validation.data.text;
-                if (validation.data.active !== undefined) banner.active = validation.data.active;
+                if (text !== undefined) banner.text = String(text).trim();
+                if (active !== undefined) banner.active = active;
                 await banner.save();
             } else {
-                // Create new banner with sanitized data
                 banner = await Banner.create({
-                    text: validation.data.text || '',
-                    active: validation.data.active !== undefined ? validation.data.active : true,
+                    text: text ? String(text).trim() : '',
+                    active: active !== undefined ? active : true,
                 });
             }
 

@@ -5901,29 +5901,21 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.4rem 0;
+}
+
+/* Label — hidden on desktop, visible on mobile, inherits navLink sizing */
+.navProfileLabel {
+    display: none;
     color: var(--black);
+    text-decoration: none;
     font-weight: 600;
     font-size: 0.85rem;
     letter-spacing: 0.3px;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.navProfileItem:hover {
-    color: var(--pink);
-}
-
-/* Label only shown on mobile */
-.navProfileLabel {
-    display: none;
+    transition: var(--transition);
 }
 
 @media (max-width: 768px) {
     .navProfileLabel {
         display: inline;
-        font-size: 0.85rem;
-        font-weight: 600;
-        letter-spacing: 0.3px;
-        color: var(--black);
     }
 }

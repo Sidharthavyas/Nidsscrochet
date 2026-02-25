@@ -613,6 +613,14 @@ function AdminDashboard() {
       const data = await response.json();
 
       if (data.success) {
+        // Bust the ISR cache so the homepage reflects the new banner immediately
+        try {
+          await fetch(`/api/revalidate?secret=${process.env.NEXT_PUBLIC_ADMIN_SECRET || token}`, {
+            method: 'POST',
+          });
+        } catch (_) {
+          // Revalidation is best-effort — don't block success message
+        }
         setMessage({ type: 'success', text: '✓ Banner updated successfully!' });
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       } else {

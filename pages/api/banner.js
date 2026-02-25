@@ -73,6 +73,9 @@ export default async function handler(req, res) {
                 });
             }
 
+            // Bust the homepage ISR cache immediately (best-effort)
+            try { await res.revalidate('/'); } catch (_) { }
+
             return res.status(200).json({
                 success: true,
                 message: 'Banner updated successfully',

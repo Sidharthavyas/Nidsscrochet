@@ -5917,5 +5917,6 @@
 @media (max-width: 768px) {
     .navProfileLabel {
         display: inline;
+        font-size: 1.2rem;
     }
 }

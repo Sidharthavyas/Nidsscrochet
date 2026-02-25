@@ -5709,3 +5709,221 @@
         font-size: 1.3rem;
     }
 }
+
+/* ================================================
+   CART BUTTON COMPONENT
+   ================================================ */
+
+/* — Default (top-bar) variant — */
+.cartButton {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--black);
+    transition: background 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+}
+
+.cartButton:hover {
+    background: rgba(255, 107, 157, 0.08);
+    color: var(--pink);
+    transform: translateY(-2px);
+}
+
+@keyframes cartBounceAnim {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    30% {
+        transform: scale(1.15);
+    }
+
+    60% {
+        transform: scale(0.95);
+    }
+}
+
+.cartBounce {
+    animation: cartBounceAnim 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.iconWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cartIcon {
+    width: 20px;
+    height: 20px;
+    color: currentColor;
+    transition: color 0.2s ease;
+}
+
+.badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    border-radius: 50px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 0 2px 6px rgba(255, 107, 157, 0.4);
+    pointer-events: none;
+}
+
+@keyframes badgePopAnim {
+    0% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(1.4);
+    }
+
+    70% {
+        transform: scale(0.85);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.badgePop {
+    animation: badgePopAnim 0.5s ease;
+}
+
+/* "Cart" label — hidden on desktop, visible on mobile */
+.label {
+    display: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.labelDesktop {
+    display: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .label {
+        display: inline;
+    }
+}
+
+/* — Menu variant (inside mobile slide-out drawer) — */
+.menuVariant {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+    text-decoration: none;
+    color: var(--black);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+    transition: color 0.2s ease;
+}
+
+.menuVariant:hover {
+    color: var(--pink);
+}
+
+.menuIcon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.menuIconInner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menuBadge {
+    position: absolute;
+    top: -7px;
+    right: -9px;
+    background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+    color: #fff;
+    font-size: 0.55rem;
+    font-weight: 700;
+    border-radius: 50px;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.menuLabel {
+    flex: 1;
+}
+
+.menuCount {
+    color: var(--pink);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+/* ================================================
+   MOBILE NAVBAR PROFILE LABEL
+   ================================================ */
+
+/* Wrapper for UserButton + "Profile" label in mobile drawer */
+.navProfileItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+    color: var(--black);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.navProfileItem:hover {
+    color: var(--pink);
+}
+
+/* Label only shown on mobile */
+.navProfileLabel {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .navProfileLabel {
+        display: inline;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        color: var(--black);
+    }
+}

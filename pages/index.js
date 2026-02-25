@@ -2922,7 +2922,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                   </Link>
                 </SignedIn>
 
-                <CartButton />
+                <CartButton variant="menu" onClick={() => setMobileMenuOpen(false)} />
 
                 <SignedOut>
                   <div className="flex items-center gap-2">
@@ -2949,14 +2949,16 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 </SignedOut>
 
                 <SignedIn>
-                  <div className="flex items-center gap-2">
+                  <div className={styles.navProfileItem}>
                     <UserButton
+                      afterSignOutUrl="/"
                       appearance={{
                         elements: {
                           avatarBox: "w-8 h-8",
                         }
                       }}
                     />
+                    <span className={styles.navProfileLabel}>Profile</span>
                   </div>
                 </SignedIn>
 

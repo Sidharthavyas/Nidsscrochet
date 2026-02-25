@@ -1,23 +1,87 @@
+// components/CartButton.js
+
 import { useCart } from '@/context/CartContext';
 import { ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import styles from '../styles/Home.module.css';
 
-const CartButton = () => {
+const CartButton = ({ showLabel = false, variant = 'default', onClick }) => {
   const { getCartCount } = useCart();
   const [cartCount, setCartCount] = useState(0);
+  const [animate, setAnimate] = useState(false);
+  const prevCountRef = useRef(0);
 
   useEffect(() => {
-    setCartCount(getCartCount());
+    const newCount = getCartCount();
+
+    // Trigger bounce animation when count increases
+    if (newCount > prevCountRef.current) {
+      setAnimate(true);
+      const timer = setTimeout(() => setAnimate(false), 600);
+      return () => clearTimeout(timer);
+    }
+
+    prevCountRef.current = newCount;
+    setCartCount(newCount);
   }, [getCartCount]);
 
+  // Sync count without animation on mount
+  useEffect(() => {
+    const count = getCartCount();
+    setCartCount(count);
+    prevCountRef.current = count;
+  }, [getCartCount]);
+
+  // ===== MENU VARIANT (inside slide-out mobile menu) =====
+  if (variant === 'menu') {
+    return (
+      <Link
+        href="/cart"
+        className={styles.navLink}
+        onClick={onClick}
+        aria-label={`Shopping cart with ${cartCount} items`}
+        style={{ textDecoration: 'none' }}
+      >
+        Cart{cartCount > 0 && (
+          <span style={{ color: 'var(--pink)', fontWeight: 700, marginLeft: '4px' }}>
+            ({cartCount})
+          </span>
+        )}
+      </Link>
+    );
+  }
+
+  // ===== DEFAULT VARIANT (navbar top bar) =====
   return (
-    <Link href="/cart" className="relative p-2 hover:bg-pink-soft rounded-lg transition-colors group">
-      <ShoppingCart className="w-6 h-6 text-pink group-hover:text-pink-dark transition-colors" />
-      {cartCount > 0 && (
-        <span className="absolute -top-1 -right-1 bg-pink text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg">
-          {cartCount > 99 ? '99+' : cartCount}
-        </span>
+    <Link
+      href="/cart"
+      className={`${styles.cartButton} ${animate ? styles.cartBounce : ''}`}
+      onClick={onClick}
+      aria-label={`Shopping cart with ${cartCount} items`}
+    >
+      <span className={styles.iconWrapper}>
+        <ShoppingCart
+          size={20}
+          className={styles.cartIcon}
+        />
+        {cartCount > 0 && (
+          <span
+            className={`${styles.badge} ${animate ? styles.badgePop : ''}`}
+          >
+            {cartCount > 99 ? '99+' : cartCount}
+          </span>
+        )}
+      </span>
+
+      {/* Always show label on mobile when showLabel is true */}
+      {showLabel && (
+        <span className={styles.label}>Cart</span>
+      )}
+
+      {/* Desktop-only label when showLabel is false */}
+      {!showLabel && (
+        <span className={styles.labelDesktop}>Cart</span>
       )}
     </Link>
   );

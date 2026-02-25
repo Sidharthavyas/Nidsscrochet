@@ -390,6 +390,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Review state
   const [reviews, setReviews] = useState(initialReviews || []);
@@ -644,13 +645,23 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 Nidsscrochet
               </Link>
 
-              <div className={styles.navLinks}>
-                <Link href="/#collections" className={styles.navLink} style={{ cursor: 'pointer', textDecoration: 'none' }}>
+              <motion.button
+                className={styles.mobileMenuBtn}
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                {mobileMenuOpen ? '✕' : '☰'}
+              </motion.button>
+
+              <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''}`}>
+                <Link href="/#collections" className={styles.navLink} style={{ cursor: 'pointer', textDecoration: 'none' }} onClick={() => setMobileMenuOpen(false)}>
                   Collections
                 </Link>
 
                 <SignedIn>
-                  <Link href="/orders" className={styles.navLink} style={{ cursor: 'pointer', textDecoration: 'none' }}>
+                  <Link href="/orders" className={styles.navLink} style={{ cursor: 'pointer', textDecoration: 'none' }} onClick={() => setMobileMenuOpen(false)}>
                     My Orders
                   </Link>
                 </SignedIn>
@@ -663,6 +674,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                       <button
                         className={styles.navLink}
                         style={{ cursor: 'pointer', fontSize: 'inherit' }}
+                        onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign In
                       </button>
@@ -671,6 +683,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                       <button
                         className={styles.navCta}
                         style={{ cursor: 'pointer', fontSize: 'inherit' }}
+                        onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign Up
                       </button>
@@ -884,9 +897,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 <motion.button onClick={handleShare} className={`${styles.modalBtn} ${styles.modalBtnShare}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
                   <span className={styles.btnIcon}>🔗</span>Share this Product
                 </motion.button>
-                <motion.a href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3" target="_blank" rel="noopener noreferrer" className={`${styles.modalBtn} ${styles.modalBtnPrimary}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
-                  <span className={styles.btnIcon}>📷</span>Order on Instagram
-                </motion.a>
+
                 <motion.a href="tel:9029562156" className={`${styles.modalBtn} ${styles.modalBtnSecondary}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
                   <span className={styles.btnIcon}>📞</span>Call Us
                 </motion.a>
@@ -1066,12 +1077,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
           )}
         </div>
 
-        {/* Sticky mobile CTA */}
-        <div className={styles.stickyCta}>
-          <a href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3" target="_blank" rel="noopener noreferrer" className={styles.stickyCtaButton}>
-            📷 Order on Instagram
-          </a>
-        </div>
+
 
         <AnimatePresence>
           {showShareModal && <ShareModal product={product} productUrl={productUrl} onClose={() => setShowShareModal(false)} />}

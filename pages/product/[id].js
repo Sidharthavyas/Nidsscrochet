@@ -1,7 +1,6 @@
 // pages/product/[id].js
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useReducedMotion } from 'framer-motion';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,17 +8,41 @@ import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/Home.module.css';
 import { useCart } from '@/context/CartContext';
-import { useAuth, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import {
+  useAuth,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from '@clerk/nextjs';
 import CartButton from '@/components/CartButton';
-import { ShoppingCart, Plus, Minus, IndianRupee, Truck, CreditCard } from 'lucide-react';
+import {
+  ShoppingCart,
+  Plus,
+  Minus,
+  Truck,
+  CreditCard,
+} from 'lucide-react';
 
-// ★ IMPORT YOUR DB LOGIC DIRECTLY — no self-fetch
 import connectDB from '../../lib/mongodb';
 import Product from '../../models/Product';
 import Review from '../../models/Review';
 
 // ================================================
-// IMAGE LIGHTBOX COMPONENT
+// FORCE-UNLOCK SCROLLING — bulletproof helper
+// ================================================
+function unlockScroll() {
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  document.documentElement.style.overflow = '';
+}
+
+// ================================================
+// IMAGE LIGHTBOX (performance-safe)
 // ================================================
 function ImageLightbox({ images, currentIndex, onClose }) {
   const [activeIndex, setActiveIndex] = useState(currentIndex || 0);
@@ -29,14 +52,12 @@ function ImageLightbox({ images, currentIndex, onClose }) {
 
   const touchStartRef = useRef(0);
   const touchEndRef = useRef(0);
-  const imageContainerRef = useRef(null);
   const lastTapRef = useRef(0);
 
+  // Lock scroll on open, unlock on close
   useEffect(() => {
     document.body.classList.add('modal-open');
-    return () => {
-      document.body.classList.remove('modal-open');
-    };
+    return () => unlockScroll();
   }, []);
 
   const resetZoom = useCallback(() => {
@@ -46,49 +67,58 @@ function ImageLightbox({ images, currentIndex, onClose }) {
 
   const handleNext = useCallback(() => {
     if (images.length > 1) {
-      setActiveIndex((prev) => (prev + 1) % images.length);
+      setActiveIndex((p) => (p + 1) % images.length);
       resetZoom();
     }
   }, [images.length, resetZoom]);
 
   const handlePrev = useCallback(() => {
     if (images.length > 1) {
-      setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
+      setActiveIndex((p) => (p - 1 + images.length) % images.length);
       resetZoom();
     }
   }, [images.length, resetZoom]);
 
   const zoomIn = useCallback(() => {
-    setScale((prev) => Math.min(prev + 0.5, 4));
+    setScale((p) => Math.min(p + 0.5, 4));
   }, []);
 
   const zoomOut = useCallback(() => {
-    setScale((prev) => {
-      const newScale = Math.max(prev - 0.5, 1);
-      if (newScale === 1) setDragOffset({ x: 0, y: 0 });
-      return newScale;
+    setScale((p) => {
+      const n = Math.max(p - 0.5, 1);
+      if (n === 1) setDragOffset({ x: 0, y: 0 });
+      return n;
     });
   }, []);
 
   const toggleZoom = useCallback(() => {
-    if (scale === 1) {
-      setScale(2.5);
-    } else {
-      resetZoom();
-    }
+    if (scale === 1) setScale(2.5);
+    else resetZoom();
   }, [scale, resetZoom]);
 
-  // Keyboard navigation — all deps listed
+  // Keyboard
   useEffect(() => {
     const handleKeyDown = (e) => {
       switch (e.key) {
-        case 'Escape': onClose(); break;
-        case 'ArrowRight': handleNext(); break;
-        case 'ArrowLeft': handlePrev(); break;
-        case '+': case '=': zoomIn(); break;
-        case '-': zoomOut(); break;
-        case '0': resetZoom(); break;
-        default: break;
+        case 'Escape':
+          onClose();
+          break;
+        case 'ArrowRight':
+          handleNext();
+          break;
+        case 'ArrowLeft':
+          handlePrev();
+          break;
+        case '+':
+        case '=':
+          zoomIn();
+          break;
+        case '-':
+          zoomOut();
+          break;
+        case '0':
+          resetZoom();
+          break;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -97,9 +127,7 @@ function ImageLightbox({ images, currentIndex, onClose }) {
 
   const handleDoubleTap = () => {
     const now = Date.now();
-    if (now - lastTapRef.current < 300) {
-      toggleZoom();
-    }
+    if (now - lastTapRef.current < 300) toggleZoom();
     lastTapRef.current = now;
   };
 
@@ -107,19 +135,16 @@ function ImageLightbox({ images, currentIndex, onClose }) {
     if (scale > 1) return;
     touchStartRef.current = e.targetTouches[0].clientX;
   };
-
   const handleTouchMoveLB = (e) => {
     if (scale > 1) return;
     touchEndRef.current = e.targetTouches[0].clientX;
   };
-
   const handleTouchEndLB = () => {
     if (scale > 1) return;
     if (!touchStartRef.current || !touchEndRef.current) return;
-    const distance = touchStartRef.current - touchEndRef.current;
-    if (Math.abs(distance) > 50) {
-      if (distance > 50) handleNext();
-      if (distance < -50) handlePrev();
+    const d = touchStartRef.current - touchEndRef.current;
+    if (Math.abs(d) > 50) {
+      d > 50 ? handleNext() : handlePrev();
     }
     touchStartRef.current = 0;
     touchEndRef.current = 0;
@@ -128,19 +153,15 @@ function ImageLightbox({ images, currentIndex, onClose }) {
   const handleMouseDown = () => {
     if (scale > 1) setIsDragging(true);
   };
-
   const handleMouseMove = (e) => {
     if (scale > 1 && isDragging) {
-      setDragOffset((prev) => ({
-        x: prev.x + (e.movementX || 0),
-        y: prev.y + (e.movementY || 0),
+      setDragOffset((p) => ({
+        x: p.x + (e.movementX || 0),
+        y: p.y + (e.movementY || 0),
       }));
     }
   };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+  const handleMouseUp = () => setIsDragging(false);
 
   return (
     <motion.div
@@ -148,61 +169,58 @@ function ImageLightbox({ images, currentIndex, onClose }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.2 }}
       onClick={onClose}
     >
-      <div className={styles.lightboxTopBar} onClick={(e) => e.stopPropagation()}>
+      {/* Top bar */}
+      <div
+        className={styles.lightboxTopBar}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={styles.lightboxCounter}>
           {activeIndex + 1} / {images.length}
         </div>
         <div className={styles.lightboxActions}>
-          <motion.button
+          <button
             className={styles.lightboxActionBtn}
             onClick={zoomOut}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             aria-label="Zoom out"
             disabled={scale <= 1}
             style={{ opacity: scale <= 1 ? 0.4 : 1 }}
           >
             −
-          </motion.button>
+          </button>
           <span className={styles.lightboxZoomLevel}>
             {Math.round(scale * 100)}%
           </span>
-          <motion.button
+          <button
             className={styles.lightboxActionBtn}
             onClick={zoomIn}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             aria-label="Zoom in"
             disabled={scale >= 4}
             style={{ opacity: scale >= 4 ? 0.4 : 1 }}
           >
             +
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             className={styles.lightboxActionBtn}
             onClick={resetZoom}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             aria-label="Reset zoom"
             style={{ fontSize: '0.85rem' }}
           >
             ↺
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             className={styles.lightboxCloseBtn}
             onClick={onClose}
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
             aria-label="Close lightbox"
           >
             ✕
-          </motion.button>
+          </button>
         </div>
       </div>
 
+      {/* Main image */}
       <div
         className={styles.lightboxContent}
         onClick={(e) => e.stopPropagation()}
@@ -211,30 +229,36 @@ function ImageLightbox({ images, currentIndex, onClose }) {
         onTouchEnd={handleTouchEndLB}
       >
         {images.length > 1 && (
-          <motion.button
+          <button
             className={`${styles.lightboxNavBtn} ${styles.lightboxNavPrev}`}
-            onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-            whileHover={{ scale: 1.1, x: -3 }}
-            whileTap={{ scale: 0.9 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrev();
+            }}
             aria-label="Previous image"
           >
             ‹
-          </motion.button>
+          </button>
         )}
 
-        <AnimatePresence mode="wait">
+        {/* ★ FIX: removed mode="wait" — prevents animation queue buildup on rapid swipe */}
+        <AnimatePresence initial={false}>
           <motion.div
             key={activeIndex}
             className={styles.lightboxImageWrapper}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             onClick={handleDoubleTap}
             style={{
-              cursor: scale === 1 ? 'zoom-in' : isDragging ? 'grabbing' : 'grab',
+              cursor:
+                scale === 1
+                  ? 'zoom-in'
+                  : isDragging
+                  ? 'grabbing'
+                  : 'grab',
             }}
-            ref={imageContainerRef}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -243,7 +267,7 @@ function ImageLightbox({ images, currentIndex, onClose }) {
             <motion.div
               animate={{ scale, x: dragOffset.x, y: dragOffset.y }}
               transition={{
-                scale: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] },
+                scale: { duration: 0.2 },
                 x: { duration: 0 },
                 y: { duration: 0 },
               }}
@@ -264,27 +288,35 @@ function ImageLightbox({ images, currentIndex, onClose }) {
         </AnimatePresence>
 
         {images.length > 1 && (
-          <motion.button
+          <button
             className={`${styles.lightboxNavBtn} ${styles.lightboxNavNext}`}
-            onClick={(e) => { e.stopPropagation(); handleNext(); }}
-            whileHover={{ scale: 1.1, x: 3 }}
-            whileTap={{ scale: 0.9 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNext();
+            }}
             aria-label="Next image"
           >
             ›
-          </motion.button>
+          </button>
         )}
       </div>
 
+      {/* Thumbnails */}
       {images.length > 1 && (
-        <div className={styles.lightboxThumbnails} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.lightboxThumbnails}
+          onClick={(e) => e.stopPropagation()}
+        >
           {images.map((img, idx) => (
-            <motion.button
+            <button
               key={idx}
-              className={`${styles.lightboxThumb} ${idx === activeIndex ? styles.lightboxThumbActive : ''}`}
-              onClick={() => { setActiveIndex(idx); resetZoom(); }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
+              className={`${styles.lightboxThumb} ${
+                idx === activeIndex ? styles.lightboxThumbActive : ''
+              }`}
+              onClick={() => {
+                setActiveIndex(idx);
+                resetZoom();
+              }}
             >
               <Image
                 src={img}
@@ -294,7 +326,7 @@ function ImageLightbox({ images, currentIndex, onClose }) {
                 style={{ objectFit: 'cover', borderRadius: '8px' }}
                 unoptimized
               />
-            </motion.button>
+            </button>
           ))}
         </div>
       )}
@@ -303,7 +335,7 @@ function ImageLightbox({ images, currentIndex, onClose }) {
 }
 
 // ================================================
-// SHARE MODAL COMPONENT
+// SHARE MODAL
 // ================================================
 function ShareModal({ product, productUrl, onClose }) {
   const [copied, setCopied] = useState(false);
@@ -311,29 +343,26 @@ function ShareModal({ product, productUrl, onClose }) {
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(productUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      const textArea = document.createElement('textarea');
-      textArea.value = productUrl;
-      document.body.appendChild(textArea);
-      textArea.select();
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = productUrl;
+      document.body.appendChild(ta);
+      ta.select();
       document.execCommand('copy');
-      document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      document.body.removeChild(ta);
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const shareText = `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`;
-  const encodedText = encodeURIComponent(shareText);
-  const encodedUrl = encodeURIComponent(productUrl);
+  const enc = encodeURIComponent;
 
   const shareLinks = {
-    whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-    twitter: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
-    pinterest: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&media=${encodeURIComponent(product.images?.[0] || product.image)}&description=${encodeURIComponent(product.description)}`,
+    whatsapp: `https://wa.me/?text=${enc(shareText)}%20${enc(productUrl)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${enc(productUrl)}`,
+    twitter: `https://twitter.com/intent/tweet?text=${enc(shareText)}&url=${enc(productUrl)}`,
+    pinterest: `https://pinterest.com/pin/create/button/?url=${enc(productUrl)}&media=${enc(product.images?.[0] || product.image)}&description=${enc(product.description)}`,
   };
 
   return (
@@ -351,25 +380,56 @@ function ShareModal({ product, productUrl, onClose }) {
         exit={{ scale: 0.9, y: 20 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button className={styles.shareModalClose} onClick={onClose}>✕</button>
+        <button className={styles.shareModalClose} onClick={onClose}>
+          ✕
+        </button>
         <h3 className={styles.shareModalTitle}>Share this Product</h3>
         <div className={styles.shareOptions}>
-          <motion.button className={styles.shareOption} onClick={handleCopyLink} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <span className={styles.shareIcon}>{copied ? '✓' : '🔗'}</span>
+          <button
+            className={styles.shareOption}
+            onClick={handleCopyLink}
+          >
+            <span className={styles.shareIcon}>
+              {copied ? '✓' : '🔗'}
+            </span>
             <span>{copied ? 'Copied!' : 'Copy Link'}</span>
-          </motion.button>
-          <motion.a href={shareLinks.whatsapp} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.whatsapp}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <span className={styles.shareIcon}>💬</span><span>WhatsApp</span>
-          </motion.a>
-          <motion.a href={shareLinks.facebook} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.facebook}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <span className={styles.shareIcon}>📘</span><span>Facebook</span>
-          </motion.a>
-          <motion.a href={shareLinks.twitter} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.twitter}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <span className={styles.shareIcon}>🐦</span><span>Twitter</span>
-          </motion.a>
-          <motion.a href={shareLinks.pinterest} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.pinterest}`} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <span className={styles.shareIcon}>📌</span><span>Pinterest</span>
-          </motion.a>
+          </button>
+          <a
+            href={shareLinks.whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.whatsapp}`}
+          >
+            <span className={styles.shareIcon}>💬</span>
+            <span>WhatsApp</span>
+          </a>
+          <a
+            href={shareLinks.facebook}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.facebook}`}
+          >
+            <span className={styles.shareIcon}>📘</span>
+            <span>Facebook</span>
+          </a>
+          <a
+            href={shareLinks.twitter}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.twitter}`}
+          >
+            <span className={styles.shareIcon}>🐦</span>
+            <span>Twitter</span>
+          </a>
+          <a
+            href={shareLinks.pinterest}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.shareOption} ${styles.pinterest}`}
+          >
+            <span className={styles.shareIcon}>📌</span>
+            <span>Pinterest</span>
+          </a>
         </div>
       </motion.div>
     </motion.div>
@@ -379,11 +439,16 @@ function ShareModal({ product, productUrl, onClose }) {
 // ================================================
 // PRODUCT PAGE
 // ================================================
-export default function ProductPage({ product, error, reviews: initialReviews, reviewStats: initialStats }) {
-  const prefersReducedMotion = useReducedMotion();
+export default function ProductPage({
+  product,
+  error,
+  reviews: initialReviews,
+  reviewStats: initialStats,
+}) {
   const router = useRouter();
   const { addToCart } = useCart();
   const { isSignedIn } = useAuth();
+
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -392,19 +457,29 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
   const [addedToCart, setAddedToCart] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Review state
+  // ★ FIX 1: zoom hint auto-hides + never blocks touch
+  const [showZoomHint, setShowZoomHint] = useState(true);
+
+  // Reviews
   const [reviews, setReviews] = useState(initialReviews || []);
   const [reviewStats, setReviewStats] = useState(() => {
-    const defaultStats = { averageRating: 0, reviewCount: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
-    if (!initialStats) return defaultStats;
+    const def = {
+      averageRating: 0,
+      reviewCount: 0,
+      distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+    };
+    if (!initialStats) return def;
     return {
       averageRating: initialStats.averageRating || 0,
       reviewCount: initialStats.reviewCount || 0,
-      distribution: initialStats.distribution && typeof initialStats.distribution === 'object'
-        ? { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0, ...initialStats.distribution }
-        : defaultStats.distribution
+      distribution:
+        initialStats.distribution &&
+        typeof initialStats.distribution === 'object'
+          ? { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0, ...initialStats.distribution }
+          : def.distribution,
     };
   });
+
   const [reviewName, setReviewName] = useState('');
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHover, setReviewHover] = useState(0);
@@ -414,29 +489,52 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const reviewSectionRef = useRef(null);
 
-  // ★ FIX: Reset body overflow on mount & on route change to prevent stuck pages
+  // ★ FIX 2: Bulletproof scroll unlock on mount + route change + unload
   useEffect(() => {
-    // Clear any stale overflow:hidden leaked from homepage modals/lightboxes
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = ''; // Cleanup legacy inline styles just in case
+    // Clear any stale overflow from previous page / leaked modal
+    unlockScroll();
 
     const handleRouteChange = () => {
-      document.body.classList.remove('modal-open');
-      document.body.style.overflow = '';
+      unlockScroll();
+      setLightboxOpen(false);
+      setShowShareModal(false);
+      setMobileMenuOpen(false);
     };
+
     router.events.on('routeChangeStart', handleRouteChange);
+    router.events.on('routeChangeComplete', handleRouteChange);
+    window.addEventListener('pagehide', unlockScroll);
+    window.addEventListener('beforeunload', unlockScroll);
+
     return () => {
+      unlockScroll();
       router.events.off('routeChangeStart', handleRouteChange);
+      router.events.off('routeChangeComplete', handleRouteChange);
+      window.removeEventListener('pagehide', unlockScroll);
+      window.removeEventListener('beforeunload', unlockScroll);
     };
   }, [router]);
 
+  // ★ FIX 3: Auto-hide zoom hint after 3 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => setShowZoomHint(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Review submit
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     setReviewError('');
     setReviewSuccess(false);
 
-    if (!reviewName.trim()) { setReviewError('Please enter your name'); return; }
-    if (reviewRating === 0) { setReviewError('Please select a star rating'); return; }
+    if (!reviewName.trim()) {
+      setReviewError('Please enter your name');
+      return;
+    }
+    if (reviewRating === 0) {
+      setReviewError('Please select a star rating');
+      return;
+    }
 
     setReviewSubmitting(true);
     try {
@@ -451,16 +549,22 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
         }),
       });
       const data = await res.json();
-      if (!data.success) { setReviewError(data.message || 'Failed to submit review'); return; }
+      if (!data.success) {
+        setReviewError(data.message || 'Failed to submit review');
+        return;
+      }
 
-      // Add the new review to the list and recalculate stats
       const newReviews = [data.review, ...reviews];
       setReviews(newReviews);
-      const totalRatings = newReviews.reduce((sum, r) => sum + r.rating, 0);
+
+      const totalRatings = newReviews.reduce((s, r) => s + r.rating, 0);
       const newDist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-      newReviews.forEach((r) => { newDist[r.rating] = (newDist[r.rating] || 0) + 1; });
+      newReviews.forEach((r) => {
+        newDist[r.rating] = (newDist[r.rating] || 0) + 1;
+      });
       setReviewStats({
-        averageRating: Math.round((totalRatings / newReviews.length) * 10) / 10,
+        averageRating:
+          Math.round((totalRatings / newReviews.length) * 10) / 10,
         reviewCount: newReviews.length,
         distribution: newDist,
       });
@@ -470,14 +574,14 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
       setReviewComment('');
       setReviewSuccess(true);
       setTimeout(() => setReviewSuccess(false), 4000);
-    } catch (err) {
+    } catch {
       setReviewError('Something went wrong. Please try again.');
     } finally {
       setReviewSubmitting(false);
     }
   };
 
-  // ★ Handle fallback / loading state for router
+  // Fallback / loading
   if (router.isFallback) {
     return (
       <div className={styles.mainContainer}>
@@ -493,7 +597,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
       <div className={styles.mainContainer}>
         <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>
           <h1>Product Not Found</h1>
-          <Link href="/" className={styles.retryButton} style={{ cursor: 'pointer' }}>
+          <Link href="/" className={styles.retryButton}>
             Go Back Home
           </Link>
         </div>
@@ -501,13 +605,13 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
     );
   }
 
-  const productImages = product.images && product.images.length > 0
-    ? product.images
-    : [product.image];
+  const productImages =
+    product.images && product.images.length > 0
+      ? product.images
+      : [product.image];
 
-  const productUrl = typeof window !== 'undefined'
-    ? window.location.href
-    : `https://www.Nidsscrochet.in/product/${product._id}`;
+  // ★ FIX 4: Use canonical URL to avoid hydration mismatch
+  const productUrl = `https://www.Nidsscrochet.in/product/${product._id}`;
 
   const handleShare = async () => {
     const shareData = {
@@ -515,16 +619,23 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
       text: `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`,
       url: productUrl,
     };
-    if (navigator.share) {
-      try { await navigator.share(shareData); }
-      catch (err) { if (err.name !== 'AbortError') setShowShareModal(true); }
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err.name !== 'AbortError') setShowShareModal(true);
+      }
     } else {
       setShowShareModal(true);
     }
   };
 
-  const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
-  const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
+  const nextImage = () =>
+    setCurrentImageIndex((p) => (p + 1) % productImages.length);
+  const prevImage = () =>
+    setCurrentImageIndex(
+      (p) => (p - 1 + productImages.length) % productImages.length
+    );
 
   const handleImageClick = (index) => {
     setLightboxIndex(index);
@@ -532,62 +643,106 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
   };
 
   const handleAddToCart = () => {
-    const productData = {
-      ...product,
-      _id: product._id,
-      name: product.name,
-      price: product.salePrice || product.price,
-      image: productImages[0],
-      shipping_charges: product.shipping_charges,
-      cod_available: product.cod_available,
-    };
-
-    addToCart(productData, quantity);
+    addToCart(
+      {
+        ...product,
+        _id: product._id,
+        name: product.name,
+        price: product.salePrice || product.price,
+        image: productImages[0],
+        shipping_charges: product.shipping_charges,
+        cod_available: product.cod_available,
+      },
+      quantity
+    );
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 3000);
   };
 
-  // Safe price calculation
   const getSalePercent = () => {
     try {
-      const original = parseFloat(String(product.price).replace(/[^\d.]/g, ''));
-      const sale = parseFloat(String(product.salePrice).replace(/[^\d.]/g, ''));
-      if (original > 0 && sale > 0) return Math.round(((original - sale) / original) * 100);
-    } catch { /* ignore */ }
+      const orig = parseFloat(
+        String(product.price).replace(/[^\d.]/g, '')
+      );
+      const sale = parseFloat(
+        String(product.salePrice).replace(/[^\d.]/g, '')
+      );
+      if (orig > 0 && sale > 0)
+        return Math.round(((orig - sale) / orig) * 100);
+    } catch {
+      /* ignore */
+    }
     return 0;
   };
 
   return (
     <>
       <Head>
-        <title>{product.name} | Buy Handcrafted Crochet | Nidsscrochet</title>
-        <meta name="description" content={`Buy ${product.name} - ${product.description}. Handcrafted crochet by Nidhi Tripathi. ₹${product.price}. Order on Instagram or WhatsApp. Free Mumbai delivery available!`} />
-        <meta name="keywords" content={`${product.name}, ${product.category}, buy ${product.category?.toLowerCase()} online, crochet ${product.category?.toLowerCase()}, handmade ${product.name?.toLowerCase()}, Nidsscrochet, crochet shop Mumbai, handcrafted gifts India`} />
-        <link rel="canonical" href={`https://www.Nidsscrochet.in/product/${product._id}`} />
-        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <title>
+          {product.name} | Buy Handcrafted Crochet | Nidsscrochet
+        </title>
+        <meta
+          name="description"
+          content={`Buy ${product.name} - ${product.description}. Handcrafted crochet by Nidhi Tripathi. ₹${product.price}. Free Mumbai delivery available!`}
+        />
+        <meta
+          name="keywords"
+          content={`${product.name}, ${product.category}, buy ${product.category?.toLowerCase()} online, crochet ${product.category?.toLowerCase()}, handmade ${product.name?.toLowerCase()}, Nidsscrochet, crochet shop Mumbai, handcrafted gifts India`}
+        />
+        <link
+          rel="canonical"
+          href={`https://www.Nidsscrochet.in/product/${product._id}`}
+        />
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large"
+        />
         <meta name="author" content="Nidhi Tripathi" />
 
         <meta property="og:type" content="product" />
-        <meta property="og:url" content={`https://www.Nidsscrochet.in/product/${product._id}`} />
-        <meta property="og:title" content={`${product.name} | Nidsscrochet`} />
-        <meta property="og:description" content={`${product.description} — Handmade with love by Nidhi Tripathi. ₹${product.price}`} />
+        <meta
+          property="og:url"
+          content={`https://www.Nidsscrochet.in/product/${product._id}`}
+        />
+        <meta
+          property="og:title"
+          content={`${product.name} | Nidsscrochet`}
+        />
+        <meta
+          property="og:description"
+          content={`${product.description} — Handmade with love by Nidhi Tripathi. ₹${product.price}`}
+        />
         <meta property="og:image" content={productImages[0]} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="1200" />
-        <meta property="og:image:alt" content={`${product.name} - Handcrafted crochet by Nidsscrochet`} />
+        <meta
+          property="og:image:alt"
+          content={`${product.name} - Handcrafted crochet by Nidsscrochet`}
+        />
         <meta property="og:site_name" content="Nidsscrochet" />
         <meta property="og:locale" content="en_IN" />
-        <meta property="product:price:amount" content={product.price?.toString().replace(/[^\d.]/g, '')} />
+        <meta
+          property="product:price:amount"
+          content={product.price?.toString().replace(/[^\d.]/g, '')}
+        />
         <meta property="product:price:currency" content="INR" />
-        <meta property="product:availability" content={product.stock > 0 ? 'in stock' : 'out of stock'} />
+        <meta
+          property="product:availability"
+          content={product.stock > 0 ? 'in stock' : 'out of stock'}
+        />
         <meta property="product:brand" content="Nidsscrochet" />
         <meta property="product:condition" content="new" />
         <meta property="product:category" content={product.category} />
 
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content={`https://www.Nidsscrochet.in/product/${product._id}`} />
-        <meta name="twitter:title" content={`${product.name} — ₹${product.price} | Nidsscrochet`} />
-        <meta name="twitter:description" content={`${product.description}. Handcrafted in Mumbai.`} />
+        <meta
+          name="twitter:title"
+          content={`${product.name} — ₹${product.price} | Nidsscrochet`}
+        />
+        <meta
+          name="twitter:description"
+          content={`${product.description}. Handcrafted in Mumbai.`}
+        />
         <meta name="twitter:image" content={productImages[0]} />
         <meta name="twitter:image:alt" content={product.name} />
 
@@ -605,8 +760,15 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                   image: productImages,
                   sku: product._id,
                   mpn: product._id,
-                  brand: { '@type': 'Brand', name: 'Nidsscrochet' },
-                  manufacturer: { '@type': 'Organization', name: 'Nidsscrochet', url: 'https://www.Nidsscrochet.in' },
+                  brand: {
+                    '@type': 'Brand',
+                    name: 'Nidsscrochet',
+                  },
+                  manufacturer: {
+                    '@type': 'Organization',
+                    name: 'Nidsscrochet',
+                    url: 'https://www.Nidsscrochet.in',
+                  },
                   category: product.category,
                   material: 'Premium cotton and acrylic yarn',
                   countryOfOrigin: 'IN',
@@ -614,20 +776,62 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                     '@type': 'Offer',
                     url: `https://www.Nidsscrochet.in/product/${product._id}`,
                     priceCurrency: 'INR',
-                    price: (product.salePrice || product.price)?.toString().replace(/[^\d.]/g, '') || '0',
-                    availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-                    itemCondition: 'https://schema.org/NewCondition',
-                    seller: { '@type': 'Organization', name: 'Nidsscrochet' },
+                    price:
+                      (product.salePrice || product.price)
+                        ?.toString()
+                        .replace(/[^\d.]/g, '') || '0',
+                    availability:
+                      product.stock > 0
+                        ? 'https://schema.org/InStock'
+                        : 'https://schema.org/OutOfStock',
+                    itemCondition:
+                      'https://schema.org/NewCondition',
+                    seller: {
+                      '@type': 'Organization',
+                      name: 'Nidsscrochet',
+                    },
                   },
-                  aggregateRating: { '@type': 'AggregateRating', ratingValue: '5', reviewCount: '3', bestRating: '5', worstRating: '1' },
+                  ...(reviewStats.reviewCount > 0
+                    ? {
+                        aggregateRating: {
+                          '@type': 'AggregateRating',
+                          ratingValue:
+                            reviewStats.averageRating.toString(),
+                          reviewCount:
+                            reviewStats.reviewCount.toString(),
+                          bestRating: '5',
+                          worstRating: '1',
+                        },
+                      }
+                    : {}),
                 },
                 {
                   '@type': 'BreadcrumbList',
                   itemListElement: [
-                    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.Nidsscrochet.in' },
-                    { '@type': 'ListItem', position: 2, name: 'Collections', item: 'https://www.Nidsscrochet.in/#collections' },
-                    { '@type': 'ListItem', position: 3, name: product.category, item: 'https://www.Nidsscrochet.in/#collections' },
-                    { '@type': 'ListItem', position: 4, name: product.name, item: `https://www.Nidsscrochet.in/product/${product._id}` },
+                    {
+                      '@type': 'ListItem',
+                      position: 1,
+                      name: 'Home',
+                      item: 'https://www.Nidsscrochet.in',
+                    },
+                    {
+                      '@type': 'ListItem',
+                      position: 2,
+                      name: 'Collections',
+                      item: 'https://www.Nidsscrochet.in/#collections',
+                    },
+                    {
+                      '@type': 'ListItem',
+                      position: 3,
+                      name: product.category,
+                      item: 'https://www.Nidsscrochet.in/#collections',
+                    },
+                    {
+                      '@type': 'ListItem',
+                      position: 4,
+                      name: product.name,
+                      item: `https://www.Nidsscrochet.in/product/${product._id}`,
+                    },
                   ],
                 },
               ],
@@ -637,31 +841,47 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
       </Head>
 
       <main className={styles.mainContainer}>
-        {/* Navbar */}
+        {/* ============ NAVBAR ============ */}
         <nav className={`${styles.navbar} ${styles.scrolled}`}>
           <div className={styles.navWrapper}>
             <div className={styles.navContent}>
-              <Link href="/" className={styles.navBrand} style={{ cursor: 'pointer', textDecoration: 'none' }}>
+              <Link
+                href="/"
+                className={styles.navBrand}
+                style={{ textDecoration: 'none' }}
+              >
                 Nidsscrochet
               </Link>
 
-              <motion.button
+              <button
                 className={styles.mobileMenuBtn}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
               >
                 {mobileMenuOpen ? '✕' : '☰'}
-              </motion.button>
+              </button>
 
-              <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''}`}>
-                <Link href="/#collections" className={styles.navLink} style={{ cursor: 'pointer', textDecoration: 'none' }} onClick={() => setMobileMenuOpen(false)}>
+              <div
+                className={`${styles.navLinks} ${
+                  mobileMenuOpen ? styles.navLinksMobile : ''
+                }`}
+              >
+                <Link
+                  href="/#collections"
+                  className={styles.navLink}
+                  style={{ textDecoration: 'none' }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
                   Collections
                 </Link>
 
                 <SignedIn>
-                  <Link href="/orders" className={styles.navLink} style={{ cursor: 'pointer', textDecoration: 'none' }} onClick={() => setMobileMenuOpen(false)}>
+                  <Link
+                    href="/orders"
+                    className={styles.navLink}
+                    style={{ textDecoration: 'none' }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     My Orders
                   </Link>
                 </SignedIn>
@@ -669,11 +889,17 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 <CartButton />
 
                 <SignedOut>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                    }}
+                  >
                     <SignInButton mode="modal">
                       <button
                         className={styles.navLink}
-                        style={{ cursor: 'pointer', fontSize: 'inherit' }}
+                        style={{ cursor: 'pointer' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign In
@@ -682,7 +908,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                     <SignUpButton mode="modal">
                       <button
                         className={styles.navCta}
-                        style={{ cursor: 'pointer', fontSize: 'inherit' }}
+                        style={{ cursor: 'pointer' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign Up
@@ -699,39 +925,59 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
           </div>
         </nav>
 
-        {/* Breadcrumbs */}
+        {/* ============ BREADCRUMBS ============ */}
         <div className={styles.productPageContainer}>
           <div className={styles.breadcrumbs}>
-            <Link href="/" className={styles.breadcrumbLink}>Home</Link>
+            <Link href="/" className={styles.breadcrumbLink}>
+              Home
+            </Link>
             <span className={styles.breadcrumbSeparator}>/</span>
-            <Link href="/#collections" className={styles.breadcrumbLink}>Collections</Link>
+            <Link
+              href="/#collections"
+              className={styles.breadcrumbLink}
+            >
+              Collections
+            </Link>
             <span className={styles.breadcrumbSeparator}>/</span>
-            <span className={styles.breadcrumbLink}>{product.category}</span>
+            <span className={styles.breadcrumbLink}>
+              {product.category}
+            </span>
             <span className={styles.breadcrumbSeparator}>/</span>
-            <span className={styles.breadcrumbCurrent}>{product.name}</span>
+            <span className={styles.breadcrumbCurrent}>
+              {product.name}
+            </span>
           </div>
         </div>
 
+        {/* ============ PRODUCT GRID ============ */}
         <div className={styles.productPageContainer}>
           <div className={styles.productDetailGrid}>
-            {/* Image Gallery */}
+            {/* —— Image Gallery —— */}
             <div className={styles.modalImageCarousel}>
-              <motion.div
-                className={styles.zoomHintOverlay}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.2, duration: 0.5 }}
-              >
-                <span>🔍</span> Tap image to zoom
-              </motion.div>
+              {/* ★ FIX 5: zoom hint — pointer-events:none + auto-hides */}
+              <AnimatePresence>
+                {showZoomHint && (
+                  <motion.div
+                    className={styles.zoomHintOverlay}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4 }}
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    <span>🔍</span> Tap image to zoom
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-              <AnimatePresence mode="wait">
+              {/* ★ FIX 6: removed mode="wait" + shortened duration to prevent queue buildup */}
+              <AnimatePresence initial={false}>
                 <motion.div
                   key={currentImageIndex}
-                  initial={prefersReducedMotion ? false : { opacity: 0, x: 30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={prefersReducedMotion ? false : { opacity: 0, x: -30 }}
-                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
                   className={styles.modalImage}
                   onClick={() => handleImageClick(currentImageIndex)}
                   style={{ cursor: 'zoom-in', touchAction: 'pan-y' }}
@@ -742,20 +988,50 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                     fill
                     className={styles.modalImg}
                     unoptimized
-                    priority
+                    priority={currentImageIndex === 0}
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    style={{ objectFit: 'contain', objectPosition: 'center' }}
+                    style={{
+                      objectFit: 'contain',
+                      objectPosition: 'center',
+                    }}
                   />
                 </motion.div>
               </AnimatePresence>
 
               {productImages.length > 1 && (
                 <>
-                  <button className={`${styles.carouselBtn} ${styles.carouselBtnPrev}`} onClick={(e) => { e.stopPropagation(); prevImage(); }}>←</button>
-                  <button className={`${styles.carouselBtn} ${styles.carouselBtnNext}`} onClick={(e) => { e.stopPropagation(); nextImage(); }}>→</button>
+                  <button
+                    className={`${styles.carouselBtn} ${styles.carouselBtnPrev}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      prevImage();
+                    }}
+                  >
+                    ←
+                  </button>
+                  <button
+                    className={`${styles.carouselBtn} ${styles.carouselBtnNext}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      nextImage();
+                    }}
+                  >
+                    →
+                  </button>
                   <div className={styles.carouselDots}>
                     {productImages.map((_, idx) => (
-                      <button key={idx} className={`${styles.carouselDot} ${idx === currentImageIndex ? styles.carouselDotActive : ''}`} onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }} />
+                      <button
+                        key={idx}
+                        className={`${styles.carouselDot} ${
+                          idx === currentImageIndex
+                            ? styles.carouselDotActive
+                            : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentImageIndex(idx);
+                        }}
+                      />
                     ))}
                   </div>
                 </>
@@ -764,8 +1040,24 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
               {productImages.length > 1 && (
                 <div className={styles.thumbnailRow}>
                   {productImages.map((img, idx) => (
-                    <button key={idx} className={`${styles.thumbnailButton} ${idx === currentImageIndex ? styles.thumbnailActive : ''}`} onClick={() => setCurrentImageIndex(idx)}>
-                      <Image src={img} alt={`${product.name} thumbnail ${idx + 1}`} width={70} height={70} sizes="70px" style={{ objectFit: 'cover' }} unoptimized />
+                    <button
+                      key={idx}
+                      className={`${styles.thumbnailButton} ${
+                        idx === currentImageIndex
+                          ? styles.thumbnailActive
+                          : ''
+                      }`}
+                      onClick={() => setCurrentImageIndex(idx)}
+                    >
+                      <Image
+                        src={img}
+                        alt={`${product.name} thumbnail ${idx + 1}`}
+                        width={70}
+                        height={70}
+                        sizes="70px"
+                        style={{ objectFit: 'cover' }}
+                        unoptimized
+                      />
                     </button>
                   ))}
                 </div>
@@ -776,51 +1068,109 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
               </div>
             </div>
 
-            {/* Product Details */}
+            {/* —— Product Details —— */}
             <div className={styles.modalDetails}>
-              <span className={styles.modalCategory}>{product.category}</span>
+              <span className={styles.modalCategory}>
+                {product.category}
+              </span>
               <h1>{product.name}</h1>
-              <p className={styles.modalDescription}>{product.description}</p>
+              <p className={styles.modalDescription}>
+                {product.description}
+              </p>
 
+              {/* Price */}
               <div className={styles.modalPriceSection}>
                 <div className={styles.priceWrapper}>
                   <span className={styles.priceLabel}>Price</span>
                   {product.salePrice ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                      <span className={styles.modalPrice} style={{ color: '#e91e63' }}>₹{product.salePrice}</span>
-                      <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '1.2rem' }}>₹{product.price}</span>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <span
+                        className={styles.modalPrice}
+                        style={{ color: '#e91e63' }}
+                      >
+                        ₹{product.salePrice}
+                      </span>
+                      <span
+                        style={{
+                          textDecoration: 'line-through',
+                          color: '#999',
+                          fontSize: '1.2rem',
+                        }}
+                      >
+                        ₹{product.price}
+                      </span>
                       {getSalePercent() > 0 && (
-                        <span style={{ background: '#e91e63', color: 'white', padding: '4px 10px', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                        <span
+                          style={{
+                            background: '#e91e63',
+                            color: 'white',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            fontSize: '0.85rem',
+                            fontWeight: 'bold',
+                          }}
+                        >
                           {getSalePercent()}% OFF
                         </span>
                       )}
                     </div>
                   ) : (
-                    <span className={styles.modalPrice}>₹{product.price}</span>
+                    <span className={styles.modalPrice}>
+                      ₹{product.price}
+                    </span>
                   )}
                 </div>
                 <span className={styles.modalStock}>
                   {product.stock > 0 ? (
-                    <><span className={styles.stockDot}>●</span>{product.stock} in stock</>
+                    <>
+                      <span className={styles.stockDot}>●</span>
+                      {product.stock} in stock
+                    </>
                   ) : (
-                    <><span className={styles.stockDotOut}>●</span>Out of stock</>
+                    <>
+                      <span className={styles.stockDotOut}>●</span>
+                      Out of stock
+                    </>
                   )}
                 </span>
               </div>
 
+              {/* Features */}
               <div className={styles.productFeatures}>
-                <div className={styles.feature}><span className={styles.featureIcon}>🧶</span><span>Handcrafted</span></div>
-                <div className={styles.feature}><span className={styles.featureIcon}>✨</span><span>Premium Quality</span></div>
-                <div className={styles.feature}><span className={styles.featureIcon}>💝</span><span>Gift Ready</span></div>
+                <div className={styles.feature}>
+                  <span className={styles.featureIcon}>🧶</span>
+                  <span>Handcrafted</span>
+                </div>
+                <div className={styles.feature}>
+                  <span className={styles.featureIcon}>✨</span>
+                  <span>Premium Quality</span>
+                </div>
+                <div className={styles.feature}>
+                  <span className={styles.featureIcon}>💝</span>
+                  <span>Gift Ready</span>
+                </div>
               </div>
 
-              {/* Shipping & COD Info */}
+              {/* Shipping & COD */}
               <div className={styles.shippingInfoMain}>
-                <div className={`${styles.shippingBadgeMain} ${product.shipping_charges > 0 ? '' : styles.freeShipping}`}>
+                <div
+                  className={`${styles.shippingBadgeMain} ${
+                    product.shipping_charges > 0
+                      ? ''
+                      : styles.freeShipping
+                  }`}
+                >
                   <Truck size={18} />
                   <span>
                     {product.shipping_charges > 0
-                      ? `₹${product.shipping_charges} Shipping Charges`
+                      ? `₹${product.shipping_charges} Shipping`
                       : 'Free Mumbai Delivery'}
                   </span>
                 </div>
@@ -832,24 +1182,79 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 )}
               </div>
 
-              {/* Cart Section */}
-              <div className={styles.cartSection} style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                  <span style={{ fontWeight: '600', color: '#374151' }}>Quantity:</span>
-                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #d1d5db', borderRadius: '8px', overflow: 'hidden' }}>
+              {/* Cart */}
+              <div
+                className={styles.cartSection}
+                style={{
+                  marginBottom: '1.5rem',
+                  padding: '1rem',
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: '12px',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontWeight: '600',
+                      color: '#374151',
+                    }}
+                  >
+                    Quantity:
+                  </span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                    }}
+                  >
                     <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      style={{ padding: '0.5rem', backgroundColor: '#f3f4f6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      onClick={() =>
+                        setQuantity(Math.max(1, quantity - 1))
+                      }
+                      style={{
+                        padding: '0.5rem',
+                        backgroundColor: '#f3f4f6',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
                       aria-label="Decrease quantity"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <span style={{ padding: '0.5rem 1rem', minWidth: '3rem', textAlign: 'center', fontWeight: '500' }}>
+                    <span
+                      style={{
+                        padding: '0.5rem 1rem',
+                        minWidth: '3rem',
+                        textAlign: 'center',
+                        fontWeight: '500',
+                      }}
+                    >
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      style={{ padding: '0.5rem', backgroundColor: '#f3f4f6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      style={{
+                        padding: '0.5rem',
+                        backgroundColor: '#f3f4f6',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
                       aria-label="Increase quantity"
                     >
                       <Plus className="w-4 h-4" />
@@ -857,24 +1262,29 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                   </div>
                 </div>
 
-                <motion.button
+                <button
                   onClick={handleAddToCart}
                   className={`${styles.modalBtn} ${styles.modalBtnPrimary}`}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
                   style={{
                     width: '100%',
-                    backgroundColor: addedToCart ? '#10b981' : '#3b82f6',
+                    backgroundColor: addedToCart
+                      ? '#10b981'
+                      : '#3b82f6',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '0.5rem'
+                    gap: '0.5rem',
+                    cursor:
+                      product.stock <= 0
+                        ? 'not-allowed'
+                        : 'pointer',
+                    opacity: product.stock <= 0 ? 0.5 : 1,
                   }}
                   disabled={product.stock <= 0}
                 >
                   <ShoppingCart className="w-5 h-5" />
                   {addedToCart ? '✓ Added to Cart' : 'Add to Cart'}
-                </motion.button>
+                </button>
 
                 {addedToCart && (
                   <motion.div
@@ -885,7 +1295,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                       textAlign: 'center',
                       color: '#10b981',
                       fontSize: '0.875rem',
-                      fontWeight: '500'
+                      fontWeight: '500',
                     }}
                   >
                     Item added to cart successfully!
@@ -893,63 +1303,101 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 )}
               </div>
 
+              {/* ★ REMOVED: "Order on Instagram" button — using Razorpay now */}
               <div className={styles.modalActions}>
-                <motion.button onClick={handleShare} className={`${styles.modalBtn} ${styles.modalBtnShare}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
-                  <span className={styles.btnIcon}>🔗</span>Share this Product
-                </motion.button>
+                <button
+                  onClick={handleShare}
+                  className={`${styles.modalBtn} ${styles.modalBtnShare}`}
+                >
+                  <span className={styles.btnIcon}>🔗</span>
+                  Share this Product
+                </button>
 
-                <motion.a href="tel:9029562156" className={`${styles.modalBtn} ${styles.modalBtnSecondary}`} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
-                  <span className={styles.btnIcon}>📞</span>Call Us
-                </motion.a>
+                <a
+                  href="tel:9029562156"
+                  className={`${styles.modalBtn} ${styles.modalBtnSecondary}`}
+                >
+                  <span className={styles.btnIcon}>📞</span>
+                  Call Us
+                </a>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ================================================ */}
-        {/* REVIEWS SECTION */}
-        {/* ================================================ */}
+        {/* ============ REVIEWS SECTION ============ */}
         <div className={styles.reviewSection} ref={reviewSectionRef}>
-          <h2 className={styles.reviewSectionTitle}>Customer Reviews</h2>
+          <h2 className={styles.reviewSectionTitle}>
+            Customer Reviews
+          </h2>
 
           {/* Review Summary */}
           <div className={styles.reviewSummary}>
             <div className={styles.reviewSummaryLeft}>
               <div className={styles.reviewBigRating}>
-                {reviewStats.reviewCount > 0 ? reviewStats.averageRating.toFixed(1) : '—'}
+                {reviewStats.reviewCount > 0
+                  ? reviewStats.averageRating.toFixed(1)
+                  : '—'}
               </div>
               <div className={styles.reviewBigStars}>
                 {[1, 2, 3, 4, 5].map((star) => (
                   <span
                     key={star}
-                    className={star <= Math.round(reviewStats.averageRating) ? styles.starFilled : styles.starEmpty}
+                    className={
+                      star <=
+                      Math.round(reviewStats.averageRating)
+                        ? styles.starFilled
+                        : styles.starEmpty
+                    }
                   >
                     ★
                   </span>
                 ))}
               </div>
               <div className={styles.reviewTotalCount}>
-                {reviewStats.reviewCount} {reviewStats.reviewCount === 1 ? 'review' : 'reviews'}
+                {reviewStats.reviewCount}{' '}
+                {reviewStats.reviewCount === 1
+                  ? 'review'
+                  : 'reviews'}
               </div>
             </div>
 
+            {/* ★ FIX 7: star bars — animate only once when scrolled into view */}
             <div className={styles.reviewSummaryRight}>
               {[5, 4, 3, 2, 1].map((star) => {
-                const safeDistribution = reviewStats.distribution || { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-                const count = typeof safeDistribution[star] === 'number' ? safeDistribution[star] : 0;
-                const pct = reviewStats.reviewCount > 0 ? (count / reviewStats.reviewCount) * 100 : 0;
+                const dist = reviewStats.distribution || {
+                  5: 0,
+                  4: 0,
+                  3: 0,
+                  2: 0,
+                  1: 0,
+                };
+                const count =
+                  typeof dist[star] === 'number' ? dist[star] : 0;
+                const pct =
+                  reviewStats.reviewCount > 0
+                    ? (count / reviewStats.reviewCount) * 100
+                    : 0;
                 return (
                   <div key={star} className={styles.starBarRow}>
-                    <span className={styles.starBarLabel}>{star}★</span>
+                    <span className={styles.starBarLabel}>
+                      {star}★
+                    </span>
                     <div className={styles.starBarTrack}>
                       <motion.div
                         className={styles.starBarFill}
                         initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.8, delay: (5 - star) * 0.1 }}
+                        whileInView={{ width: `${pct}%` }}
+                        viewport={{ once: true, margin: '-50px' }}
+                        transition={{
+                          duration: 0.6,
+                          delay: (5 - star) * 0.08,
+                        }}
                       />
                     </div>
-                    <span className={styles.starBarCount}>{count}</span>
+                    <span className={styles.starBarCount}>
+                      {count}
+                    </span>
                   </div>
                 );
               })}
@@ -959,9 +1407,14 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
           {/* Review Form */}
           <div className={styles.reviewFormWrapper}>
             <h3 className={styles.reviewFormTitle}>Write a Review</h3>
-            <form onSubmit={handleReviewSubmit} className={styles.reviewForm}>
+            <form
+              onSubmit={handleReviewSubmit}
+              className={styles.reviewForm}
+            >
               <div className={styles.reviewFormRow}>
-                <label className={styles.reviewLabel}>Your Name</label>
+                <label className={styles.reviewLabel}>
+                  Your Name
+                </label>
                 <input
                   type="text"
                   className={styles.reviewInput}
@@ -976,65 +1429,90 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                 <label className={styles.reviewLabel}>Rating</label>
                 <div className={styles.starSelector}>
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <motion.button
+                    <button
                       type="button"
                       key={star}
-                      className={`${styles.starSelectBtn} ${star <= (reviewHover || reviewRating) ? styles.starSelectActive : ''}`}
+                      className={`${styles.starSelectBtn} ${
+                        star <= (reviewHover || reviewRating)
+                          ? styles.starSelectActive
+                          : ''
+                      }`}
                       onClick={() => setReviewRating(star)}
                       onMouseEnter={() => setReviewHover(star)}
                       onMouseLeave={() => setReviewHover(0)}
-                      whileHover={{ scale: 1.2 }}
-                      whileTap={{ scale: 0.9 }}
                     >
                       ★
-                    </motion.button>
+                    </button>
                   ))}
                   {reviewRating > 0 && (
                     <span className={styles.ratingText}>
-                      {['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][reviewRating]}
+                      {
+                        [
+                          '',
+                          'Poor',
+                          'Fair',
+                          'Good',
+                          'Very Good',
+                          'Excellent',
+                        ][reviewRating]
+                      }
                     </span>
                   )}
                 </div>
               </div>
 
               <div className={styles.reviewFormRow}>
-                <label className={styles.reviewLabel}>Your Review <span className={styles.optionalLabel}>(optional)</span></label>
+                <label className={styles.reviewLabel}>
+                  Your Review{' '}
+                  <span className={styles.optionalLabel}>
+                    (optional)
+                  </span>
+                </label>
                 <textarea
                   className={styles.reviewTextarea}
                   placeholder="Share your experience with this product..."
                   value={reviewComment}
-                  onChange={(e) => setReviewComment(e.target.value)}
+                  onChange={(e) =>
+                    setReviewComment(e.target.value)
+                  }
                   maxLength={1000}
                   rows={4}
                 />
-                <div className={styles.charCount}>{reviewComment.length}/1000</div>
+                <div className={styles.charCount}>
+                  {reviewComment.length}/1000
+                </div>
               </div>
 
-              {reviewError && <div className={styles.reviewAlert} data-type="error">{reviewError}</div>}
+              {reviewError && (
+                <div
+                  className={styles.reviewAlert}
+                  data-type="error"
+                >
+                  {reviewError}
+                </div>
+              )}
               {reviewSuccess && (
-                <motion.div
+                <div
                   className={styles.reviewAlert}
                   data-type="success"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
                 >
                   ✓ Thank you for your review!
-                </motion.div>
+                </div>
               )}
 
-              <motion.button
+              <button
                 type="submit"
                 className={styles.reviewSubmitBtn}
                 disabled={reviewSubmitting}
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
               >
-                {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
-              </motion.button>
+                {reviewSubmitting
+                  ? 'Submitting...'
+                  : 'Submit Review'}
+              </button>
             </form>
           </div>
 
-          {/* Review List */}
+          {/* ★ FIX 8: review cards — whileInView + once:true, no re-animation */}
           {reviews.length > 0 ? (
             <div className={styles.reviewList}>
               {reviews.map((review, idx) => (
@@ -1042,29 +1520,51 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
                   key={review._id || idx}
                   className={styles.reviewCard}
                   initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-30px' }}
+                  transition={{
+                    duration: 0.3,
+                    delay: Math.min(idx * 0.05, 0.3),
+                  }}
                 >
                   <div className={styles.reviewCardHeader}>
                     <div className={styles.reviewAvatar}>
-                      {review.name?.charAt(0)?.toUpperCase() || '?'}
+                      {review.name?.charAt(0)?.toUpperCase() ||
+                        '?'}
                     </div>
                     <div className={styles.reviewMeta}>
-                      <span className={styles.reviewAuthor}>{review.name}</span>
+                      <span className={styles.reviewAuthor}>
+                        {review.name}
+                      </span>
                       <span className={styles.reviewDate}>
-                        {new Date(review.createdAt).toLocaleDateString('en-IN', {
-                          year: 'numeric', month: 'short', day: 'numeric'
+                        {new Date(
+                          review.createdAt
+                        ).toLocaleDateString('en-IN', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
                         })}
                       </span>
                     </div>
                     <div className={styles.reviewCardStars}>
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} className={star <= review.rating ? styles.starFilled : styles.starEmpty}>★</span>
+                        <span
+                          key={star}
+                          className={
+                            star <= review.rating
+                              ? styles.starFilled
+                              : styles.starEmpty
+                          }
+                        >
+                          ★
+                        </span>
                       ))}
                     </div>
                   </div>
                   {review.comment && (
-                    <p className={styles.reviewComment}>{review.comment}</p>
+                    <p className={styles.reviewComment}>
+                      {review.comment}
+                    </p>
                   )}
                 </motion.div>
               ))}
@@ -1072,19 +1572,33 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
           ) : (
             <div className={styles.noReviews}>
               <span>✨</span>
-              <p>No reviews yet. Be the first to review this product!</p>
+              <p>
+                No reviews yet. Be the first to review this
+                product!
+              </p>
             </div>
           )}
         </div>
 
-
-
+        {/* Modals — only mount when needed */}
         <AnimatePresence>
-          {showShareModal && <ShareModal product={product} productUrl={productUrl} onClose={() => setShowShareModal(false)} />}
+          {showShareModal && (
+            <ShareModal
+              product={product}
+              productUrl={productUrl}
+              onClose={() => setShowShareModal(false)}
+            />
+          )}
         </AnimatePresence>
 
         <AnimatePresence>
-          {lightboxOpen && <ImageLightbox images={productImages} currentIndex={lightboxIndex} onClose={() => setLightboxOpen(false)} />}
+          {lightboxOpen && (
+            <ImageLightbox
+              images={productImages}
+              currentIndex={lightboxIndex}
+              onClose={() => setLightboxOpen(false)}
+            />
+          )}
         </AnimatePresence>
       </main>
     </>
@@ -1092,7 +1606,7 @@ export default function ProductPage({ product, error, reviews: initialReviews, r
 }
 
 // ================================================
-// ★★★ THE FIX — Direct DB access, no self-fetch ★★★
+// SSR — direct DB access
 // ================================================
 export async function getServerSideProps({ params }) {
   const { id } = params;
@@ -1102,16 +1616,26 @@ export async function getServerSideProps({ params }) {
 
     const [product, reviewsRaw] = await Promise.all([
       Product.findById(id).lean(),
-      Review.find({ productId: id }).sort({ createdAt: -1 }).lean(),
+      Review.find({ productId: id })
+        .sort({ createdAt: -1 })
+        .lean(),
     ]);
 
     if (!product) {
       return {
-        props: { error: 'Product not found', product: null, reviews: [], reviewStats: { averageRating: 0, reviewCount: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } } },
+        props: {
+          error: 'Product not found',
+          product: null,
+          reviews: [],
+          reviewStats: {
+            averageRating: 0,
+            reviewCount: 0,
+            distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+          },
+        },
       };
     }
 
-    // Compute review stats
     const reviewCount = reviewsRaw.length;
     let averageRating = 0;
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
@@ -1119,12 +1643,13 @@ export async function getServerSideProps({ params }) {
       let total = 0;
       reviewsRaw.forEach((r) => {
         total += r.rating;
-        distribution[r.rating] = (distribution[r.rating] || 0) + 1;
+        distribution[r.rating] =
+          (distribution[r.rating] || 0) + 1;
       });
-      averageRating = Math.round((total / reviewCount) * 10) / 10;
+      averageRating =
+        Math.round((total / reviewCount) * 10) / 10;
     }
 
-    // Serialize MongoDB documents
     return {
       props: {
         product: JSON.parse(JSON.stringify(product)),
@@ -1136,7 +1661,16 @@ export async function getServerSideProps({ params }) {
   } catch (err) {
     console.error('Error fetching product:', err);
     return {
-      props: { error: 'Failed to load product', product: null, reviews: [], reviewStats: { averageRating: 0, reviewCount: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } } },
+      props: {
+        error: 'Failed to load product',
+        product: null,
+        reviews: [],
+        reviewStats: {
+          averageRating: 0,
+          reviewCount: 0,
+          distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+        },
+      },
     };
   }
 }

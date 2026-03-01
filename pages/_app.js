@@ -24,7 +24,9 @@ export default function App({ Component, pageProps }) {
   useEffect(() => {
     const handleRouteChange = () => {
       document.body.style.overflow = '';
+      document.body.style.touchAction = '';
       document.body.classList.remove('modal-open');
+      document.body.classList.remove('no-scroll');
     };
     router.events.on('routeChangeStart', handleRouteChange);
     return () => {

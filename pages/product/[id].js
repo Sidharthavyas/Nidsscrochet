@@ -34,11 +34,29 @@ import Review from '../../models/Review';
 // ================================================
 function unlockScroll() {
   document.body.classList.remove('modal-open');
+  document.body.classList.remove('no-scroll');
   document.body.style.overflow = '';
   document.body.style.position = '';
   document.body.style.top = '';
   document.body.style.width = '';
+  document.body.style.touchAction = '';
+  document.body.style.overscrollBehavior = '';
   document.documentElement.style.overflow = '';
+}
+
+// ================================================
+// MOBILE DETECTION HOOK
+// ================================================
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    setIsMobile(mql.matches);
+    const handler = (e) => setIsMobile(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return isMobile;
 }
 
 // ================================================
@@ -256,8 +274,8 @@ function ImageLightbox({ images, currentIndex, onClose }) {
                 scale === 1
                   ? 'zoom-in'
                   : isDragging
-                  ? 'grabbing'
-                  : 'grab',
+                    ? 'grabbing'
+                    : 'grab',
             }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -310,9 +328,8 @@ function ImageLightbox({ images, currentIndex, onClose }) {
           {images.map((img, idx) => (
             <button
               key={idx}
-              className={`${styles.lightboxThumb} ${
-                idx === activeIndex ? styles.lightboxThumbActive : ''
-              }`}
+              className={`${styles.lightboxThumb} ${idx === activeIndex ? styles.lightboxThumbActive : ''
+                }`}
               onClick={() => {
                 setActiveIndex(idx);
                 resetZoom();
@@ -448,6 +465,7 @@ export default function ProductPage({
   const router = useRouter();
   const { addToCart } = useCart();
   const { isSignedIn } = useAuth();
+  const isMobile = useIsMobile();
 
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -474,7 +492,7 @@ export default function ProductPage({
       reviewCount: initialStats.reviewCount || 0,
       distribution:
         initialStats.distribution &&
-        typeof initialStats.distribution === 'object'
+          typeof initialStats.distribution === 'object'
           ? { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0, ...initialStats.distribution }
           : def.distribution,
     };
@@ -793,16 +811,16 @@ export default function ProductPage({
                   },
                   ...(reviewStats.reviewCount > 0
                     ? {
-                        aggregateRating: {
-                          '@type': 'AggregateRating',
-                          ratingValue:
-                            reviewStats.averageRating.toString(),
-                          reviewCount:
-                            reviewStats.reviewCount.toString(),
-                          bestRating: '5',
-                          worstRating: '1',
-                        },
-                      }
+                      aggregateRating: {
+                        '@type': 'AggregateRating',
+                        ratingValue:
+                          reviewStats.averageRating.toString(),
+                        reviewCount:
+                          reviewStats.reviewCount.toString(),
+                        bestRating: '5',
+                        worstRating: '1',
+                      },
+                    }
                     : {}),
                 },
                 {
@@ -862,9 +880,8 @@ export default function ProductPage({
               </button>
 
               <div
-                className={`${styles.navLinks} ${
-                  mobileMenuOpen ? styles.navLinksMobile : ''
-                }`}
+                className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''
+                  }`}
               >
                 <Link
                   href="/#collections"
@@ -1022,11 +1039,10 @@ export default function ProductPage({
                     {productImages.map((_, idx) => (
                       <button
                         key={idx}
-                        className={`${styles.carouselDot} ${
-                          idx === currentImageIndex
-                            ? styles.carouselDotActive
-                            : ''
-                        }`}
+                        className={`${styles.carouselDot} ${idx === currentImageIndex
+                          ? styles.carouselDotActive
+                          : ''
+                          }`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setCurrentImageIndex(idx);
@@ -1042,11 +1058,10 @@ export default function ProductPage({
                   {productImages.map((img, idx) => (
                     <button
                       key={idx}
-                      className={`${styles.thumbnailButton} ${
-                        idx === currentImageIndex
-                          ? styles.thumbnailActive
-                          : ''
-                      }`}
+                      className={`${styles.thumbnailButton} ${idx === currentImageIndex
+                        ? styles.thumbnailActive
+                        : ''
+                        }`}
                       onClick={() => setCurrentImageIndex(idx)}
                     >
                       <Image
@@ -1161,11 +1176,10 @@ export default function ProductPage({
               {/* Shipping & COD */}
               <div className={styles.shippingInfoMain}>
                 <div
-                  className={`${styles.shippingBadgeMain} ${
-                    product.shipping_charges > 0
-                      ? ''
-                      : styles.freeShipping
-                  }`}
+                  className={`${styles.shippingBadgeMain} ${product.shipping_charges > 0
+                    ? ''
+                    : styles.freeShipping
+                    }`}
                 >
                   <Truck size={18} />
                   <span>
@@ -1345,7 +1359,7 @@ export default function ProductPage({
                     key={star}
                     className={
                       star <=
-                      Math.round(reviewStats.averageRating)
+                        Math.round(reviewStats.averageRating)
                         ? styles.starFilled
                         : styles.starEmpty
                     }
@@ -1384,16 +1398,23 @@ export default function ProductPage({
                       {star}★
                     </span>
                     <div className={styles.starBarTrack}>
-                      <motion.div
-                        className={styles.starBarFill}
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${pct}%` }}
-                        viewport={{ once: true, margin: '-50px' }}
-                        transition={{
-                          duration: 0.6,
-                          delay: (5 - star) * 0.08,
-                        }}
-                      />
+                      {isMobile ? (
+                        <div
+                          className={styles.starBarFill}
+                          style={{ width: `${pct}%` }}
+                        />
+                      ) : (
+                        <motion.div
+                          className={styles.starBarFill}
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${pct}%` }}
+                          viewport={{ once: true, margin: '-50px' }}
+                          transition={{
+                            duration: 0.6,
+                            delay: (5 - star) * 0.08,
+                          }}
+                        />
+                      )}
                     </div>
                     <span className={styles.starBarCount}>
                       {count}
@@ -1432,11 +1453,10 @@ export default function ProductPage({
                     <button
                       type="button"
                       key={star}
-                      className={`${styles.starSelectBtn} ${
-                        star <= (reviewHover || reviewRating)
-                          ? styles.starSelectActive
-                          : ''
-                      }`}
+                      className={`${styles.starSelectBtn} ${star <= (reviewHover || reviewRating)
+                        ? styles.starSelectActive
+                        : ''
+                        }`}
                       onClick={() => setReviewRating(star)}
                       onMouseEnter={() => setReviewHover(star)}
                       onMouseLeave={() => setReviewHover(0)}
@@ -1512,62 +1532,74 @@ export default function ProductPage({
             </form>
           </div>
 
-          {/* ★ FIX 8: review cards — whileInView + once:true, no re-animation */}
+          {/* ★ FIX 8: review cards — no animation on mobile for smooth scrolling */}
           {reviews.length > 0 ? (
             <div className={styles.reviewList}>
-              {reviews.map((review, idx) => (
-                <motion.div
-                  key={review._id || idx}
-                  className={styles.reviewCard}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-30px' }}
-                  transition={{
-                    duration: 0.3,
-                    delay: Math.min(idx * 0.05, 0.3),
-                  }}
-                >
-                  <div className={styles.reviewCardHeader}>
-                    <div className={styles.reviewAvatar}>
-                      {review.name?.charAt(0)?.toUpperCase() ||
-                        '?'}
-                    </div>
-                    <div className={styles.reviewMeta}>
-                      <span className={styles.reviewAuthor}>
-                        {review.name}
-                      </span>
-                      <span className={styles.reviewDate}>
-                        {new Date(
-                          review.createdAt
-                        ).toLocaleDateString('en-IN', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </span>
-                    </div>
-                    <div className={styles.reviewCardStars}>
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span
-                          key={star}
-                          className={
-                            star <= review.rating
-                              ? styles.starFilled
-                              : styles.starEmpty
-                          }
-                        >
-                          ★
+              {reviews.map((review, idx) => {
+                const cardContent = (
+                  <>
+                    <div className={styles.reviewCardHeader}>
+                      <div className={styles.reviewAvatar}>
+                        {review.name?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <div className={styles.reviewMeta}>
+                        <span className={styles.reviewAuthor}>
+                          {review.name}
                         </span>
-                      ))}
+                        <span className={styles.reviewDate}>
+                          {new Date(review.createdAt).toLocaleDateString('en-IN', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </span>
+                      </div>
+                      <div className={styles.reviewCardStars}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            className={
+                              star <= review.rating
+                                ? styles.starFilled
+                                : styles.starEmpty
+                            }
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
                     </div>
+                    {review.comment && (
+                      <p className={styles.reviewComment}>
+                        {review.comment}
+                      </p>
+                    )}
+                  </>
+                );
+
+                return isMobile ? (
+                  <div
+                    key={review._id || idx}
+                    className={styles.reviewCard}
+                  >
+                    {cardContent}
                   </div>
-                  {review.comment && (
-                    <p className={styles.reviewComment}>
-                      {review.comment}
-                    </p>
-                  )}
-                </motion.div>
-              ))}
+                ) : (
+                  <motion.div
+                    key={review._id || idx}
+                    className={styles.reviewCard}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-30px' }}
+                    transition={{
+                      duration: 0.3,
+                      delay: Math.min(idx * 0.05, 0.3),
+                    }}
+                  >
+                    {cardContent}
+                  </motion.div>
+                );
+              })}
             </div>
           ) : (
             <div className={styles.noReviews}>

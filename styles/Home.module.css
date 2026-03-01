@@ -3352,7 +3352,7 @@
         padding: 1rem 1.5rem;
         margin-top: 1.5rem;
         border-radius: 12px;
-        background: linear-gradient(135deg, var(--pink) 0%, var(--dark-pink) 100%);
+        background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
         color: white;
         font-weight: 600;
         box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);

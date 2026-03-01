@@ -184,8 +184,8 @@ body.modal-open,
 body.no-scroll {
   overflow: hidden !important;
   height: 100vh;
-  touch-action: none;
-  /* Helps prevent scroll chaining on mobile */
+  overscroll-behavior: none;
+  /* Prevents scroll chaining without killing touch events */
 }
 
 .hide-scrollbar::-webkit-scrollbar {

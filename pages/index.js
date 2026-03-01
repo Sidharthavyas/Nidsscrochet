@@ -2940,7 +2940,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                         whileHover={{ y: -2, scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className={styles.navCta}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                        style={{ border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
                       >
                         Sign Up
                       </motion.button>

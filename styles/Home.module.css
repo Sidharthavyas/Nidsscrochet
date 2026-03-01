@@ -11,6 +11,7 @@
     background: var(--cream);
     position: relative;
     overflow-x: hidden;
+    touch-action: pan-x pan-y;
 }
 
 /* ================================================
@@ -3829,6 +3830,16 @@
     .productDetailGrid {
         grid-template-columns: 1fr;
         gap: 1.2rem;
+    }
+
+    /* Force vertical scrolling on mobile — overrides framer-motion inline touch-action:none */
+    .mainContainer,
+    .mainContainer * {
+        touch-action: pan-x pan-y !important;
+    }
+
+    .productPageContainer {
+        touch-action: pan-y !important;
     }
 
     .stickyCta {

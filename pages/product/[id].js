@@ -34,11 +34,17 @@ import Review from '../../models/Review';
 // ================================================
 function unlockScroll() {
   document.body.classList.remove('modal-open');
+  document.body.classList.remove('no-scroll'); // ★ FIX: also remove no-scroll variant
   document.body.style.overflow = '';
+  document.body.style.overflowY = '';
   document.body.style.position = '';
   document.body.style.top = '';
   document.body.style.width = '';
   document.documentElement.style.overflow = '';
+  document.documentElement.style.overflowY = '';
+  // Re-enable touch events explicitly
+  document.body.style.touchAction = '';
+  document.documentElement.style.touchAction = '';
 }
 
 // ================================================
@@ -256,8 +262,8 @@ function ImageLightbox({ images, currentIndex, onClose }) {
                 scale === 1
                   ? 'zoom-in'
                   : isDragging
-                  ? 'grabbing'
-                  : 'grab',
+                    ? 'grabbing'
+                    : 'grab',
             }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -310,9 +316,8 @@ function ImageLightbox({ images, currentIndex, onClose }) {
           {images.map((img, idx) => (
             <button
               key={idx}
-              className={`${styles.lightboxThumb} ${
-                idx === activeIndex ? styles.lightboxThumbActive : ''
-              }`}
+              className={`${styles.lightboxThumb} ${idx === activeIndex ? styles.lightboxThumbActive : ''
+                }`}
               onClick={() => {
                 setActiveIndex(idx);
                 resetZoom();
@@ -460,6 +465,10 @@ export default function ProductPage({
   // ★ FIX 1: zoom hint auto-hides + never blocks touch
   const [showZoomHint, setShowZoomHint] = useState(true);
 
+  // ★ FIX: Touch swipe state for mobile image carousel
+  const swipeTouchStartX = useRef(0);
+  const swipeTouchStartY = useRef(0);
+
   // Reviews
   const [reviews, setReviews] = useState(initialReviews || []);
   const [reviewStats, setReviewStats] = useState(() => {
@@ -474,7 +483,7 @@ export default function ProductPage({
       reviewCount: initialStats.reviewCount || 0,
       distribution:
         initialStats.distribution &&
-        typeof initialStats.distribution === 'object'
+          typeof initialStats.distribution === 'object'
           ? { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0, ...initialStats.distribution }
           : def.distribution,
     };
@@ -793,16 +802,16 @@ export default function ProductPage({
                   },
                   ...(reviewStats.reviewCount > 0
                     ? {
-                        aggregateRating: {
-                          '@type': 'AggregateRating',
-                          ratingValue:
-                            reviewStats.averageRating.toString(),
-                          reviewCount:
-                            reviewStats.reviewCount.toString(),
-                          bestRating: '5',
-                          worstRating: '1',
-                        },
-                      }
+                      aggregateRating: {
+                        '@type': 'AggregateRating',
+                        ratingValue:
+                          reviewStats.averageRating.toString(),
+                        reviewCount:
+                          reviewStats.reviewCount.toString(),
+                        bestRating: '5',
+                        worstRating: '1',
+                      },
+                    }
                     : {}),
                 },
                 {
@@ -862,9 +871,8 @@ export default function ProductPage({
               </button>
 
               <div
-                className={`${styles.navLinks} ${
-                  mobileMenuOpen ? styles.navLinksMobile : ''
-                }`}
+                className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''
+                  }`}
               >
                 <Link
                   href="/#collections"
@@ -954,49 +962,53 @@ export default function ProductPage({
           <div className={styles.productDetailGrid}>
             {/* —— Image Gallery —— */}
             <div className={styles.modalImageCarousel}>
-              {/* ★ FIX 5: zoom hint — pointer-events:none + auto-hides */}
-              <AnimatePresence>
-                {showZoomHint && (
-                  <motion.div
-                    className={styles.zoomHintOverlay}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.4 }}
-                    style={{ pointerEvents: 'none' }}
-                  >
-                    <span>🔍</span> Tap image to zoom
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* ★ FIX 6: removed mode="wait" + shortened duration to prevent queue buildup */}
-              <AnimatePresence initial={false}>
-                <motion.div
-                  key={currentImageIndex}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className={styles.modalImage}
-                  onClick={() => handleImageClick(currentImageIndex)}
-                  style={{ cursor: 'zoom-in', touchAction: 'pan-y' }}
+              {/* ★ FIX: zoom hint — pointer-events:none + auto-hides */}
+              {showZoomHint && (
+                <div
+                  className={styles.zoomHintOverlay}
+                  style={{ pointerEvents: 'none' }}
                 >
-                  <Image
-                    src={productImages[currentImageIndex]}
-                    alt={`${product.name} - Image ${currentImageIndex + 1}`}
-                    fill
-                    className={styles.modalImg}
-                    unoptimized
-                    priority={currentImageIndex === 0}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    style={{
-                      objectFit: 'contain',
-                      objectPosition: 'center',
-                    }}
-                  />
-                </motion.div>
-              </AnimatePresence>
+                  <span>🔍</span> Tap image to zoom
+                </div>
+              )}
+
+              {/* ★ FIX: Replaced AnimatePresence+motion.div with plain div + CSS fade.
+                  framer-motion's animation queue causes the page to "hang" on mobile
+                  when the user rapidly swipes or changes images. */}
+              <div
+                className={styles.modalImage}
+                onClick={() => handleImageClick(currentImageIndex)}
+                style={{ cursor: 'zoom-in', touchAction: 'pan-y' }}
+                onTouchStart={(e) => {
+                  swipeTouchStartX.current = e.targetTouches[0].clientX;
+                  swipeTouchStartY.current = e.targetTouches[0].clientY;
+                }}
+                onTouchEnd={(e) => {
+                  const dx = swipeTouchStartX.current - e.changedTouches[0].clientX;
+                  const dy = Math.abs(swipeTouchStartY.current - e.changedTouches[0].clientY);
+                  // Only trigger horizontal swipe if mainly horizontal movement
+                  if (Math.abs(dx) > 45 && Math.abs(dx) > dy * 1.5) {
+                    e.preventDefault();
+                    if (dx > 0) nextImage();
+                    else prevImage();
+                  }
+                }}
+              >
+                <Image
+                  key={currentImageIndex}
+                  src={productImages[currentImageIndex]}
+                  alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                  fill
+                  className={styles.modalImg}
+                  unoptimized
+                  priority={currentImageIndex === 0}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  style={{
+                    objectFit: 'contain',
+                    objectPosition: 'center',
+                  }}
+                />
+              </div>
 
               {productImages.length > 1 && (
                 <>
@@ -1022,11 +1034,10 @@ export default function ProductPage({
                     {productImages.map((_, idx) => (
                       <button
                         key={idx}
-                        className={`${styles.carouselDot} ${
-                          idx === currentImageIndex
-                            ? styles.carouselDotActive
-                            : ''
-                        }`}
+                        className={`${styles.carouselDot} ${idx === currentImageIndex
+                          ? styles.carouselDotActive
+                          : ''
+                          }`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setCurrentImageIndex(idx);
@@ -1042,11 +1053,10 @@ export default function ProductPage({
                   {productImages.map((img, idx) => (
                     <button
                       key={idx}
-                      className={`${styles.thumbnailButton} ${
-                        idx === currentImageIndex
-                          ? styles.thumbnailActive
-                          : ''
-                      }`}
+                      className={`${styles.thumbnailButton} ${idx === currentImageIndex
+                        ? styles.thumbnailActive
+                        : ''
+                        }`}
                       onClick={() => setCurrentImageIndex(idx)}
                     >
                       <Image
@@ -1161,11 +1171,10 @@ export default function ProductPage({
               {/* Shipping & COD */}
               <div className={styles.shippingInfoMain}>
                 <div
-                  className={`${styles.shippingBadgeMain} ${
-                    product.shipping_charges > 0
-                      ? ''
-                      : styles.freeShipping
-                  }`}
+                  className={`${styles.shippingBadgeMain} ${product.shipping_charges > 0
+                    ? ''
+                    : styles.freeShipping
+                    }`}
                 >
                   <Truck size={18} />
                   <span>
@@ -1345,7 +1354,7 @@ export default function ProductPage({
                     key={star}
                     className={
                       star <=
-                      Math.round(reviewStats.averageRating)
+                        Math.round(reviewStats.averageRating)
                         ? styles.starFilled
                         : styles.starEmpty
                     }
@@ -1432,11 +1441,10 @@ export default function ProductPage({
                     <button
                       type="button"
                       key={star}
-                      className={`${styles.starSelectBtn} ${
-                        star <= (reviewHover || reviewRating)
-                          ? styles.starSelectActive
-                          : ''
-                      }`}
+                      className={`${styles.starSelectBtn} ${star <= (reviewHover || reviewRating)
+                        ? styles.starSelectActive
+                        : ''
+                        }`}
                       onClick={() => setReviewRating(star)}
                       onMouseEnter={() => setReviewHover(star)}
                       onMouseLeave={() => setReviewHover(0)}

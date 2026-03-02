@@ -179,13 +179,12 @@ textarea {
 }
 
 /* Prevent content shift when modal opens */
-/* Prevent content shift when modal opens */
 body.modal-open,
 body.no-scroll {
   overflow: hidden !important;
-  height: 100vh;
-  touch-action: none;
-  /* Helps prevent scroll chaining on mobile */
+  /* ★ FIX: Do NOT set touch-action:none on body — it permanently
+     blocks scrolling if class is not cleaned up after modal closes.
+     Instead, each modal/lightbox overlay manages its own touch-action. */
 }
 
 .hide-scrollbar::-webkit-scrollbar {

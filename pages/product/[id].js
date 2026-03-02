@@ -34,17 +34,34 @@ import Review from '../../models/Review';
 // ================================================
 function unlockScroll() {
   document.body.classList.remove('modal-open');
-  document.body.classList.remove('no-scroll'); // ★ FIX: also remove no-scroll variant
+  document.body.classList.remove('no-scroll'); // also remove no-scroll variant
   document.body.style.overflow = '';
   document.body.style.overflowY = '';
   document.body.style.position = '';
   document.body.style.top = '';
   document.body.style.width = '';
+  document.body.style.touchAction = '';
+  document.body.style.overscrollBehavior = '';
   document.documentElement.style.overflow = '';
   document.documentElement.style.overflowY = '';
   // Re-enable touch events explicitly
   document.body.style.touchAction = '';
   document.documentElement.style.touchAction = '';
+}
+
+// ================================================
+// MOBILE DETECTION HOOK
+// ================================================
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    setIsMobile(mql.matches);
+    const handler = (e) => setIsMobile(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return isMobile;
 }
 
 // ================================================
@@ -453,6 +470,7 @@ export default function ProductPage({
   const router = useRouter();
   const { addToCart } = useCart();
   const { isSignedIn } = useAuth();
+  const isMobile = useIsMobile();
 
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -1393,16 +1411,23 @@ export default function ProductPage({
                       {star}★
                     </span>
                     <div className={styles.starBarTrack}>
-                      <motion.div
-                        className={styles.starBarFill}
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${pct}%` }}
-                        viewport={{ once: true, margin: '-50px' }}
-                        transition={{
-                          duration: 0.6,
-                          delay: (5 - star) * 0.08,
-                        }}
-                      />
+                      {isMobile ? (
+                        <div
+                          className={styles.starBarFill}
+                          style={{ width: `${pct}%` }}
+                        />
+                      ) : (
+                        <motion.div
+                          className={styles.starBarFill}
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${pct}%` }}
+                          viewport={{ once: true, margin: '-50px' }}
+                          transition={{
+                            duration: 0.6,
+                            delay: (5 - star) * 0.08,
+                          }}
+                        />
+                      )}
                     </div>
                     <span className={styles.starBarCount}>
                       {count}
@@ -1520,62 +1545,74 @@ export default function ProductPage({
             </form>
           </div>
 
-          {/* ★ FIX 8: review cards — whileInView + once:true, no re-animation */}
+          {/* ★ FIX 8: review cards — no animation on mobile for smooth scrolling */}
           {reviews.length > 0 ? (
             <div className={styles.reviewList}>
-              {reviews.map((review, idx) => (
-                <motion.div
-                  key={review._id || idx}
-                  className={styles.reviewCard}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-30px' }}
-                  transition={{
-                    duration: 0.3,
-                    delay: Math.min(idx * 0.05, 0.3),
-                  }}
-                >
-                  <div className={styles.reviewCardHeader}>
-                    <div className={styles.reviewAvatar}>
-                      {review.name?.charAt(0)?.toUpperCase() ||
-                        '?'}
-                    </div>
-                    <div className={styles.reviewMeta}>
-                      <span className={styles.reviewAuthor}>
-                        {review.name}
-                      </span>
-                      <span className={styles.reviewDate}>
-                        {new Date(
-                          review.createdAt
-                        ).toLocaleDateString('en-IN', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </span>
-                    </div>
-                    <div className={styles.reviewCardStars}>
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span
-                          key={star}
-                          className={
-                            star <= review.rating
-                              ? styles.starFilled
-                              : styles.starEmpty
-                          }
-                        >
-                          ★
+              {reviews.map((review, idx) => {
+                const cardContent = (
+                  <>
+                    <div className={styles.reviewCardHeader}>
+                      <div className={styles.reviewAvatar}>
+                        {review.name?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <div className={styles.reviewMeta}>
+                        <span className={styles.reviewAuthor}>
+                          {review.name}
                         </span>
-                      ))}
+                        <span className={styles.reviewDate}>
+                          {new Date(review.createdAt).toLocaleDateString('en-IN', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </span>
+                      </div>
+                      <div className={styles.reviewCardStars}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            className={
+                              star <= review.rating
+                                ? styles.starFilled
+                                : styles.starEmpty
+                            }
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
                     </div>
+                    {review.comment && (
+                      <p className={styles.reviewComment}>
+                        {review.comment}
+                      </p>
+                    )}
+                  </>
+                );
+
+                return isMobile ? (
+                  <div
+                    key={review._id || idx}
+                    className={styles.reviewCard}
+                  >
+                    {cardContent}
                   </div>
-                  {review.comment && (
-                    <p className={styles.reviewComment}>
-                      {review.comment}
-                    </p>
-                  )}
-                </motion.div>
-              ))}
+                ) : (
+                  <motion.div
+                    key={review._id || idx}
+                    className={styles.reviewCard}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-30px' }}
+                    transition={{
+                      duration: 0.3,
+                      delay: Math.min(idx * 0.05, 0.3),
+                    }}
+                  >
+                    {cardContent}
+                  </motion.div>
+                );
+              })}
             </div>
           ) : (
             <div className={styles.noReviews}>

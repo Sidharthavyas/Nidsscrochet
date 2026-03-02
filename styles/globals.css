@@ -182,9 +182,10 @@ textarea {
 body.modal-open,
 body.no-scroll {
   overflow: hidden !important;
-  /* ★ FIX: Do NOT set touch-action:none on body — it permanently
-     blocks scrolling if class is not cleaned up after modal closes.
-     Instead, each modal/lightbox overlay manages its own touch-action. */
+  overscroll-behavior: none;
+  /* Prevents scroll chaining without killing touch events.
+     NOTE: Do NOT add touch-action:none here — it permanently blocks
+     all scrolling if this class is not cleaned up after modal closes. */
 }
 
 .hide-scrollbar::-webkit-scrollbar {

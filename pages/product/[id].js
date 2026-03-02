@@ -5,7 +5,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion removed — all animations replaced with CSS for mobile scroll performance
 import styles from '../../styles/Home.module.css';
 import { useCart } from '@/context/CartContext';
 import {
@@ -187,63 +187,21 @@ function ImageLightbox({ images, currentIndex, onClose }) {
   const handleMouseUp = () => setIsDragging(false);
 
   return (
-    <motion.div
-      className={styles.lightboxOverlay}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-      onClick={onClose}
-    >
+    /* Plain div — .lightboxOverlay has CSS fadeIn animation */
+    <div className={styles.lightboxOverlay} onClick={onClose}>
       {/* Top bar */}
-      <div
-        className={styles.lightboxTopBar}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className={styles.lightboxCounter}>
-          {activeIndex + 1} / {images.length}
-        </div>
+      <div className={styles.lightboxTopBar} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.lightboxCounter}>{activeIndex + 1} / {images.length}</div>
         <div className={styles.lightboxActions}>
-          <button
-            className={styles.lightboxActionBtn}
-            onClick={zoomOut}
-            aria-label="Zoom out"
-            disabled={scale <= 1}
-            style={{ opacity: scale <= 1 ? 0.4 : 1 }}
-          >
-            −
-          </button>
-          <span className={styles.lightboxZoomLevel}>
-            {Math.round(scale * 100)}%
-          </span>
-          <button
-            className={styles.lightboxActionBtn}
-            onClick={zoomIn}
-            aria-label="Zoom in"
-            disabled={scale >= 4}
-            style={{ opacity: scale >= 4 ? 0.4 : 1 }}
-          >
-            +
-          </button>
-          <button
-            className={styles.lightboxActionBtn}
-            onClick={resetZoom}
-            aria-label="Reset zoom"
-            style={{ fontSize: '0.85rem' }}
-          >
-            ↺
-          </button>
-          <button
-            className={styles.lightboxCloseBtn}
-            onClick={onClose}
-            aria-label="Close lightbox"
-          >
-            ✕
-          </button>
+          <button className={styles.lightboxActionBtn} onClick={zoomOut} aria-label="Zoom out" disabled={scale <= 1} style={{ opacity: scale <= 1 ? 0.4 : 1 }}>−</button>
+          <span className={styles.lightboxZoomLevel}>{Math.round(scale * 100)}%</span>
+          <button className={styles.lightboxActionBtn} onClick={zoomIn} aria-label="Zoom in" disabled={scale >= 4} style={{ opacity: scale >= 4 ? 0.4 : 1 }}>+</button>
+          <button className={styles.lightboxActionBtn} onClick={resetZoom} aria-label="Reset zoom" style={{ fontSize: '0.85rem' }}>↺</button>
+          <button className={styles.lightboxCloseBtn} onClick={onClose} aria-label="Close lightbox">✕</button>
         </div>
       </div>
 
-      {/* Main image */}
+      {/* Main image — no AnimatePresence, no motion.div */}
       <div
         className={styles.lightboxContent}
         onClick={(e) => e.stopPropagation()}
@@ -252,107 +210,55 @@ function ImageLightbox({ images, currentIndex, onClose }) {
         onTouchEnd={handleTouchEndLB}
       >
         {images.length > 1 && (
-          <button
-            className={`${styles.lightboxNavBtn} ${styles.lightboxNavPrev}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePrev();
-            }}
-            aria-label="Previous image"
-          >
-            ‹
-          </button>
+          <button className={`${styles.lightboxNavBtn} ${styles.lightboxNavPrev}`} onClick={(e) => { e.stopPropagation(); handlePrev(); }} aria-label="Previous image">‹</button>
         )}
 
-        {/* ★ FIX: removed mode="wait" — prevents animation queue buildup on rapid swipe */}
-        <AnimatePresence initial={false}>
-          <motion.div
-            key={activeIndex}
-            className={styles.lightboxImageWrapper}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            onClick={handleDoubleTap}
-            style={{
-              cursor:
-                scale === 1
-                  ? 'zoom-in'
-                  : isDragging
-                    ? 'grabbing'
-                    : 'grab',
-            }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
+        <div
+          className={styles.lightboxImageWrapper}
+          onClick={handleDoubleTap}
+          style={{ cursor: scale === 1 ? 'zoom-in' : isDragging ? 'grabbing' : 'grab' }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
+          <div
+            className={styles.lightboxImageContainer}
+            style={{ transform: `scale(${scale}) translate(${dragOffset.x / scale}px, ${dragOffset.y / scale}px)`, transition: 'transform 0.15s ease' }}
           >
-            <motion.div
-              animate={{ scale, x: dragOffset.x, y: dragOffset.y }}
-              transition={{
-                scale: { duration: 0.2 },
-                x: { duration: 0 },
-                y: { duration: 0 },
-              }}
-              className={styles.lightboxImageContainer}
-            >
-              <Image
-                src={images[activeIndex]}
-                alt={`Product image ${activeIndex + 1}`}
-                fill
-                className={styles.lightboxImage}
-                unoptimized
-                priority
-                style={{ objectFit: 'contain', objectPosition: 'center' }}
-                draggable={false}
-              />
-            </motion.div>
-          </motion.div>
-        </AnimatePresence>
+            <Image
+              src={images[activeIndex]}
+              alt={`Product image ${activeIndex + 1}`}
+              fill
+              className={styles.lightboxImage}
+              unoptimized
+              priority
+              style={{ objectFit: 'contain', objectPosition: 'center' }}
+              draggable={false}
+            />
+          </div>
+        </div>
 
         {images.length > 1 && (
-          <button
-            className={`${styles.lightboxNavBtn} ${styles.lightboxNavNext}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleNext();
-            }}
-            aria-label="Next image"
-          >
-            ›
-          </button>
+          <button className={`${styles.lightboxNavBtn} ${styles.lightboxNavNext}`} onClick={(e) => { e.stopPropagation(); handleNext(); }} aria-label="Next image">›</button>
         )}
       </div>
 
       {/* Thumbnails */}
       {images.length > 1 && (
-        <div
-          className={styles.lightboxThumbnails}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className={styles.lightboxThumbnails} onClick={(e) => e.stopPropagation()}>
           {images.map((img, idx) => (
             <button
               key={idx}
-              className={`${styles.lightboxThumb} ${idx === activeIndex ? styles.lightboxThumbActive : ''
-                }`}
-              onClick={() => {
-                setActiveIndex(idx);
-                resetZoom();
-              }}
+              className={`${styles.lightboxThumb} ${idx === activeIndex ? styles.lightboxThumbActive : ''}`}
+              onClick={() => { setActiveIndex(idx); resetZoom(); }}
             >
-              <Image
-                src={img}
-                alt={`Thumbnail ${idx + 1}`}
-                width={60}
-                height={60}
-                style={{ objectFit: 'cover', borderRadius: '8px' }}
-                unoptimized
-              />
+              <Image src={img} alt={`Thumbnail ${idx + 1}`} width={60} height={60} style={{ objectFit: 'cover', borderRadius: '8px' }} unoptimized />
             </button>
           ))}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -388,73 +294,31 @@ function ShareModal({ product, productUrl, onClose }) {
   };
 
   return (
-    <motion.div
-      className={styles.shareModalOverlay}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-    >
-      <motion.div
-        className={styles.shareModalContent}
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button className={styles.shareModalClose} onClick={onClose}>
-          ✕
-        </button>
+    /* Plain div — CSS animation handles fade-in */
+    <div className={styles.shareModalOverlay} onClick={onClose}>
+      <div className={styles.shareModalContent} onClick={(e) => e.stopPropagation()}>
+        <button className={styles.shareModalClose} onClick={onClose}>✕</button>
         <h3 className={styles.shareModalTitle}>Share this Product</h3>
         <div className={styles.shareOptions}>
-          <button
-            className={styles.shareOption}
-            onClick={handleCopyLink}
-          >
-            <span className={styles.shareIcon}>
-              {copied ? '✓' : '🔗'}
-            </span>
+          <button className={styles.shareOption} onClick={handleCopyLink}>
+            <span className={styles.shareIcon}>{copied ? '✓' : '🔗'}</span>
             <span>{copied ? 'Copied!' : 'Copy Link'}</span>
           </button>
-          <a
-            href={shareLinks.whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.whatsapp}`}
-          >
-            <span className={styles.shareIcon}>💬</span>
-            <span>WhatsApp</span>
+          <a href={shareLinks.whatsapp} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.whatsapp}`}>
+            <span className={styles.shareIcon}>💬</span><span>WhatsApp</span>
           </a>
-          <a
-            href={shareLinks.facebook}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.facebook}`}
-          >
-            <span className={styles.shareIcon}>📘</span>
-            <span>Facebook</span>
+          <a href={shareLinks.facebook} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.facebook}`}>
+            <span className={styles.shareIcon}>📘</span><span>Facebook</span>
           </a>
-          <a
-            href={shareLinks.twitter}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.twitter}`}
-          >
-            <span className={styles.shareIcon}>🐦</span>
-            <span>Twitter</span>
+          <a href={shareLinks.twitter} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.twitter}`}>
+            <span className={styles.shareIcon}>🐦</span><span>Twitter</span>
           </a>
-          <a
-            href={shareLinks.pinterest}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${styles.shareOption} ${styles.pinterest}`}
-          >
-            <span className={styles.shareIcon}>📌</span>
-            <span>Pinterest</span>
+          <a href={shareLinks.pinterest} target="_blank" rel="noopener noreferrer" className={`${styles.shareOption} ${styles.pinterest}`}>
+            <span className={styles.shareIcon}>📌</span><span>Pinterest</span>
           </a>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
@@ -1314,9 +1178,7 @@ export default function ProductPage({
                 </button>
 
                 {addedToCart && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                  <div
                     style={{
                       marginTop: '0.5rem',
                       textAlign: 'center',
@@ -1326,7 +1188,7 @@ export default function ProductPage({
                     }}
                   >
                     Item added to cart successfully!
-                  </motion.div>
+                  </div>
                 )}
               </div>
 
@@ -1411,23 +1273,10 @@ export default function ProductPage({
                       {star}★
                     </span>
                     <div className={styles.starBarTrack}>
-                      {isMobile ? (
-                        <div
-                          className={styles.starBarFill}
-                          style={{ width: `${pct}%` }}
-                        />
-                      ) : (
-                        <motion.div
-                          className={styles.starBarFill}
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${pct}%` }}
-                          viewport={{ once: true, margin: '-50px' }}
-                          transition={{
-                            duration: 0.6,
-                            delay: (5 - star) * 0.08,
-                          }}
-                        />
-                      )}
+                      <div
+                        className={styles.starBarFill}
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                     <span className={styles.starBarCount}>
                       {count}
@@ -1590,27 +1439,13 @@ export default function ProductPage({
                   </>
                 );
 
-                return isMobile ? (
+                return (
                   <div
                     key={review._id || idx}
                     className={styles.reviewCard}
                   >
                     {cardContent}
                   </div>
-                ) : (
-                  <motion.div
-                    key={review._id || idx}
-                    className={styles.reviewCard}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-30px' }}
-                    transition={{
-                      duration: 0.3,
-                      delay: Math.min(idx * 0.05, 0.3),
-                    }}
-                  >
-                    {cardContent}
-                  </motion.div>
                 );
               })}
             </div>
@@ -1625,26 +1460,22 @@ export default function ProductPage({
           )}
         </div>
 
-        {/* Modals — only mount when needed */}
-        <AnimatePresence>
-          {showShareModal && (
-            <ShareModal
-              product={product}
-              productUrl={productUrl}
-              onClose={() => setShowShareModal(false)}
-            />
-          )}
-        </AnimatePresence>
+        {/* Modals — conditional mount, CSS handles fade-in */}
+        {showShareModal && (
+          <ShareModal
+            product={product}
+            productUrl={productUrl}
+            onClose={() => setShowShareModal(false)}
+          />
+        )}
 
-        <AnimatePresence>
-          {lightboxOpen && (
-            <ImageLightbox
-              images={productImages}
-              currentIndex={lightboxIndex}
-              onClose={() => setLightboxOpen(false)}
-            />
-          )}
-        </AnimatePresence>
+        {lightboxOpen && (
+          <ImageLightbox
+            images={productImages}
+            currentIndex={lightboxIndex}
+            onClose={() => setLightboxOpen(false)}
+          />
+        )}
       </main>
     </>
   );

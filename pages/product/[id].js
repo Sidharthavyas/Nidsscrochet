@@ -797,7 +797,7 @@ export default function ProductPage({
                     </SignInButton>
                     <SignUpButton mode="modal">
                       <button
-                        className={styles.navCta}
+                        className={styles.navLink}
                         style={{ cursor: 'pointer' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >

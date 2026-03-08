@@ -849,27 +849,32 @@ function AnimatedSection({ children, delay = 0 }) {
 // ================================================
 // STATS COUNTER
 // ================================================
-function StatsCounter({ end, duration = 2, label, icon }) {
+function StatsCounter({ end, duration = 2, label, icon, isMobile = false }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    if (isInView) {
-      let startTime;
-      const animate = (currentTime) => {
-        if (!startTime) startTime = currentTime;
-        const progress = (currentTime - startTime) / (duration * 1000);
-        if (progress < 1) {
-          setCount(Math.floor(end * progress));
-          requestAnimationFrame(animate);
-        } else {
-          setCount(end);
-        }
-      };
-      requestAnimationFrame(animate);
+    if (!isInView) return;
+    // On mobile, skip animation and set final value immediately
+    if (isMobile) {
+      setCount(end);
+      return;
     }
-  }, [isInView, end, duration]);
+
+    let startTime;
+    const animate = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const progress = (currentTime - startTime) / (duration * 1000);
+      if (progress < 1) {
+        setCount(Math.floor(end * progress));
+        requestAnimationFrame(animate);
+      } else {
+        setCount(end);
+      }
+    };
+    requestAnimationFrame(animate);
+  }, [isInView, end, duration, isMobile]);
 
   return (
     <motion.div
@@ -1619,6 +1624,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -1640,6 +1646,16 @@ export default function Home({ initialProducts, initialCategories, initialBanner
   const sliderRefs = useRef({});
 
   const { scrollYProgress } = useScroll();
+
+  // Lightweight mobile detection for animation control
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mql = window.matchMedia('(max-width: 768px)');
+    const handleChange = (e) => setIsMobile(e.matches);
+    setIsMobile(mql.matches);
+    mql.addEventListener('change', handleChange);
+    return () => mql.removeEventListener('change', handleChange);
+  }, []);
 
   // Scroll handler for navbar
   useEffect(() => {
@@ -2806,13 +2822,11 @@ export default function Home({ initialProducts, initialCategories, initialBanner
       {showIntro && <RoseBurstIntro onComplete={() => setShowIntro(false)} />}
 
       <div>
-        <ScrollProgress />
-        <ScrollToTop />
+        {!isMobile && <ScrollProgress />}
+        {!isMobile && <ScrollToTop />}
 
         {/* ===== NAVBAR ===== */}
-        <nav
-          className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}
-        >
+        <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
           <div className={styles.navWrapper}>
             <div className={styles.navContent}>
               <motion.div
@@ -2937,9 +2951,8 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                     </SignInButton>
                     <SignUpButton mode="modal">
                       <motion.button
-                        whileHover={{ y: -2, scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={styles.navCta}
+                        whileHover={{ y: -2 }}
+                        className={styles.navLink}
                         style={{ border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
                       >
                         Sign Up
@@ -2988,15 +3001,19 @@ export default function Home({ initialProducts, initialCategories, initialBanner
 
         {/* ===== MAIN CONTENT ===== */}
         <main className={styles.mainContainer}>
-          <DecorativeShapes />
+          {!isMobile && <DecorativeShapes />}
 
           {/* HERO */}
           <section className={styles.hero}>
-            <FloatingEmoji emoji="🧶" delay={0} duration={8} x={100} y={100} />
-            <FloatingEmoji emoji="💕" delay={2} duration={10} x={300} y={150} />
-            <FloatingEmoji emoji="✨" delay={4} duration={9} x={500} y={80} />
-            <FloatingEmoji emoji="🌸" delay={1} duration={11} x={700} y={120} />
-            <FloatingEmoji emoji="🎀" delay={3} duration={10} x={200} y={200} />
+            {!isMobile && (
+              <>
+                <FloatingEmoji emoji="🧶" delay={0} duration={8} x={100} y={100} />
+                <FloatingEmoji emoji="💕" delay={2} duration={10} x={300} y={150} />
+                <FloatingEmoji emoji="✨" delay={4} duration={9} x={500} y={80} />
+                <FloatingEmoji emoji="🌸" delay={1} duration={11} x={700} y={120} />
+                <FloatingEmoji emoji="🎀" delay={3} duration={10} x={200} y={200} />
+              </>
+            )}
 
             <div
               className={styles.heroGlassCard}
@@ -3074,10 +3091,10 @@ export default function Home({ initialProducts, initialCategories, initialBanner
           <section className={styles.statsSection}>
             <AnimatedSection>
               <div className={styles.statsGrid}>
-                <StatsCounter end={80} label="Happy Customers" icon="😊" />
-                <StatsCounter end={100} label="Products Crafted" icon="🧶" />
-                <StatsCounter end={50} label="Unique Designs" icon="✨" />
-                <StatsCounter end={1.5} label="Years Experience" icon="🎨" />
+                <StatsCounter end={80} label="Happy Customers" icon="😊" isMobile={isMobile} />
+                <StatsCounter end={100} label="Products Crafted" icon="🧶" isMobile={isMobile} />
+                <StatsCounter end={50} label="Unique Designs" icon="✨" isMobile={isMobile} />
+                <StatsCounter end={1.5} label="Years Experience" icon="🎨" isMobile={isMobile} />
               </div>
             </AnimatedSection>
           </section>

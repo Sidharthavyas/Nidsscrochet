@@ -779,17 +779,11 @@ export default function ProductPage({
                 <CartButton />
 
                 <SignedOut>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                    }}
-                  >
+                  <div className={styles.navAuthGroup}>
                     <SignInButton mode="modal">
                       <button
+                        type="button"
                         className={styles.navLink}
-                        style={{ cursor: 'pointer' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign In
@@ -797,8 +791,8 @@ export default function ProductPage({
                     </SignInButton>
                     <SignUpButton mode="modal">
                       <button
+                        type="button"
                         className={styles.navLink}
-                        style={{ cursor: 'pointer' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign Up

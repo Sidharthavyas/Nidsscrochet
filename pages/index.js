@@ -2939,21 +2939,25 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 <CartButton variant="menu" onClick={() => setMobileMenuOpen(false)} />
 
                 <SignedOut>
-                  <div className="flex items-center gap-2">
+                  <div className={styles.navAuthGroup}>
                     <SignInButton mode="modal">
                       <motion.button
+                        type="button"
                         whileHover={{ y: -2 }}
                         className={styles.navLink}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                        style={{ background: 'none', border: 'none' }}
+                        onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign In
                       </motion.button>
                     </SignInButton>
                     <SignUpButton mode="modal">
                       <motion.button
+                        type="button"
                         whileHover={{ y: -2 }}
                         className={styles.navLink}
-                        style={{ border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                        style={{ border: 'none' }}
+                        onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign Up
                       </motion.button>

@@ -386,10 +386,10 @@ export default function ProductPage({
     unlockScroll();
 
     const handleRouteChange = () => {
-      unlockScroll();
       setLightboxOpen(false);
       setShowShareModal(false);
       setMobileMenuOpen(false);
+      setTimeout(() => unlockScroll(), 50);
     };
 
     router.events.on('routeChangeStart', handleRouteChange);
@@ -864,7 +864,6 @@ export default function ProductPage({
                   const dy = Math.abs(swipeTouchStartY.current - e.changedTouches[0].clientY);
                   // Only trigger horizontal swipe if mainly horizontal movement
                   if (Math.abs(dx) > 45 && Math.abs(dx) > dy * 1.5) {
-                    e.preventDefault();
                     if (dx > 0) nextImage();
                     else prevImage();
                   }

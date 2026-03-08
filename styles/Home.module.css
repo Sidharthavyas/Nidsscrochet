@@ -2078,8 +2078,8 @@
     display: flex;
     flex-direction: column;
     min-height: 500px;
-    /* ★ FIX: Ensure vertical scroll passes through on mobile */
-    touch-action: pan-y;
+    /* ★ FIX: Force native vertical scroll on mobile UI thread */
+    touch-action: pan-y !important;
 }
 
 .modalImage {
@@ -2090,6 +2090,8 @@
     justify-content: center;
     padding: 1.5rem;
     min-height: 0;
+    /* ★ FIX: Force native vertical scroll on mobile UI thread */
+    touch-action: pan-y !important;
 }
 
 .modalImg {
@@ -3685,6 +3687,7 @@
         flex: 1;
         padding: 0.8rem;
         min-height: 0;
+        touch-action: pan-y !important;
     }
 
     .modalImg {
@@ -4265,6 +4268,7 @@
 
     .modalImage {
         padding: 0.6rem;
+        touch-action: pan-y !important;
     }
 
     .thumbnailButton {
@@ -4523,6 +4527,7 @@
 
     .modalImage {
         padding: 0.5rem;
+        touch-action: pan-y !important;
     }
 }
 

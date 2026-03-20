@@ -2766,10 +2766,9 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                     </SignInButton>
                     <SignUpButton mode="modal">
                       <motion.button
-                        whileHover={{ y: -2, scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={styles.navCta}
-                        style={{ border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                        whileHover={{ y: -2 }}
+                        className={styles.navLink}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
                       >
                         Sign Up
                       </motion.button>

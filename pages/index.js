@@ -2754,7 +2754,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 <CartButton variant="menu" onClick={() => setMobileMenuOpen(false)} />
 
                 <SignedOut>
-                  <div className="flex items-center gap-2">
+                  <div className={styles.authButtons}>
                     <SignInButton mode="modal">
                       <motion.button
                         whileHover={{ y: -2 }}

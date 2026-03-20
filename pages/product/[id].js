@@ -789,13 +789,7 @@ export default function ProductPage({
                 <CartButton />
 
                 <SignedOut>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                    }}
-                  >
+                  <div className={styles.authButtons}>
                     <SignInButton mode="modal">
                       <button
                         className={styles.navLink}

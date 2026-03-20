@@ -3117,8 +3117,9 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 delay={0.4}
               />
               <FAQItem
-                question="How long does delivery take?"
-                answer="Mumbai delivery takes 2-3 days. Pan-India shipping takes 5-7 business days. Custom orders may take 7-14 days depending on complexity."
+                question="When will I receive my order?"
+                answer="We deliver across Mumbai in 2–3 days for just ₹50. For the rest of India, shipping takes 5–7 business days at a flat rate of ₹100. If you’ve ordered something custom, please allow 7–14 days for us to craft it for you!
+"
                 delay={0.5}
               />
             </div>

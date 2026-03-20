@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { motion, useScroll, useMotionValue, AnimatePresence, useInView } from 'framer-motion';
+import { motion, useScroll, AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
 import { useCart } from '@/context/CartContext';
 import { useAuth, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
@@ -15,6 +15,51 @@ import Product from '../models/Product';
 import Category from '../models/Category';
 import Banner from '../models/Banner';
 import Review from '../models/Review';
+
+// ================================================
+// Scroll lock helpers (position-fixed, no overflow:hidden)
+// ================================================
+let __isScrollLocked = false;
+let __scrollYBeforeLock = 0;
+
+function lockScroll() {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
+  if (__isScrollLocked) return;
+
+  __isScrollLocked = true;
+  __scrollYBeforeLock = window.scrollY || window.pageYOffset || 0;
+
+  document.body.classList.add('modal-open');
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${__scrollYBeforeLock}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+
+function unlockScroll() {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
+
+  document.body.classList.remove('modal-open');
+  document.body.classList.remove('no-scroll');
+
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  document.body.style.height = '';
+  document.body.style.touchAction = '';
+  document.body.style.overscrollBehavior = '';
+  document.documentElement.style.overflow = '';
+  document.documentElement.style.height = '';
+  document.documentElement.style.touchAction = '';
+  document.documentElement.style.position = '';
+
+  if (!__isScrollLocked) return;
+  __isScrollLocked = false;
+  window.scrollTo(0, __scrollYBeforeLock);
+}
 
 // ================================================
 // SHARE MODAL COMPONENT
@@ -165,7 +210,8 @@ function SearchSuggestions({ suggestions, query, onSelect, onClose, visible, noR
     if (activeIndex >= 0 && listRef.current) {
       const activeEl = listRef.current.children[activeIndex];
       if (activeEl) {
-        activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        // Avoid smooth scrolling jank while typing / filtering
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'auto' });
       }
     }
   }, [activeIndex]);
@@ -226,16 +272,13 @@ function SearchSuggestions({ suggestions, query, onSelect, onClose, visible, noR
       {/* Suggestions list */}
       <div className={styles.suggestionsList} ref={listRef} role="listbox">
         {suggestions.map((item, idx) => (
-          <motion.div
+          <div
             key={item.id}
             className={`${styles.suggestionItem} ${idx === activeIndex ? styles.suggestionItemActive : ''}`}
             onClick={() => onSelect(item.product)}
             onMouseEnter={() => setActiveIndex(idx)}
             role="option"
             aria-selected={idx === activeIndex}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: idx * 0.03, duration: 0.2 }}
           >
             <div className={styles.suggestionImageWrap}>
               {item.image ? (
@@ -263,7 +306,7 @@ function SearchSuggestions({ suggestions, query, onSelect, onClose, visible, noR
               </span>
               <span className={styles.suggestionArrow}>→</span>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
     </motion.div>
@@ -292,12 +335,6 @@ function RoseBurstIntro({ onComplete }) {
       clearTimeout(removeTimer);
     };
   }, [onComplete]);
-
-  const petalCount = 12;
-  const petals = Array.from({ length: petalCount }, (_, i) => ({
-    angle: (360 / petalCount) * i,
-    delay: i * 0.02,
-  }));
 
   return (
     <AnimatePresence>
@@ -334,7 +371,7 @@ function RoseBurstIntro({ onComplete }) {
                     scale: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
                     rotate: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
                     opacity: { duration: 0.8 },
-                    y: { duration: 1.5, repeat: Infinity, ease: "easeInOut" },
+                    y: { duration: 1.5, ease: "easeInOut" },
                   }
               }
             >
@@ -352,63 +389,11 @@ function RoseBurstIntro({ onComplete }) {
               <motion.div
                 className={styles.roseGlow}
                 animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 2, ease: "easeInOut" }}
               />
             </motion.div>
 
-            {isBursting &&
-              petals.map((petal, index) => (
-                <motion.div
-                  key={index}
-                  className={styles.burstPetal}
-                  initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
-                  animate={{
-                    x: Math.cos((petal.angle * Math.PI) / 180) * 300,
-                    y: Math.sin((petal.angle * Math.PI) / 180) * 300,
-                    scale: [1, 0.5, 0],
-                    opacity: [1, 0.8, 0],
-                    rotate: [0, petal.angle * 2, petal.angle * 4],
-                  }}
-                  transition={{ duration: 0.8, delay: petal.delay, ease: "easeOut" }}
-                >
-                  <Image
-                    src="/rose.webp"
-                    alt=""
-                    width={60}
-                    height={60}
-                    className={styles.petalImage}
-                    loading="lazy"
-                    quality={80}
-                  />
-                </motion.div>
-              ))}
-
-            {isBursting &&
-              Array.from({ length: 20 }).map((_, i) => (
-                <motion.div
-                  key={`sparkle-${i}`}
-                  className={styles.sparkleParticle}
-                  initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
-                  animate={{
-                    x: (Math.random() - 0.5) * 400,
-                    y: (Math.random() - 0.5) * 400,
-                    scale: [0, 1, 0],
-                    opacity: [1, 1, 0],
-                  }}
-                  transition={{ duration: 1, delay: i * 0.03, ease: "easeOut" }}
-                >
-                  ✨
-                </motion.div>
-              ))}
-
-            {isBursting && (
-              <motion.div
-                className={styles.burstFlash}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 3, opacity: [0, 1, 0] }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-              />
-            )}
+            {/* Intentionally removed petals/sparkles/burst flash */}
           </div>
         </motion.div>
       )}
@@ -420,74 +405,8 @@ function RoseBurstIntro({ onComplete }) {
 // DECORATIVE SHAPES
 // ================================================
 function DecorativeShapes() {
-  return (
-    <>
-      <motion.div
-        className={styles.decorativeCircle}
-        style={{ top: '10%', left: '5%' }}
-        animate={{ y: [0, -30, 0], scale: [1, 1.2, 1] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className={styles.decorativeCircle}
-        style={{ top: '60%', right: '8%' }}
-        animate={{ y: [0, 40, 0], scale: [1, 1.3, 1] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-      />
-      <motion.div
-        className={styles.blobShape}
-        style={{ top: '30%', left: '10%' }}
-        animate={{ rotate: [0, 360], scale: [1, 1.1, 1] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.div
-        className={styles.blobShape}
-        style={{ bottom: '20%', right: '15%' }}
-        animate={{ rotate: [360, 0], scale: [1, 1.2, 1] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.div
-        className={styles.sparkle}
-        style={{ top: '20%', left: '15%' }}
-        animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
-        transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-      >
-        ✨
-      </motion.div>
-      <motion.div
-        className={styles.sparkle}
-        style={{ top: '70%', right: '20%' }}
-        animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
-        transition={{ duration: 3, repeat: Infinity, repeatDelay: 1, delay: 1 }}
-      >
-        💫
-      </motion.div>
-      <motion.div
-        className={styles.sparkle}
-        style={{ bottom: '30%', left: '20%' }}
-        animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
-        transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, delay: 2 }}
-      >
-        ⭐
-      </motion.div>
-      <motion.div
-        className={styles.floatingHeart}
-        style={{ top: '40%', right: '10%' }}
-        animate={{ y: [0, -20, 0], rotate: [-10, 10, -10] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      >
-        💕
-      </motion.div>
-      <motion.div
-        className={styles.floatingHeart}
-        style={{ bottom: '40%', left: '12%' }}
-        animate={{ y: [0, 15, 0], rotate: [10, -10, 10] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-      >
-        💖
-      </motion.div>
-    </>
-  );
+  // Decorative infinite animations cause mobile jank; disable them.
+  return null;
 }
 
 // ================================================
@@ -525,19 +444,28 @@ const StarIcon = ({ filled }) => (
 );
 
 function ImageLightbox({ images, currentIndex, onClose, onNext, onPrev }) {
-  const [activeIndex, setActiveIndex] = useState(currentIndex || 0);
-  const [scale, setScale] = useState(1);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
+  // These props are not used (kept for backward compatibility)
+  void onNext;
+  void onPrev;
 
-  // Lock body scroll when open
-  // Lock body scroll when open
+  const [activeIndex, setActiveIndex] = useState(currentIndex || 0);
+  const touchStartRef = useRef(0);
+  const touchEndRef = useRef(0);
+
+  // Lock scroll on open, unlock on close (position-fixed technique)
   useEffect(() => {
-    document.body.classList.add('modal-open');
-    return () => {
-      document.body.classList.remove('modal-open');
-    };
+    lockScroll();
+    return () => unlockScroll();
   }, []);
+
+  const handleNext = useCallback(() => {
+    if (images.length > 1) setActiveIndex((prev) => (prev + 1) % images.length);
+  }, [images.length]);
+
+  const handlePrev = useCallback(() => {
+    if (images.length > 1)
+      setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
+  }, [images.length]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -548,43 +476,25 @@ function ImageLightbox({ images, currentIndex, onClose, onNext, onPrev }) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeIndex, onClose, handleNext, handlePrev]);
+  }, [onClose, handleNext, handlePrev]);
 
-  const handleNext = useCallback(() => {
-    if (images.length > 1) {
-      setActiveIndex((prev) => (prev + 1) % images.length);
-      setScale(1);
-    }
-  }, [images.length]);
+  // Swipe support (do NOT prevent default vertical scroll)
+  const handleTouchStart = useCallback((e) => {
+    touchStartRef.current = e.targetTouches?.[0]?.clientX || 0;
+  }, []);
 
-  const handlePrev = useCallback(() => {
-    if (images.length > 1) {
-      setActiveIndex((prev) => (prev - 1 + images.length) % images.length);
-      setScale(1);
-    }
-  }, [images.length]);
-
-  const toggleZoom = () => {
-    setScale((prev) => (prev === 1 ? 2 : 1));
-  };
-
-  // Swipe support
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    if (distance > 60) handleNext();
-    if (distance < -60) handlePrev();
-    setTouchStart(0);
-    setTouchEnd(0);
-  };
+  const handleTouchEnd = useCallback(
+    (e) => {
+      touchEndRef.current = e.changedTouches?.[0]?.clientX || 0;
+      const distance = touchStartRef.current - touchEndRef.current;
+      if (Math.abs(distance) > 45) {
+        distance > 0 ? handleNext() : handlePrev();
+      }
+      touchStartRef.current = 0;
+      touchEndRef.current = 0;
+    },
+    [handleNext, handlePrev]
+  );
 
   return (
     <motion.div
@@ -592,140 +502,87 @@ function ImageLightbox({ images, currentIndex, onClose, onNext, onPrev }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.18 }}
       onClick={onClose}
+      style={{ touchAction: 'pan-y' }}
     >
-      {/* Top bar */}
-      <div className={styles.lightboxTopBar} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={styles.lightboxTopBar}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={styles.lightboxCounter}>
           {activeIndex + 1} / {images.length}
         </div>
         <div className={styles.lightboxActions}>
-          <motion.button
-            className={styles.lightboxActionBtn}
-            onClick={toggleZoom}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            aria-label="Toggle zoom"
-          >
-            {scale === 1 ? '🔍' : '🔎'}
-          </motion.button>
-          <motion.button
+          <button
             className={styles.lightboxCloseBtn}
             onClick={onClose}
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
             aria-label="Close lightbox"
           >
             ✕
-          </motion.button>
+          </button>
         </div>
       </div>
 
-      {/* Main image area */}
       <div
         className={styles.lightboxContent}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Previous button */}
         {images.length > 1 && (
-          <motion.button
+          <button
             className={`${styles.lightboxNavBtn} ${styles.lightboxNavPrev}`}
             onClick={(e) => {
               e.stopPropagation();
               handlePrev();
             }}
-            whileHover={{ scale: 1.1, x: -3 }}
-            whileTap={{ scale: 0.9 }}
             aria-label="Previous image"
           >
             ‹
-          </motion.button>
+          </button>
         )}
 
-        {/* Image */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence initial={false}>
           <motion.div
             key={activeIndex}
             className={styles.lightboxImageWrapper}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            onClick={toggleZoom}
-            style={{ cursor: scale === 1 ? 'zoom-in' : 'zoom-out' }}
+            initial={{ opacity: 0, y: 6, scale: 0.99 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.99 }}
+            transition={{ duration: 0.2 }}
           >
-            <motion.div
-              animate={{ scale }}
-              transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-              className={styles.lightboxImageContainer}
-            >
+            <div className={styles.lightboxImageContainer}>
               <Image
                 src={images[activeIndex]}
                 alt={`Image ${activeIndex + 1}`}
                 fill
                 className={styles.lightboxImage}
                 unoptimized
-                priority
+                priority={activeIndex === 0}
                 style={{
                   objectFit: 'contain',
                   objectPosition: 'center',
                 }}
+                draggable={false}
               />
-            </motion.div>
+            </div>
           </motion.div>
         </AnimatePresence>
 
-        {/* Next button */}
         {images.length > 1 && (
-          <motion.button
+          <button
             className={`${styles.lightboxNavBtn} ${styles.lightboxNavNext}`}
             onClick={(e) => {
               e.stopPropagation();
               handleNext();
             }}
-            whileHover={{ scale: 1.1, x: 3 }}
-            whileTap={{ scale: 0.9 }}
             aria-label="Next image"
           >
             ›
-          </motion.button>
+          </button>
         )}
       </div>
-
-      {/* Thumbnail strip */}
-      {images.length > 1 && (
-        <div
-          className={styles.lightboxThumbnails}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {images.map((img, idx) => (
-            <motion.button
-              key={idx}
-              className={`${styles.lightboxThumb} ${idx === activeIndex ? styles.lightboxThumbActive : ''
-                }`}
-              onClick={() => {
-                setActiveIndex(idx);
-                setScale(1);
-              }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Image
-                src={img}
-                alt={`Thumbnail ${idx + 1}`}
-                width={60}
-                height={60}
-                style={{ objectFit: 'cover', borderRadius: '8px' }}
-                unoptimized
-              />
-            </motion.button>
-          ))}
-        </div>
-      )}
     </motion.div>
   );
 }
@@ -761,7 +618,7 @@ function ScrollToTop() {
         >
           <motion.span
             animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
+            transition={{ duration: 0.25 }}
           >
             ↑
           </motion.span>
@@ -820,7 +677,7 @@ function FloatingEmoji({ emoji, delay, duration, x, y }) {
         y: [y, y - 50, y],
         x: [x, x + 20, x]
       }}
-      transition={{ duration, repeat: Infinity, delay, ease: "easeInOut" }}
+      transition={{ duration, delay, ease: "easeInOut" }}
     >
       {emoji}
     </motion.div>
@@ -1029,11 +886,7 @@ function ProductCard({ product, index, onClick }) {
   const [imageLoading, setImageLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [isZoomed, setIsZoomed] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const cardRef = useRef(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
 
   const productImages = product.images && product.images.length > 0
     ? product.images
@@ -1043,20 +896,8 @@ function ProductCard({ product, index, onClick }) {
     ? `${window.location.origin}/product/${product._id}`
     : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/product/${product._id}`;
 
-  const handleMouseMove = (e) => {
-    if (!cardRef.current || window.innerWidth < 768) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    x.set((e.clientX - centerX) / 25);
-    y.set((e.clientY - centerY) / 25);
-  };
-
   const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
     setCurrentImageIndex(0);
-    setIsZoomed(false);
   };
 
   const getBadge = () => {
@@ -1067,14 +908,6 @@ function ProductCard({ product, index, onClick }) {
   };
 
   const badge = getBadge();
-
-  useEffect(() => {
-    if (!isHovered || productImages.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [isHovered, productImages.length]);
 
   const handleWishlistToggle = (e) => {
     e.stopPropagation();
@@ -1108,7 +941,6 @@ function ProductCard({ product, index, onClick }) {
   return (
     <>
       <motion.div
-        ref={cardRef}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{
@@ -1122,12 +954,10 @@ function ProductCard({ product, index, onClick }) {
           setIsHovered(false);
           handleMouseLeave();
         }}
-        onMouseMove={handleMouseMove}
         onClick={handleCardClick}
         onKeyPress={(e) => {
           if (e.key === 'Enter' || e.key === ' ') handleCardClick();
         }}
-        style={{ rotateX: y, rotateY: x }}
         role="button"
         tabIndex={0}
         aria-label={`View ${product.name}`}
@@ -1209,8 +1039,6 @@ function ProductCard({ product, index, onClick }) {
 
           <div
             className={styles.imageContainer}
-            onMouseEnter={() => setIsZoomed(true)}
-            onMouseLeave={() => setIsZoomed(false)}
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -1226,7 +1054,7 @@ function ProductCard({ product, index, onClick }) {
                   alt={`${product.name} - Image ${currentImageIndex + 1}`}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className={`${styles.productImage} ${isZoomed ? styles.zoomed : ''}`}
+                  className={styles.productImage}
                   loading="lazy"
                   unoptimized
                   onLoadingComplete={() => setImageLoading(false)}
@@ -1235,15 +1063,6 @@ function ProductCard({ product, index, onClick }) {
               </motion.div>
             </AnimatePresence>
           </div>
-
-          {isHovered && (
-            <motion.div
-              className={styles.shimmer}
-              initial={{ x: '-100%' }}
-              animate={{ x: '100%' }}
-              transition={{ duration: 1.2, ease: "easeInOut" }}
-            />
-          )}
         </div>
 
         <div className={styles.productInfo}>
@@ -1364,8 +1183,8 @@ function ProductCard({ product, index, onClick }) {
 // ================================================
 function ProductModal({ product, onClose }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
+  const touchStartRef = useRef(0);
+  const touchEndRef = useRef(0);
 
   const productImages = product.images && product.images.length > 0
     ? product.images
@@ -1376,26 +1195,36 @@ function ProductModal({ product, onClose }) {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleEscape);
-    document.body.classList.add('modal-open');
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.classList.remove('modal-open');
+      unlockScroll();
     };
   }, [onClose]);
 
-  const handleTouchStart = (e) => setTouchStart(e.targetTouches[0].clientX);
-  const handleTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+  useEffect(() => {
+    lockScroll();
+    return () => unlockScroll();
+  }, []);
+
+  const handleTouchStart = (e) => {
+    touchStartRef.current = e.targetTouches?.[0]?.clientX || 0;
+  };
+  const handleTouchMove = (e) => {
+    touchEndRef.current = e.targetTouches?.[0]?.clientX || 0;
+  };
   const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
+    const start = touchStartRef.current;
+    const end = touchEndRef.current;
+    if (start === 0 && end === 0) return;
+    const distance = start - end;
     if (distance > 50 && currentImageIndex < productImages.length - 1) {
       setCurrentImageIndex(prev => prev + 1);
     }
     if (distance < -50 && currentImageIndex > 0) {
       setCurrentImageIndex(prev => prev - 1);
     }
-    setTouchStart(0);
-    setTouchEnd(0);
+    touchStartRef.current = 0;
+    touchEndRef.current = 0;
   };
 
   const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
@@ -3055,7 +2884,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                     className={styles.buttonRipple}
                     initial={{ scale: 0, opacity: 1 }}
                     animate={{ scale: 2, opacity: 0 }}
-                    transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1 }}
+                    transition={{ duration: 0.6 }}
                   />
                 </MagneticButton>
 
@@ -3114,7 +2943,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 <motion.div
                   className={styles.loader}
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 0.6, ease: "linear" }}
                 >
                   🧶
                 </motion.div>
@@ -3191,7 +3020,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                             <motion.div
                               className={styles.emptyCategory}
                               animate={{ scale: [1, 1.05, 1] }}
-                              transition={{ duration: 2, repeat: Infinity }}
+                              transition={{ duration: 0.6 }}
                             >
                               <p>✨ Coming Soon!</p>
                             </motion.div>

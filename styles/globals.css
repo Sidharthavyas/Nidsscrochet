@@ -30,7 +30,8 @@
   --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.04);
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 10px 32px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 20px 40px rgba(172, 42, 93, 0.08);
+  /* Keep shadows subtle on mobile to avoid jank */
+  --shadow-lg: 0 12px 28px rgba(172, 42, 93, 0.06);
   --shadow-pink: 0 8px 32px rgba(255, 107, 157, 0.18);
   --shadow-ambient: 0 20px 40px rgba(255, 107, 157, 0.15);
 
@@ -41,9 +42,10 @@
   --radius-pill: 9999px;
 
   /* Transitions — snappier for better UX */
-  --transition: all 0.2s ease;
-  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-spring: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Avoid "transition: all" to prevent expensive layout/paint transitions */
+  --transition: transform 0.2s ease, opacity 0.2s ease;
+  --transition-smooth: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 * {
@@ -266,12 +268,11 @@ textarea {
   }
 }
 
-/* Prevent content shift when modal opens */
-/* Uses position:fixed technique — the ONLY reliable mobile scroll lock */
+/* Modal state marker.
+   Scroll locking is handled in JS (position:fixed technique) to avoid
+   any "stuck scroll" issues caused by leftover overflow styles. */
 body.modal-open,
 body.no-scroll {
-  overflow: hidden !important;
-  /* Do NOT set height:100vh — it permanently breaks mobile scroll */
   overscroll-behavior: none;
 }
 

@@ -32,12 +32,35 @@ import Review from '../../models/Review';
 // ================================================
 // FORCE-UNLOCK SCROLLING — bulletproof helper
 // ================================================
+let __isScrollLocked = false;
+let __scrollYBeforeLock = 0;
+
+function lockScroll() {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
+  if (__isScrollLocked) return;
+
+  __isScrollLocked = true;
+  __scrollYBeforeLock = window.scrollY || window.pageYOffset || 0;
+
+  document.body.classList.add('modal-open');
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${__scrollYBeforeLock}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+
 function unlockScroll() {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
+
   document.body.classList.remove('modal-open');
   document.body.classList.remove('no-scroll');
-  document.body.style.overflow = '';
+
+  // Always cleanup inline lock styles (prevents "stuck scroll" if anything leaked)
   document.body.style.position = '';
   document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
   document.body.style.width = '';
   document.body.style.height = '';
   document.body.style.touchAction = '';
@@ -46,6 +69,12 @@ function unlockScroll() {
   document.documentElement.style.height = '';
   document.documentElement.style.touchAction = '';
   document.documentElement.style.position = '';
+
+  if (!__isScrollLocked) return;
+  __isScrollLocked = false;
+
+  // Restore the previous scroll position without relying on overflow:hidden
+  window.scrollTo(0, __scrollYBeforeLock);
 }
 
 // ================================================
@@ -68,122 +97,56 @@ function useIsMobile(breakpoint = 768) {
 // ================================================
 function ImageLightbox({ images, currentIndex, onClose }) {
   const [activeIndex, setActiveIndex] = useState(currentIndex || 0);
-  const [scale, setScale] = useState(1);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
 
   const touchStartRef = useRef(0);
   const touchEndRef = useRef(0);
-  const lastTapRef = useRef(0);
 
-  // Lock scroll on open, unlock on close
+  // Lock scroll on open, unlock on close (position-fixed technique)
   useEffect(() => {
-    document.body.classList.add('modal-open');
+    lockScroll();
     return () => unlockScroll();
-  }, []);
-
-  const resetZoom = useCallback(() => {
-    setScale(1);
-    setDragOffset({ x: 0, y: 0 });
   }, []);
 
   const handleNext = useCallback(() => {
     if (images.length > 1) {
       setActiveIndex((p) => (p + 1) % images.length);
-      resetZoom();
     }
-  }, [images.length, resetZoom]);
+  }, [images.length]);
 
   const handlePrev = useCallback(() => {
     if (images.length > 1) {
       setActiveIndex((p) => (p - 1 + images.length) % images.length);
-      resetZoom();
     }
-  }, [images.length, resetZoom]);
+  }, [images.length]);
 
-  const zoomIn = useCallback(() => {
-    setScale((p) => Math.min(p + 0.5, 4));
-  }, []);
-
-  const zoomOut = useCallback(() => {
-    setScale((p) => {
-      const n = Math.max(p - 0.5, 1);
-      if (n === 1) setDragOffset({ x: 0, y: 0 });
-      return n;
-    });
-  }, []);
-
-  const toggleZoom = useCallback(() => {
-    if (scale === 1) setScale(2.5);
-    else resetZoom();
-  }, [scale, resetZoom]);
-
-  // Keyboard
+  // Keyboard navigation (keep light)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      switch (e.key) {
-        case 'Escape':
-          onClose();
-          break;
-        case 'ArrowRight':
-          handleNext();
-          break;
-        case 'ArrowLeft':
-          handlePrev();
-          break;
-        case '+':
-        case '=':
-          zoomIn();
-          break;
-        case '-':
-          zoomOut();
-          break;
-        case '0':
-          resetZoom();
-          break;
-      }
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') handleNext();
+      if (e.key === 'ArrowLeft') handlePrev();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, handleNext, handlePrev, zoomIn, zoomOut, resetZoom]);
+  }, [onClose, handleNext, handlePrev]);
 
-  const handleDoubleTap = () => {
-    const now = Date.now();
-    if (now - lastTapRef.current < 300) toggleZoom();
-    lastTapRef.current = now;
-  };
+  // Swipe support (do NOT prevent default vertical scroll)
+  const handleTouchStartLB = useCallback((e) => {
+    touchStartRef.current = e.targetTouches?.[0]?.clientX || 0;
+  }, []);
 
-  const handleTouchStartLB = (e) => {
-    if (scale > 1) return;
-    touchStartRef.current = e.targetTouches[0].clientX;
-  };
-  const handleTouchMoveLB = (e) => {
-    if (scale > 1) return;
-    touchEndRef.current = e.targetTouches[0].clientX;
-  };
-  const handleTouchEndLB = () => {
-    if (scale > 1) return;
-    if (!touchStartRef.current || !touchEndRef.current) return;
-    const d = touchStartRef.current - touchEndRef.current;
-    if (Math.abs(d) > 50) {
-      d > 50 ? handleNext() : handlePrev();
-    }
-    touchStartRef.current = 0;
-    touchEndRef.current = 0;
-  };
-
-  const handleMouseDown = () => {
-    if (scale > 1) setIsDragging(true);
-  };
-  const handleMouseMove = (e) => {
-    if (scale > 1 && isDragging) {
-      setDragOffset((p) => ({
-        x: p.x + (e.movementX || 0),
-        y: p.y + (e.movementY || 0),
-      }));
-    }
-  };
-  const handleMouseUp = () => setIsDragging(false);
+  const handleTouchEndLB = useCallback(
+    (e) => {
+      touchEndRef.current = e.changedTouches?.[0]?.clientX || 0;
+      const d = touchStartRef.current - touchEndRef.current;
+      if (Math.abs(d) > 45) {
+        d > 0 ? handleNext() : handlePrev();
+      }
+      touchStartRef.current = 0;
+      touchEndRef.current = 0;
+    },
+    [handleNext, handlePrev]
+  );
 
   return (
     <motion.div
@@ -191,8 +154,9 @@ function ImageLightbox({ images, currentIndex, onClose }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.18 }}
       onClick={onClose}
+      style={{ touchAction: 'pan-y' }}
     >
       {/* Top bar */}
       <div
@@ -203,35 +167,6 @@ function ImageLightbox({ images, currentIndex, onClose }) {
           {activeIndex + 1} / {images.length}
         </div>
         <div className={styles.lightboxActions}>
-          <button
-            className={styles.lightboxActionBtn}
-            onClick={zoomOut}
-            aria-label="Zoom out"
-            disabled={scale <= 1}
-            style={{ opacity: scale <= 1 ? 0.4 : 1 }}
-          >
-            −
-          </button>
-          <span className={styles.lightboxZoomLevel}>
-            {Math.round(scale * 100)}%
-          </span>
-          <button
-            className={styles.lightboxActionBtn}
-            onClick={zoomIn}
-            aria-label="Zoom in"
-            disabled={scale >= 4}
-            style={{ opacity: scale >= 4 ? 0.4 : 1 }}
-          >
-            +
-          </button>
-          <button
-            className={styles.lightboxActionBtn}
-            onClick={resetZoom}
-            aria-label="Reset zoom"
-            style={{ fontSize: '0.85rem' }}
-          >
-            ↺
-          </button>
           <button
             className={styles.lightboxCloseBtn}
             onClick={onClose}
@@ -247,7 +182,6 @@ function ImageLightbox({ images, currentIndex, onClose }) {
         className={styles.lightboxContent}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={handleTouchStartLB}
-        onTouchMove={handleTouchMoveLB}
         onTouchEnd={handleTouchEndLB}
       >
         {images.length > 1 && (
@@ -263,49 +197,27 @@ function ImageLightbox({ images, currentIndex, onClose }) {
           </button>
         )}
 
-        {/* ★ FIX: removed mode="wait" — prevents animation queue buildup on rapid swipe */}
         <AnimatePresence initial={false}>
           <motion.div
             key={activeIndex}
             className={styles.lightboxImageWrapper}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            onClick={handleDoubleTap}
-            style={{
-              cursor:
-                scale === 1
-                  ? 'zoom-in'
-                  : isDragging
-                    ? 'grabbing'
-                    : 'grab',
-            }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
+            initial={{ opacity: 0, y: 6, scale: 0.99 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.99 }}
+            transition={{ duration: 0.2 }}
           >
-            <motion.div
-              animate={{ scale, x: dragOffset.x, y: dragOffset.y }}
-              transition={{
-                scale: { duration: 0.2 },
-                x: { duration: 0 },
-                y: { duration: 0 },
-              }}
-              className={styles.lightboxImageContainer}
-            >
+            <div className={styles.lightboxImageContainer}>
               <Image
                 src={images[activeIndex]}
                 alt={`Product image ${activeIndex + 1}`}
                 fill
                 className={styles.lightboxImage}
                 unoptimized
-                priority
+                priority={activeIndex === 0}
                 style={{ objectFit: 'contain', objectPosition: 'center' }}
                 draggable={false}
               />
-            </motion.div>
+            </div>
           </motion.div>
         </AnimatePresence>
 
@@ -322,35 +234,6 @@ function ImageLightbox({ images, currentIndex, onClose }) {
           </button>
         )}
       </div>
-
-      {/* Thumbnails */}
-      {images.length > 1 && (
-        <div
-          className={styles.lightboxThumbnails}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {images.map((img, idx) => (
-            <button
-              key={idx}
-              className={`${styles.lightboxThumb} ${idx === activeIndex ? styles.lightboxThumbActive : ''
-                }`}
-              onClick={() => {
-                setActiveIndex(idx);
-                resetZoom();
-              }}
-            >
-              <Image
-                src={img}
-                alt={`Thumbnail ${idx + 1}`}
-                width={60}
-                height={60}
-                style={{ objectFit: 'cover', borderRadius: '8px' }}
-                unoptimized
-              />
-            </button>
-          ))}
-        </div>
-      )}
     </motion.div>
   );
 }
@@ -479,9 +362,6 @@ export default function ProductPage({
   const [addedToCart, setAddedToCart] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // ★ FIX 1: zoom hint auto-hides + never blocks touch
-  const [showZoomHint, setShowZoomHint] = useState(true);
-
   // Reviews
   const [reviews, setReviews] = useState(initialReviews || []);
   const [reviewStats, setReviewStats] = useState(() => {
@@ -511,18 +391,9 @@ export default function ProductPage({
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const reviewSectionRef = useRef(null);
 
-  // ★ FIX 2: Bulletproof scroll unlock on mount + route change + unload
+  // Unlock scrolling on mount + route changes/unload
   useEffect(() => {
-    // Clear ANY stale overflow/lock from previous page or leaked modal
     unlockScroll();
-
-    // Safety net: poll every 500 ms and force-unlock if no modal is open
-    // This catches any edge case where the class leaks on mobile
-    const safetyTimer = setInterval(() => {
-      if (!lightboxOpen && !showShareModal) {
-        unlockScroll();
-      }
-    }, 500);
 
     const handleRouteChange = () => {
       unlockScroll();
@@ -535,28 +406,15 @@ export default function ProductPage({
     router.events.on('routeChangeComplete', handleRouteChange);
     window.addEventListener('pagehide', unlockScroll);
     window.addEventListener('beforeunload', unlockScroll);
-    // visibilitychange handles tab switch + return on iOS
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && !lightboxOpen && !showShareModal) {
-        unlockScroll();
-      }
-    });
 
     return () => {
-      clearInterval(safetyTimer);
       unlockScroll();
       router.events.off('routeChangeStart', handleRouteChange);
       router.events.off('routeChangeComplete', handleRouteChange);
       window.removeEventListener('pagehide', unlockScroll);
       window.removeEventListener('beforeunload', unlockScroll);
     };
-  }, [router, lightboxOpen, showShareModal]);
-
-  // ★ FIX 3: Auto-hide zoom hint after 3 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => setShowZoomHint(false), 3000);
-    return () => clearTimeout(timer);
-  }, []);
+  }, [router]);
 
   // Review submit
   const handleReviewSubmit = async (e) => {
@@ -1004,23 +862,7 @@ export default function ProductPage({
           <div className={styles.productDetailGrid}>
             {/* —— Image Gallery —— */}
             <div className={styles.modalImageCarousel}>
-              {/* ★ FIX 5: zoom hint — pointer-events:none + auto-hides */}
-              <AnimatePresence>
-                {showZoomHint && (
-                  <motion.div
-                    className={styles.zoomHintOverlay}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.4 }}
-                    style={{ pointerEvents: 'none' }}
-                  >
-                    <span>🔍</span> Tap image to zoom
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* ★ FIX 6: removed mode="wait" + shortened duration to prevent queue buildup */}
+              {/* Lightweight crossfade between images */}
               <AnimatePresence initial={false}>
                 <motion.div
                   key={currentImageIndex}
@@ -1030,7 +872,7 @@ export default function ProductPage({
                   transition={{ duration: 0.15 }}
                   className={styles.modalImage}
                   onClick={() => handleImageClick(currentImageIndex)}
-                  style={{ cursor: 'zoom-in', touchAction: 'pan-y' }}
+                  style={{ cursor: 'pointer', touchAction: 'pan-y' }}
                 >
                   <Image
                     src={productImages[currentImageIndex]}

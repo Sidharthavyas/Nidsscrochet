@@ -1,5 +1,3 @@
-/* styles/globals.css - FIXED */
-
 /* Google Fonts loaded via next/font/google in _app.js — no @import needed */
 
 :root {
@@ -26,11 +24,10 @@
   --text-muted: #574146;
   --outline-ghost: rgba(221, 191, 197, 0.15);
 
-  /* Shadows — ambient pink glow instead of grey */
+  /* Shadows */
   --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.04);
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 10px 32px rgba(0, 0, 0, 0.08);
-  /* Keep shadows subtle on mobile to avoid jank */
   --shadow-lg: 0 12px 28px rgba(172, 42, 93, 0.06);
   --shadow-pink: 0 8px 32px rgba(255, 107, 157, 0.18);
   --shadow-ambient: 0 20px 40px rgba(255, 107, 157, 0.15);
@@ -41,11 +38,12 @@
   --border-radius-lg: 24px;
   --radius-pill: 9999px;
 
-  /* Transitions — snappier for better UX */
-  /* Avoid "transition: all" to prevent expensive layout/paint transitions */
+  /* Transitions — NEVER use "transition: all" */
   --transition: transform 0.2s ease, opacity 0.2s ease;
-  --transition-smooth: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-spring: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-smooth: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 * {
@@ -58,6 +56,7 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* CRITICAL: never set overflow:hidden or height:100% on html */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -67,15 +66,18 @@ html {
 }
 
 body {
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
   background: var(--surface);
   color: var(--on-surface);
   overflow-x: hidden;
+  /* DO NOT set overflow-y: hidden — must scroll vertically */
   line-height: 1.6;
   font-size: 16px;
   -webkit-tap-highlight-color: rgba(255, 107, 157, 0.15);
   -webkit-overflow-scrolling: touch;
   text-rendering: optimizeSpeed;
+  /* No position:fixed, no height:100vh — JS handles modal lock only */
 }
 
 a {
@@ -97,30 +99,18 @@ button {
   background: none;
 }
 
-/* ✅ FIXED: Only apply min-height to INTERACTIVE elements that need it
-   NOT to inline links, small buttons, dots, badges etc.
-   We use a specific class instead of blanket rule */
-
-/* REMOVED THIS BROKEN RULE:
-button, a, input, select, textarea {
-  min-height: 44px;
-  min-width: 44px;
-}
-*/
-
-/* Instead, only form inputs get minimum sizing */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="search"],
-input[type="tel"],
-input[type="url"],
-input[type="number"],
+/* Only form inputs get minimum sizing (prevents iOS zoom) */
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='search'],
+input[type='tel'],
+input[type='url'],
+input[type='number'],
 select,
 textarea {
   min-height: 44px;
   font-size: 16px;
-  /* Prevents iOS zoom on focus */
 }
 
 /* Custom Scrollbar */
@@ -143,7 +133,6 @@ textarea {
   background: var(--pink-dark);
 }
 
-/* Hide scrollbar on mobile */
 @media (max-width: 768px) {
   ::-webkit-scrollbar {
     width: 0;
@@ -157,19 +146,18 @@ textarea {
   color: var(--pink-dark);
 }
 
-/* Focus Styles - Only for keyboard navigation */
+/* Focus Styles - keyboard only */
 :focus-visible {
   outline: 2px solid var(--pink);
   outline-offset: 3px;
   border-radius: 6px;
 }
 
-/* Remove focus outline for mouse/touch users */
 :focus:not(:focus-visible) {
   outline: none;
 }
 
-/* Accessibility - Respect user's motion preferences */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
 
   *,
@@ -205,7 +193,6 @@ textarea {
    PREMIUM UTILITY CLASSES
    ================================================ */
 
-/* Pink gradient button — the primary CTA style */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -230,7 +217,6 @@ textarea {
   box-shadow: var(--shadow-ambient);
 }
 
-/* Ghost/outlined button — secondary CTA */
 .btn-ghost {
   display: inline-flex;
   align-items: center;
@@ -254,7 +240,6 @@ textarea {
   transform: translateY(-2px);
 }
 
-/* Elevated white card */
 .card-surface {
   background: var(--surface-card);
   border-radius: var(--border-radius-lg);
@@ -268,10 +253,17 @@ textarea {
   }
 }
 
-/* Modal state marker.
-   Scroll locking is handled in JS (position:fixed technique) to avoid
-   any "stuck scroll" issues caused by leftover overflow styles. */
-body.modal-open,
+/* ================================================
+   MODAL SCROLL LOCK — CSS portion
+   JS does the actual locking (position:fixed on body).
+   These classes are supplementary ONLY.
+   NEVER set overflow:hidden here — it causes stuck scroll on iOS.
+   ================================================ */
+body.modal-open {
+  overscroll-behavior: none;
+  /* JS sets position:fixed + top to lock; JS removes them to unlock */
+}
+
 body.no-scroll {
   overscroll-behavior: none;
 }
@@ -283,11 +275,4 @@ body.no-scroll {
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-/* Safe area support */
-@supports (padding: env(safe-area-inset-bottom)) {
-  body {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
 }

@@ -156,7 +156,7 @@ function ImageLightbox({ images, currentIndex, onClose }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.18 }}
       onClick={onClose}
-      style={{ touchAction: 'pan-y' }}
+      style={{ touchAction: 'none' }} /* keep touch strictly inside lightbox */
     >
       {/* Top bar */}
       <div
@@ -243,6 +243,12 @@ function ImageLightbox({ images, currentIndex, onClose }) {
 // ================================================
 function ShareModal({ product, productUrl, onClose }) {
   const [copied, setCopied] = useState(false);
+
+  // Lock scroll on open, unlock on close
+  useEffect(() => {
+    lockScroll();
+    return () => unlockScroll();
+  }, []);
 
   const handleCopyLink = async () => {
     try {

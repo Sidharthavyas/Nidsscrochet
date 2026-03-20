@@ -1,3 +1,5 @@
+// pages/product/[id].js
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
@@ -28,62 +30,51 @@ import Product from '../../models/Product';
 import Review from '../../models/Review';
 
 // ================================================
-// SCROLL LOCK — minimal, bulletproof, idempotent
+// FORCE-UNLOCK SCROLLING — bulletproof helper
 // ================================================
-let __scrollLocked = false;
-let __savedScrollY = 0;
+let __isScrollLocked = false;
+let __scrollYBeforeLock = 0;
 
 function lockScroll() {
-  if (typeof window === 'undefined') return;
-  if (__scrollLocked) return;
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
+  if (__isScrollLocked) return;
 
-  __scrollLocked = true;
-  __savedScrollY = window.scrollY || window.pageYOffset || 0;
+  __isScrollLocked = true;
+  __scrollYBeforeLock = window.scrollY || window.pageYOffset || 0;
 
   document.body.classList.add('modal-open');
   document.body.style.position = 'fixed';
-  document.body.style.top = `-${__savedScrollY}px`;
+  document.body.style.top = `-${__scrollYBeforeLock}px`;
   document.body.style.left = '0';
   document.body.style.right = '0';
   document.body.style.width = '100%';
 }
 
 function unlockScroll() {
-  if (typeof window === 'undefined') return;
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
 
-  // ---- ALWAYS clear everything, no early return before cleanup ----
   document.body.classList.remove('modal-open');
   document.body.classList.remove('no-scroll');
 
-  const wasLocked = __scrollLocked;
-  const scrollY = __savedScrollY;
-
-  // Body inline styles
+  // Always cleanup inline lock styles (prevents "stuck scroll" if anything leaked)
   document.body.style.position = '';
   document.body.style.top = '';
   document.body.style.left = '';
   document.body.style.right = '';
   document.body.style.width = '';
   document.body.style.height = '';
-  document.body.style.overflow = '';
-  document.body.style.overflowX = '';
-  document.body.style.overflowY = '';
   document.body.style.touchAction = '';
   document.body.style.overscrollBehavior = '';
-
-  // HTML element inline styles
   document.documentElement.style.overflow = '';
-  document.documentElement.style.overflowX = '';
-  document.documentElement.style.overflowY = '';
   document.documentElement.style.height = '';
-  document.documentElement.style.position = '';
   document.documentElement.style.touchAction = '';
+  document.documentElement.style.position = '';
 
-  __scrollLocked = false;
+  if (!__isScrollLocked) return;
+  __isScrollLocked = false;
 
-  if (wasLocked) {
-    window.scrollTo(0, scrollY);
-  }
+  // Restore the previous scroll position without relying on overflow:hidden
+  window.scrollTo(0, __scrollYBeforeLock);
 }
 
 // ================================================
@@ -102,28 +93,33 @@ function useIsMobile(breakpoint = 768) {
 }
 
 // ================================================
-// IMAGE LIGHTBOX
+// IMAGE LIGHTBOX (performance-safe)
 // ================================================
 function ImageLightbox({ images, currentIndex, onClose }) {
   const [activeIndex, setActiveIndex] = useState(currentIndex || 0);
+
   const touchStartRef = useRef(0);
   const touchEndRef = useRef(0);
 
+  // Lock scroll on open, unlock on close (position-fixed technique)
   useEffect(() => {
     lockScroll();
     return () => unlockScroll();
   }, []);
 
   const handleNext = useCallback(() => {
-    if (images.length > 1)
+    if (images.length > 1) {
       setActiveIndex((p) => (p + 1) % images.length);
+    }
   }, [images.length]);
 
   const handlePrev = useCallback(() => {
-    if (images.length > 1)
+    if (images.length > 1) {
       setActiveIndex((p) => (p - 1 + images.length) % images.length);
+    }
   }, [images.length]);
 
+  // Keyboard navigation (keep light)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -134,6 +130,7 @@ function ImageLightbox({ images, currentIndex, onClose }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose, handleNext, handlePrev]);
 
+  // Swipe support (do NOT prevent default vertical scroll)
   const handleTouchStartLB = useCallback((e) => {
     touchStartRef.current = e.targetTouches?.[0]?.clientX || 0;
   }, []);
@@ -157,10 +154,11 @@ function ImageLightbox({ images, currentIndex, onClose }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
+      transition={{ duration: 0.18 }}
       onClick={onClose}
-      style={{ touchAction: 'pan-y' }}
+      style={{ touchAction: 'none' }} /* keep touch strictly inside lightbox */
     >
+      {/* Top bar */}
       <div
         className={styles.lightboxTopBar}
         onClick={(e) => e.stopPropagation()}
@@ -179,12 +177,12 @@ function ImageLightbox({ images, currentIndex, onClose }) {
         </div>
       </div>
 
+      {/* Main image */}
       <div
         className={styles.lightboxContent}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={handleTouchStartLB}
         onTouchEnd={handleTouchEndLB}
-        style={{ touchAction: 'pan-x' }}
       >
         {images.length > 1 && (
           <button
@@ -246,7 +244,7 @@ function ImageLightbox({ images, currentIndex, onClose }) {
 function ShareModal({ product, productUrl, onClose }) {
   const [copied, setCopied] = useState(false);
 
-  // Lock scroll while share modal is open
+  // Lock scroll on open, unlock on close
   useEffect(() => {
     lockScroll();
     return () => unlockScroll();
@@ -283,7 +281,6 @@ function ShareModal({ product, productUrl, onClose }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
       onClick={onClose}
     >
       <motion.div
@@ -291,7 +288,6 @@ function ShareModal({ product, productUrl, onClose }) {
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
-        transition={{ duration: 0.15 }}
         onClick={(e) => e.stopPropagation()}
       >
         <button className={styles.shareModalClose} onClick={onClose}>
@@ -299,8 +295,13 @@ function ShareModal({ product, productUrl, onClose }) {
         </button>
         <h3 className={styles.shareModalTitle}>Share this Product</h3>
         <div className={styles.shareOptions}>
-          <button className={styles.shareOption} onClick={handleCopyLink}>
-            <span className={styles.shareIcon}>{copied ? '✓' : '🔗'}</span>
+          <button
+            className={styles.shareOption}
+            onClick={handleCopyLink}
+          >
+            <span className={styles.shareIcon}>
+              {copied ? '✓' : '🔗'}
+            </span>
             <span>{copied ? 'Copied!' : 'Copy Link'}</span>
           </button>
           <a
@@ -380,7 +381,8 @@ export default function ProductPage({
       averageRating: initialStats.averageRating || 0,
       reviewCount: initialStats.reviewCount || 0,
       distribution:
-        initialStats.distribution && typeof initialStats.distribution === 'object'
+        initialStats.distribution &&
+          typeof initialStats.distribution === 'object'
           ? { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0, ...initialStats.distribution }
           : def.distribution,
     };
@@ -395,13 +397,10 @@ export default function ProductPage({
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const reviewSectionRef = useRef(null);
 
-  // ---- FIX 1: Force-unlock on mount ----
+  // Unlock scrolling on mount + route changes/unload
   useEffect(() => {
     unlockScroll();
-  }, []);
 
-  // ---- FIX 2: Unlock on route change + cleanup on unmount ----
-  useEffect(() => {
     const handleRouteChange = () => {
       unlockScroll();
       setLightboxOpen(false);
@@ -422,26 +421,6 @@ export default function ProductPage({
       window.removeEventListener('beforeunload', unlockScroll);
     };
   }, [router]);
-
-  // ---- FIX 3: Force-unlock whenever ALL modals are closed ----
-  // This catches any leaked lock from AnimatePresence exit timing
-  useEffect(() => {
-    if (!lightboxOpen && !showShareModal) {
-      unlockScroll();
-    }
-  }, [lightboxOpen, showShareModal]);
-
-  // ---- FIX 4: Safety interval — detect stale scroll lock ----
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!lightboxOpen && !showShareModal) {
-        if (document.body.style.position === 'fixed') {
-          unlockScroll();
-        }
-      }
-    }, 800);
-    return () => clearInterval(interval);
-  }, [lightboxOpen, showShareModal]);
 
   // Review submit
   const handleReviewSubmit = async (e) => {
@@ -485,7 +464,8 @@ export default function ProductPage({
         newDist[r.rating] = (newDist[r.rating] || 0) + 1;
       });
       setReviewStats({
-        averageRating: Math.round((totalRatings / newReviews.length) * 10) / 10,
+        averageRating:
+          Math.round((totalRatings / newReviews.length) * 10) / 10,
         reviewCount: newReviews.length,
         distribution: newDist,
       });
@@ -505,31 +485,23 @@ export default function ProductPage({
   // Fallback / loading
   if (router.isFallback) {
     return (
-      <div
-        style={{
-          textAlign: 'center',
-          padding: '5rem 2rem',
-          minHeight: '100vh',
-        }}
-      >
-        <p>Loading...</p>
+      <div className={styles.mainContainer}>
+        <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>
+          <p>Loading...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !product) {
     return (
-      <div
-        style={{
-          textAlign: 'center',
-          padding: '5rem 2rem',
-          minHeight: '100vh',
-        }}
-      >
-        <h1>Product Not Found</h1>
-        <Link href="/" className={styles.retryButton}>
-          Go Back Home
-        </Link>
+      <div className={styles.mainContainer}>
+        <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>
+          <h1>Product Not Found</h1>
+          <Link href="/" className={styles.retryButton}>
+            Go Back Home
+          </Link>
+        </div>
       </div>
     );
   }
@@ -539,6 +511,7 @@ export default function ProductPage({
       ? product.images
       : [product.image];
 
+  // ★ FIX 4: Use canonical URL to avoid hydration mismatch
   const productUrl = `https://www.Nidsscrochet.in/product/${product._id}`;
 
   const handleShare = async () => {
@@ -589,9 +562,14 @@ export default function ProductPage({
 
   const getSalePercent = () => {
     try {
-      const orig = parseFloat(String(product.price).replace(/[^\d.]/g, ''));
-      const sale = parseFloat(String(product.salePrice).replace(/[^\d.]/g, ''));
-      if (orig > 0 && sale > 0) return Math.round(((orig - sale) / orig) * 100);
+      const orig = parseFloat(
+        String(product.price).replace(/[^\d.]/g, '')
+      );
+      const sale = parseFloat(
+        String(product.salePrice).replace(/[^\d.]/g, '')
+      );
+      if (orig > 0 && sale > 0)
+        return Math.round(((orig - sale) / orig) * 100);
     } catch {
       /* ignore */
     }
@@ -601,7 +579,9 @@ export default function ProductPage({
   return (
     <>
       <Head>
-        <title>{product.name} | Buy Handcrafted Crochet | Nidsscrochet</title>
+        <title>
+          {product.name} | Buy Handcrafted Crochet | Nidsscrochet
+        </title>
         <meta
           name="description"
           content={`Buy ${product.name} - ${product.description}. Handcrafted crochet by Nidhi Tripathi. ₹${product.price}. Free Mumbai delivery available!`}
@@ -614,7 +594,10 @@ export default function ProductPage({
           rel="canonical"
           href={`https://www.Nidsscrochet.in/product/${product._id}`}
         />
-        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large"
+        />
         <meta name="author" content="Nidhi Tripathi" />
 
         <meta property="og:type" content="product" />
@@ -622,7 +605,10 @@ export default function ProductPage({
           property="og:url"
           content={`https://www.Nidsscrochet.in/product/${product._id}`}
         />
-        <meta property="og:title" content={`${product.name} | Nidsscrochet`} />
+        <meta
+          property="og:title"
+          content={`${product.name} | Nidsscrochet`}
+        />
         <meta
           property="og:description"
           content={`${product.description} — Handmade with love by Nidhi Tripathi. ₹${product.price}`}
@@ -675,7 +661,10 @@ export default function ProductPage({
                   image: productImages,
                   sku: product._id,
                   mpn: product._id,
-                  brand: { '@type': 'Brand', name: 'Nidsscrochet' },
+                  brand: {
+                    '@type': 'Brand',
+                    name: 'Nidsscrochet',
+                  },
                   manufacturer: {
                     '@type': 'Organization',
                     name: 'Nidsscrochet',
@@ -696,15 +685,21 @@ export default function ProductPage({
                       product.stock > 0
                         ? 'https://schema.org/InStock'
                         : 'https://schema.org/OutOfStock',
-                    itemCondition: 'https://schema.org/NewCondition',
-                    seller: { '@type': 'Organization', name: 'Nidsscrochet' },
+                    itemCondition:
+                      'https://schema.org/NewCondition',
+                    seller: {
+                      '@type': 'Organization',
+                      name: 'Nidsscrochet',
+                    },
                   },
                   ...(reviewStats.reviewCount > 0
                     ? {
                       aggregateRating: {
                         '@type': 'AggregateRating',
-                        ratingValue: reviewStats.averageRating.toString(),
-                        reviewCount: reviewStats.reviewCount.toString(),
+                        ratingValue:
+                          reviewStats.averageRating.toString(),
+                        reviewCount:
+                          reviewStats.reviewCount.toString(),
                         bestRating: '5',
                         worstRating: '1',
                       },
@@ -746,19 +741,7 @@ export default function ProductPage({
         />
       </Head>
 
-      {/* ---- FIX 5: Inline styles guarantee this scrolls normally ---- */}
-      <main
-        className={styles.mainContainer}
-        style={{
-          position: 'relative',
-          height: 'auto',
-          minHeight: '100vh',
-          overflowX: 'hidden',
-          overflowY: 'visible',
-          touchAction: 'auto',
-          WebkitOverflowScrolling: 'touch',
-        }}
-      >
+      <main className={styles.mainContainer}>
         {/* ============ NAVBAR ============ */}
         <nav className={`${styles.navbar} ${styles.scrolled}`}>
           <div className={styles.navWrapper}>
@@ -842,7 +825,7 @@ export default function ProductPage({
           </div>
         </nav>
 
-        {/* Mobile nav backdrop — only when menu is open, never blocks page scroll */}
+        {/* ★ Mobile nav backdrop — closes menu on outside tap, never blocks page scroll */}
         {mobileMenuOpen && (
           <div
             onClick={() => setMobileMenuOpen(false)}
@@ -857,40 +840,36 @@ export default function ProductPage({
         )}
 
         {/* ============ BREADCRUMBS ============ */}
-        <div
-          className={styles.productPageContainer}
-          style={{ overflow: 'visible' }}
-        >
+        <div className={styles.productPageContainer}>
           <div className={styles.breadcrumbs}>
             <Link href="/" className={styles.breadcrumbLink}>
               Home
             </Link>
             <span className={styles.breadcrumbSeparator}>/</span>
-            <Link href="/#collections" className={styles.breadcrumbLink}>
+            <Link
+              href="/#collections"
+              className={styles.breadcrumbLink}
+            >
               Collections
             </Link>
             <span className={styles.breadcrumbSeparator}>/</span>
-            <span className={styles.breadcrumbLink}>{product.category}</span>
+            <span className={styles.breadcrumbLink}>
+              {product.category}
+            </span>
             <span className={styles.breadcrumbSeparator}>/</span>
-            <span className={styles.breadcrumbCurrent}>{product.name}</span>
+            <span className={styles.breadcrumbCurrent}>
+              {product.name}
+            </span>
           </div>
         </div>
 
         {/* ============ PRODUCT GRID ============ */}
-        <div
-          className={styles.productPageContainer}
-          style={{ overflow: 'visible' }}
-        >
-          <div
-            className={styles.productDetailGrid}
-            style={{ overflow: 'visible' }}
-          >
+        <div className={styles.productPageContainer}>
+          <div className={styles.productDetailGrid}>
             {/* —— Image Gallery —— */}
-            <div
-              className={styles.modalImageCarousel}
-              style={{ overflow: 'visible', touchAction: 'pan-y' }}
-            >
-              <AnimatePresence initial={false} mode="wait">
+            <div className={styles.modalImageCarousel}>
+              {/* Lightweight crossfade between images */}
+              <AnimatePresence initial={false}>
                 <motion.div
                   key={currentImageIndex}
                   initial={{ opacity: 0 }}
@@ -899,10 +878,7 @@ export default function ProductPage({
                   transition={{ duration: 0.15 }}
                   className={styles.modalImage}
                   onClick={() => handleImageClick(currentImageIndex)}
-                  style={{
-                    cursor: 'pointer',
-                    touchAction: 'pan-y',
-                  }}
+                  style={{ cursor: 'pointer', touchAction: 'pan-y' }}
                 >
                   <Image
                     src={productImages[currentImageIndex]}
@@ -915,7 +891,6 @@ export default function ProductPage({
                     style={{
                       objectFit: 'contain',
                       objectPosition: 'center',
-                      touchAction: 'pan-y',
                     }}
                   />
                 </motion.div>
@@ -946,8 +921,8 @@ export default function ProductPage({
                       <button
                         key={idx}
                         className={`${styles.carouselDot} ${idx === currentImageIndex
-                            ? styles.carouselDotActive
-                            : ''
+                          ? styles.carouselDotActive
+                          : ''
                           }`}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -965,8 +940,8 @@ export default function ProductPage({
                     <button
                       key={idx}
                       className={`${styles.thumbnailButton} ${idx === currentImageIndex
-                          ? styles.thumbnailActive
-                          : ''
+                        ? styles.thumbnailActive
+                        : ''
                         }`}
                       onClick={() => setCurrentImageIndex(idx)}
                     >
@@ -990,13 +965,14 @@ export default function ProductPage({
             </div>
 
             {/* —— Product Details —— */}
-            <div
-              className={styles.modalDetails}
-              style={{ overflow: 'visible' }}
-            >
-              <span className={styles.modalCategory}>{product.category}</span>
+            <div className={styles.modalDetails}>
+              <span className={styles.modalCategory}>
+                {product.category}
+              </span>
               <h1>{product.name}</h1>
-              <p className={styles.modalDescription}>{product.description}</p>
+              <p className={styles.modalDescription}>
+                {product.description}
+              </p>
 
               {/* Price */}
               <div className={styles.modalPriceSection}>
@@ -1042,7 +1018,9 @@ export default function ProductPage({
                       )}
                     </div>
                   ) : (
-                    <span className={styles.modalPrice}>₹{product.price}</span>
+                    <span className={styles.modalPrice}>
+                      ₹{product.price}
+                    </span>
                   )}
                 </div>
                 <span className={styles.modalStock}>
@@ -1079,7 +1057,9 @@ export default function ProductPage({
               {/* Shipping & COD */}
               <div className={styles.shippingInfoMain}>
                 <div
-                  className={`${styles.shippingBadgeMain} ${product.shipping_charges > 0 ? '' : styles.freeShipping
+                  className={`${styles.shippingBadgeMain} ${product.shipping_charges > 0
+                    ? ''
+                    : styles.freeShipping
                     }`}
                 >
                   <Truck size={18} />
@@ -1115,7 +1095,12 @@ export default function ProductPage({
                     marginBottom: '1rem',
                   }}
                 >
-                  <span style={{ fontWeight: '600', color: '#374151' }}>
+                  <span
+                    style={{
+                      fontWeight: '600',
+                      color: '#374151',
+                    }}
+                  >
                     Quantity:
                   </span>
                   <div
@@ -1128,7 +1113,9 @@ export default function ProductPage({
                     }}
                   >
                     <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      onClick={() =>
+                        setQuantity(Math.max(1, quantity - 1))
+                      }
                       style={{
                         padding: '0.5rem',
                         backgroundColor: '#f3f4f6',
@@ -1175,12 +1162,17 @@ export default function ProductPage({
                   className={`${styles.modalBtn} ${styles.modalBtnPrimary}`}
                   style={{
                     width: '100%',
-                    backgroundColor: addedToCart ? '#10b981' : '#3b82f6',
+                    backgroundColor: addedToCart
+                      ? '#10b981'
+                      : '#3b82f6',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.5rem',
-                    cursor: product.stock <= 0 ? 'not-allowed' : 'pointer',
+                    cursor:
+                      product.stock <= 0
+                        ? 'not-allowed'
+                        : 'pointer',
                     opacity: product.stock <= 0 ? 0.5 : 1,
                   }}
                   disabled={product.stock <= 0}
@@ -1206,6 +1198,7 @@ export default function ProductPage({
                 )}
               </div>
 
+              {/* ★ REMOVED: "Order on Instagram" button — using Razorpay now */}
               <div className={styles.modalActions}>
                 <button
                   onClick={handleShare}
@@ -1228,12 +1221,10 @@ export default function ProductPage({
         </div>
 
         {/* ============ REVIEWS SECTION ============ */}
-        <div
-          className={styles.reviewSection}
-          ref={reviewSectionRef}
-          style={{ overflow: 'visible' }}
-        >
-          <h2 className={styles.reviewSectionTitle}>Customer Reviews</h2>
+        <div className={styles.reviewSection} ref={reviewSectionRef}>
+          <h2 className={styles.reviewSectionTitle}>
+            Customer Reviews
+          </h2>
 
           {/* Review Summary */}
           <div className={styles.reviewSummary}>
@@ -1248,7 +1239,8 @@ export default function ProductPage({
                   <span
                     key={star}
                     className={
-                      star <= Math.round(reviewStats.averageRating)
+                      star <=
+                        Math.round(reviewStats.averageRating)
                         ? styles.starFilled
                         : styles.starEmpty
                     }
@@ -1259,10 +1251,13 @@ export default function ProductPage({
               </div>
               <div className={styles.reviewTotalCount}>
                 {reviewStats.reviewCount}{' '}
-                {reviewStats.reviewCount === 1 ? 'review' : 'reviews'}
+                {reviewStats.reviewCount === 1
+                  ? 'review'
+                  : 'reviews'}
               </div>
             </div>
 
+            {/* ★ FIX 7: star bars — animate only once when scrolled into view */}
             <div className={styles.reviewSummaryRight}>
               {[5, 4, 3, 2, 1].map((star) => {
                 const dist = reviewStats.distribution || {
@@ -1272,14 +1267,17 @@ export default function ProductPage({
                   2: 0,
                   1: 0,
                 };
-                const count = typeof dist[star] === 'number' ? dist[star] : 0;
+                const count =
+                  typeof dist[star] === 'number' ? dist[star] : 0;
                 const pct =
                   reviewStats.reviewCount > 0
                     ? (count / reviewStats.reviewCount) * 100
                     : 0;
                 return (
                   <div key={star} className={styles.starBarRow}>
-                    <span className={styles.starBarLabel}>{star}★</span>
+                    <span className={styles.starBarLabel}>
+                      {star}★
+                    </span>
                     <div className={styles.starBarTrack}>
                       {isMobile ? (
                         <div
@@ -1299,7 +1297,9 @@ export default function ProductPage({
                         />
                       )}
                     </div>
-                    <span className={styles.starBarCount}>{count}</span>
+                    <span className={styles.starBarCount}>
+                      {count}
+                    </span>
                   </div>
                 );
               })}
@@ -1309,9 +1309,14 @@ export default function ProductPage({
           {/* Review Form */}
           <div className={styles.reviewFormWrapper}>
             <h3 className={styles.reviewFormTitle}>Write a Review</h3>
-            <form onSubmit={handleReviewSubmit} className={styles.reviewForm}>
+            <form
+              onSubmit={handleReviewSubmit}
+              className={styles.reviewForm}
+            >
               <div className={styles.reviewFormRow}>
-                <label className={styles.reviewLabel}>Your Name</label>
+                <label className={styles.reviewLabel}>
+                  Your Name
+                </label>
                 <input
                   type="text"
                   className={styles.reviewInput}
@@ -1330,8 +1335,8 @@ export default function ProductPage({
                       type="button"
                       key={star}
                       className={`${styles.starSelectBtn} ${star <= (reviewHover || reviewRating)
-                          ? styles.starSelectActive
-                          : ''
+                        ? styles.starSelectActive
+                        : ''
                         }`}
                       onClick={() => setReviewRating(star)}
                       onMouseEnter={() => setReviewHover(star)}
@@ -1343,9 +1348,14 @@ export default function ProductPage({
                   {reviewRating > 0 && (
                     <span className={styles.ratingText}>
                       {
-                        ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][
-                        reviewRating
-                        ]
+                        [
+                          '',
+                          'Poor',
+                          'Fair',
+                          'Good',
+                          'Very Good',
+                          'Excellent',
+                        ][reviewRating]
                       }
                     </span>
                   )}
@@ -1355,13 +1365,17 @@ export default function ProductPage({
               <div className={styles.reviewFormRow}>
                 <label className={styles.reviewLabel}>
                   Your Review{' '}
-                  <span className={styles.optionalLabel}>(optional)</span>
+                  <span className={styles.optionalLabel}>
+                    (optional)
+                  </span>
                 </label>
                 <textarea
                   className={styles.reviewTextarea}
                   placeholder="Share your experience with this product..."
                   value={reviewComment}
-                  onChange={(e) => setReviewComment(e.target.value)}
+                  onChange={(e) =>
+                    setReviewComment(e.target.value)
+                  }
                   maxLength={1000}
                   rows={4}
                 />
@@ -1371,12 +1385,18 @@ export default function ProductPage({
               </div>
 
               {reviewError && (
-                <div className={styles.reviewAlert} data-type="error">
+                <div
+                  className={styles.reviewAlert}
+                  data-type="error"
+                >
                   {reviewError}
                 </div>
               )}
               {reviewSuccess && (
-                <div className={styles.reviewAlert} data-type="success">
+                <div
+                  className={styles.reviewAlert}
+                  data-type="success"
+                >
                   ✓ Thank you for your review!
                 </div>
               )}
@@ -1386,11 +1406,14 @@ export default function ProductPage({
                 className={styles.reviewSubmitBtn}
                 disabled={reviewSubmitting}
               >
-                {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+                {reviewSubmitting
+                  ? 'Submitting...'
+                  : 'Submit Review'}
               </button>
             </form>
           </div>
 
+          {/* ★ FIX 8: review cards — no animation on mobile for smooth scrolling */}
           {reviews.length > 0 ? (
             <div className={styles.reviewList}>
               {reviews.map((review, idx) => {
@@ -1405,14 +1428,11 @@ export default function ProductPage({
                           {review.name}
                         </span>
                         <span className={styles.reviewDate}>
-                          {new Date(review.createdAt).toLocaleDateString(
-                            'en-IN',
-                            {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            }
-                          )}
+                          {new Date(review.createdAt).toLocaleDateString('en-IN', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
                         </span>
                       </div>
                       <div className={styles.reviewCardStars}>
@@ -1431,13 +1451,18 @@ export default function ProductPage({
                       </div>
                     </div>
                     {review.comment && (
-                      <p className={styles.reviewComment}>{review.comment}</p>
+                      <p className={styles.reviewComment}>
+                        {review.comment}
+                      </p>
                     )}
                   </>
                 );
 
                 return isMobile ? (
-                  <div key={review._id || idx} className={styles.reviewCard}>
+                  <div
+                    key={review._id || idx}
+                    className={styles.reviewCard}
+                  >
                     {cardContent}
                   </div>
                 ) : (
@@ -1460,7 +1485,10 @@ export default function ProductPage({
           ) : (
             <div className={styles.noReviews}>
               <span>✨</span>
-              <p>No reviews yet. Be the first to review this product!</p>
+              <p>
+                No reviews yet. Be the first to review this
+                product!
+              </p>
             </div>
           )}
         </div>
@@ -1501,7 +1529,9 @@ export async function getServerSideProps({ params }) {
 
     const [product, reviewsRaw] = await Promise.all([
       Product.findById(id).lean(),
-      Review.find({ productId: id }).sort({ createdAt: -1 }).lean(),
+      Review.find({ productId: id })
+        .sort({ createdAt: -1 })
+        .lean(),
     ]);
 
     if (!product) {
@@ -1526,9 +1556,11 @@ export async function getServerSideProps({ params }) {
       let total = 0;
       reviewsRaw.forEach((r) => {
         total += r.rating;
-        distribution[r.rating] = (distribution[r.rating] || 0) + 1;
+        distribution[r.rating] =
+          (distribution[r.rating] || 0) + 1;
       });
-      averageRating = Math.round((total / reviewCount) * 10) / 10;
+      averageRating =
+        Math.round((total / reviewCount) * 10) / 10;
     }
 
     return {

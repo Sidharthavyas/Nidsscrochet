@@ -39,9 +39,13 @@ function unlockScroll() {
   document.body.style.position = '';
   document.body.style.top = '';
   document.body.style.width = '';
+  document.body.style.height = '';
   document.body.style.touchAction = '';
   document.body.style.overscrollBehavior = '';
   document.documentElement.style.overflow = '';
+  document.documentElement.style.height = '';
+  document.documentElement.style.touchAction = '';
+  document.documentElement.style.position = '';
 }
 
 // ================================================
@@ -509,8 +513,16 @@ export default function ProductPage({
 
   // ★ FIX 2: Bulletproof scroll unlock on mount + route change + unload
   useEffect(() => {
-    // Clear any stale overflow from previous page / leaked modal
+    // Clear ANY stale overflow/lock from previous page or leaked modal
     unlockScroll();
+
+    // Safety net: poll every 500 ms and force-unlock if no modal is open
+    // This catches any edge case where the class leaks on mobile
+    const safetyTimer = setInterval(() => {
+      if (!lightboxOpen && !showShareModal) {
+        unlockScroll();
+      }
+    }, 500);
 
     const handleRouteChange = () => {
       unlockScroll();
@@ -523,15 +535,22 @@ export default function ProductPage({
     router.events.on('routeChangeComplete', handleRouteChange);
     window.addEventListener('pagehide', unlockScroll);
     window.addEventListener('beforeunload', unlockScroll);
+    // visibilitychange handles tab switch + return on iOS
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && !lightboxOpen && !showShareModal) {
+        unlockScroll();
+      }
+    });
 
     return () => {
+      clearInterval(safetyTimer);
       unlockScroll();
       router.events.off('routeChangeStart', handleRouteChange);
       router.events.off('routeChangeComplete', handleRouteChange);
       window.removeEventListener('pagehide', unlockScroll);
       window.removeEventListener('beforeunload', unlockScroll);
     };
-  }, [router]);
+  }, [router, lightboxOpen, showShareModal]);
 
   // ★ FIX 3: Auto-hide zoom hint after 3 seconds
   useEffect(() => {
@@ -941,6 +960,20 @@ export default function ProductPage({
             </div>
           </div>
         </nav>
+
+        {/* ★ Mobile nav backdrop — closes menu on outside tap, never blocks page scroll */}
+        {mobileMenuOpen && (
+          <div
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 999,
+              background: 'rgba(0,0,0,0.25)',
+            }}
+            aria-hidden="true"
+          />
+        )}
 
         {/* ============ BREADCRUMBS ============ */}
         <div className={styles.productPageContainer}>

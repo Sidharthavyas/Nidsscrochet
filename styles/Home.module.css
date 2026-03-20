@@ -198,66 +198,59 @@
     z-index: 1000;
     padding: 0;
     transition: var(--transition-smooth);
+    will-change: transform;
 }
 
 .navWrapper {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid rgba(255, 107, 157, 0.08);
+    background: rgba(253, 249, 245, 0.85);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid var(--outline-ghost);
     box-shadow: var(--shadow-sm);
-    transition: var(--transition);
+    transition: var(--transition-smooth);
 }
 
 .navbar.scrolled .navWrapper {
-    background: rgba(255, 255, 255, 0.98);
+    background: rgba(253, 249, 245, 0.97);
     box-shadow: var(--shadow);
-    border-bottom: 1px solid rgba(255, 107, 157, 0.15);
+    border-bottom: 1px solid rgba(255, 107, 157, 0.1);
 }
 
 .navContent {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0.9rem 2rem;
+    padding: 0.75rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
+    gap: 1rem;
 }
 
 /* FIXED: Added flex-shrink to prevent brand from being squeezed */
 .navBrand {
     font-family: 'Pacifico', cursive;
-    font-size: 1.5rem;
-    background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+    font-size: 1.4rem;
+    background: linear-gradient(135deg, var(--pink-primary), var(--pink));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     cursor: pointer;
-    transition: var(--transition);
+    transition: var(--transition-smooth);
     letter-spacing: 0.5px;
     z-index: 10;
-    animation: float 3s ease-in-out infinite;
     min-height: auto;
     min-width: auto;
     flex-shrink: 0;
+    /* Removed janky float animation */
 }
 
 .navBrand:hover {
-    transform: translateY(-3px) scale(1.02);
-    filter: drop-shadow(0 3px 6px rgba(255, 107, 157, 0.3));
+    transform: translateY(-2px) scale(1.02);
+    filter: drop-shadow(0 3px 8px rgba(255, 107, 157, 0.25));
 }
 
-@keyframes float {
-
-    0%,
-    100% {
-        transform: translateY(0px);
-    }
-
-    50% {
-        transform: translateY(-4px);
-    }
-}
+/* Removed: float animation on brand (too jittery, hurts premium feel) */
 
 .mobileMenuBtn {
     display: none;
@@ -280,7 +273,8 @@
 .navLinks {
     display: flex;
     align-items: center;
-    gap: 2rem;
+    gap: 1.5rem;
+    flex-shrink: 0;
 }
 
 .navLink {
@@ -318,15 +312,15 @@
 }
 
 .navCta {
-    background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+    background: linear-gradient(135deg, var(--pink-primary), var(--pink));
     color: var(--white);
-    padding: 0.65rem 1.6rem;
-    border-radius: 50px;
+    padding: 0.6rem 1.4rem;
+    border-radius: var(--radius-pill);
     text-decoration: none;
     font-weight: 700;
     font-size: 0.8rem;
     box-shadow: var(--shadow-pink);
-    transition: var(--transition);
+    transition: var(--transition-smooth);
     border: 1px solid transparent;
     white-space: nowrap;
     min-height: auto;
@@ -335,7 +329,7 @@
 
 .navCta:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(255, 107, 157, 0.4);
+    box-shadow: var(--shadow-ambient);
 }
 
 /* Logo Styles */
@@ -919,7 +913,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: linear-gradient(160deg, var(--pink-soft) 0%, var(--blue-light) 100%);
+    background: linear-gradient(160deg, var(--pink-soft) 0%, rgba(168, 218, 255, 0.25) 100%);
     padding: 6rem 2rem 3rem;
 }
 
@@ -1047,15 +1041,15 @@
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 1rem 2.2rem;
+    padding: 0.9rem 2rem;
     text-decoration: none;
     font-weight: 700;
-    font-size: 0.85rem;
-    border-radius: 50px;
+    font-size: 0.88rem;
+    border-radius: var(--radius-pill);
     cursor: pointer;
-    transition: var(--transition);
+    transition: var(--transition-smooth);
     overflow: hidden;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.3px;
     border: 2px solid transparent;
     white-space: nowrap;
     min-height: auto;
@@ -1063,19 +1057,19 @@
 }
 
 .ctaButtonPrimary {
-    background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+    background: linear-gradient(135deg, var(--pink-primary), var(--pink));
     color: var(--white);
     box-shadow: var(--shadow-pink);
 }
 
 .ctaButtonPrimary:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(255, 107, 157, 0.4);
+    box-shadow: var(--shadow-ambient);
 }
 
 .ctaButtonSecondary {
     background: rgba(255, 255, 255, 0.9);
-    color: var(--pink);
+    color: var(--pink-primary);
     border: 2px solid var(--pink);
     backdrop-filter: blur(10px);
 }
@@ -1454,31 +1448,33 @@
 .productCard {
     flex: 0 0 270px;
     scroll-snap-align: center;
-    background: var(--white);
+    background: var(--surface-card);
     border-radius: var(--border-radius-lg);
     overflow: hidden;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow);
     cursor: pointer;
     transition: var(--transition-smooth);
-    border: 1px solid rgba(255, 182, 193, 0.2);
+    border: 1px solid var(--outline-ghost);
     position: relative;
+    /* GPU-composited layer for smooth animation */
+    will-change: transform, box-shadow;
 }
 
 .productCard::before {
     content: '';
     position: absolute;
-    inset: -2px;
+    inset: 0;
     border-radius: var(--border-radius-lg);
-    background: linear-gradient(145deg, var(--pink), var(--blue));
+    background: linear-gradient(145deg, rgba(255, 107, 157, 0.04), rgba(168, 218, 255, 0.04));
     opacity: 0;
-    transition: var(--transition);
+    transition: opacity 0.2s ease;
     pointer-events: none;
-    z-index: -1;
+    z-index: 1;
 }
 
 .productCard:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 14px 50px rgba(255, 107, 157, 0.2), 0 10px 30px rgba(102, 126, 234, 0.12);
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-ambient), var(--shadow-md);
 }
 
 .productCard:hover::before {
@@ -1561,8 +1557,10 @@
 }
 
 .productInfo {
-    padding: 1.5rem;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 240, 245, 0.3) 100%);
+    padding: 1.25rem 1.25rem 1.5rem;
+    background: var(--surface-card);
+    position: relative;
+    z-index: 2;
 }
 
 .productCategory {
@@ -1623,19 +1621,15 @@
     justify-content: space-between;
     align-items: center;
     margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255, 107, 157, 0.1);
+    padding-top: 0.75rem;
+    /* No border-top: use spacing instead (Petal & Purl rule) */
 }
 
 .productPrice {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-weight: 900;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: 0.3px;
-    filter: drop-shadow(0 2px 5px rgba(245, 87, 108, 0.2));
+    color: var(--pink);
+    letter-spacing: 0.2px;
     transition: var(--transition);
     display: flex;
     align-items: baseline;
@@ -2300,10 +2294,8 @@
 .modalPrice {
     font-size: 2rem;
     font-weight: 900;
-    background: linear-gradient(135deg, #f093fb, #f5576c);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--pink);
+    letter-spacing: 0.2px;
     display: inline-block;
 }
 
@@ -2407,13 +2399,13 @@
 }
 
 .modalBtnSecondary {
-    background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+    background: linear-gradient(135deg, var(--pink-primary), var(--pink));
     color: white;
-    box-shadow: 0 5px 18px rgba(245, 87, 108, 0.35);
+    box-shadow: var(--shadow-pink);
 }
 
 .modalBtnSecondary:hover {
-    box-shadow: 0 8px 25px rgba(245, 87, 108, 0.55);
+    box-shadow: var(--shadow-ambient);
     transform: translateY(-2px);
 }
 
@@ -2458,8 +2450,8 @@
 
 .processStep:hover {
     border-color: var(--pink-soft);
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-ambient);
 }
 
 .processNumber {
@@ -2508,7 +2500,7 @@
 
 .testimonialsSection {
     padding: 4rem 2rem;
-    background: linear-gradient(135deg, var(--gray) 0%, #e0f0ff 100%);
+    background: var(--surface-low);
     margin: 3rem 0;
 }
 
@@ -2595,11 +2587,12 @@
    ================================================ */
 
 .footer {
-    background: linear-gradient(135deg, #1a1a2e 0%, #2d1b3d 100%);
+    background: linear-gradient(180deg, #1e1822 0%, #1a1520 100%);
     color: var(--white);
     padding: 3rem 1.5rem 1.5rem;
     margin-top: 3rem;
-    border-top: 3px solid var(--pink);
+    /* No harsh border-top: use tonal shift instead */
+    border-top: 1px solid rgba(255, 107, 157, 0.2);
 }
 
 .footerContent {

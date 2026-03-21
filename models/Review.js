@@ -8,6 +8,12 @@ const ReviewSchema = new mongoose.Schema(
             required: [true, 'Product ID is required'],
             index: true,
         },
+        // ✅ Link review to authenticated Clerk user for duplicate prevention
+        clerkUserId: {
+            type: String,
+            index: true,
+            sparse: true, // old reviews without userId still indexed correctly
+        },
         name: {
             type: String,
             required: [true, 'Name is required'],
@@ -32,7 +38,10 @@ const ReviewSchema = new mongoose.Schema(
     }
 );
 
-// Compound index for fast per-product queries sorted by newest first
+// Fast per-product queries sorted by newest first
 ReviewSchema.index({ productId: 1, createdAt: -1 });
+
+// ✅ One review per user per product at DB level (sparse so old reviews are unaffected)
+ReviewSchema.index({ productId: 1, clerkUserId: 1 }, { unique: true, sparse: true });
 
 export default mongoose.models.Review || mongoose.model('Review', ReviewSchema);

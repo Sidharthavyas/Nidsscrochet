@@ -13,19 +13,19 @@ export default async function handler(req, res) {
         return res.status(405).json({ message: 'Use POST request' });
     }
 
-    // 1. Security: Strict Secret Check
-    const secret = req.query.secret || req.headers.authorization?.split(' ')[1];
-    if (secret !== process.env.ADMIN_SECRET) {
-        return res.status(444).json({ message: 'Invalid token' });
+    // ✅ FIX: Only accept secret from Authorization header — never from URL query param
+    // (URL query params get logged in server logs, browser history, and referrer headers)
+    const secret = req.headers.authorization?.split(' ')[1];
+    if (!secret || secret !== process.env.ADMIN_SECRET) {
+        return res.status(401).json({ message: 'Invalid token' });
     }
 
     try {
-        // 2. Cost Control: Rate Limiting
-        // Prevents a bug in your admin panel from triggering 100s of revalidations
-        await rateLimiter.consume(req.socket.remoteAddress);
+        // Cost Control: Rate Limiting
+        const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
+        await rateLimiter.consume(ip);
 
-        // 3. Revalidate Homepage
-        // This is the most efficient way to maintain "Fresh" content for FREE
+        // Revalidate Homepage
         await res.revalidate('/');
 
         return res.status(200).json({ 
@@ -34,7 +34,6 @@ export default async function handler(req, res) {
             timestamp: new Date().toISOString()
         });
     } catch (err) {
-        // If rate limited or Vercel error
         const status = err.remainingPoints === 0 ? 429 : 500;
         return res.status(status).json({ 
             success: false, 

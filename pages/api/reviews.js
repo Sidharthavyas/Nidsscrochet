@@ -1,8 +1,16 @@
 import mongoose from 'mongoose';
+import { getAuth } from '@clerk/nextjs/server';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 import connectDB from '../../lib/mongodb';
 import Review from '../../models/Review';
 import { verifyToken } from '../../lib/authMiddleware';
 import validator from 'validator';
+
+// ✅ FIX: Rate-limit reviews — 3 per hour per IP
+const reviewLimiter = new RateLimiterMemory({
+  points: 3,
+  duration: 60 * 60, // 1 hour
+});
 
 export default async function handler(req, res) {
     await connectDB();
@@ -49,12 +57,32 @@ export default async function handler(req, res) {
 
     // ===== POST: Submit a new review =====
     if (req.method === 'POST') {
+        // ✅ FIX: Require authentication to submit reviews
+        const { userId } = getAuth(req);
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Sign in to leave a review' });
+        }
+
+        // ✅ FIX: Rate-limit per IP to prevent spam
+        const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
+        try {
+            await reviewLimiter.consume(ip);
+        } catch {
+            return res.status(429).json({ success: false, message: 'Too many reviews. Please try again later.' });
+        }
+
         try {
             const { productId, name, rating, comment } = req.body;
 
             // Validate productId
             if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
                 return res.status(400).json({ success: false, message: 'Valid productId is required' });
+            }
+
+            // ✅ FIX: Prevent duplicate reviews from the same user on the same product
+            const existing = await Review.findOne({ productId, clerkUserId: userId });
+            if (existing) {
+                return res.status(409).json({ success: false, message: 'You have already reviewed this product' });
             }
 
             // Validate name
@@ -79,6 +107,7 @@ export default async function handler(req, res) {
 
             const review = await Review.create({
                 productId,
+                clerkUserId: userId, // ✅ Link review to authenticated user
                 name: sanitizedName,
                 rating: ratingNum,
                 comment: sanitizedComment,

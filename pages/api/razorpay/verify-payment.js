@@ -67,20 +67,30 @@ export default async function handler(req, res) {
       }
     }
 
-    // Deduct stock
+    // Deduct stock atomically — only if sufficient stock exists (H-2)
     if (order.items && order.items.length > 0) {
       for (const item of order.items) {
         if (item.productId) {
           try {
-            await Product.findByIdAndUpdate(item.productId, {
-              $inc: { stock: -Math.abs(item.quantity) },
-            });
+            const updated = await Product.findOneAndUpdate(
+              { _id: item.productId, stock: { $gte: item.quantity } },
+              { $inc: { stock: -Math.abs(item.quantity) } },
+              { new: true }
+            );
+            if (!updated) {
+              // Mark the order failed rather than silently oversell
+              await Order.findByIdAndUpdate(order._id, { status: 'failed' });
+              return res.status(409).json({
+                error: `"${item.name || item.productId}" is out of stock. Payment will be refunded automatically by Razorpay.`,
+              });
+            }
           } catch (err) {
             console.error('Failed to deduct stock for', item.productId, err);
           }
         }
       }
     }
+
 
     // ✅ FIX: AWAIT the email so it completes before the function terminates
     let emailResult = { success: false, reason: 'not_attempted' };

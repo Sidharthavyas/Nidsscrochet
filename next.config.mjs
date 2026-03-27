@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
+
 const nextConfig = {
   reactStrictMode: true,
-
-
 
   // Image optimization
   images: {
@@ -36,7 +35,8 @@ const nextConfig = {
   // Important for Vercel deployment
   experimental: {
     serverActions: {
-      bodySizeLimit: '10mb',
+      // L-3: Reduced from 10 MB — admin uploads go through Cloudinary; 2 MB is sufficient
+      bodySizeLimit: '2mb',
     },
     // Optimize package imports
     optimizePackageImports: ['framer-motion'],
@@ -96,11 +96,14 @@ const nextConfig = {
             value: 'camera=(), microphone=(), geolocation=()'
           },
           {
+            // H-1: 'unsafe-inline' removed from script-src.
+            // Per-request nonce is injected by middleware.js and consumed at render time
+            // via <Script nonce={nonce}> or next/headers in Server Components.
+            // This static fallback (no nonce) keeps API/static routes safe.
             key: 'Content-Security-Policy',
-            // next/font/google self-hosts fonts — no external font CDN needed
             value: `
               default-src 'self';
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.Nidsscrochet.in https://challenges.cloudflare.com https://checkout.razorpay.com https://api.razorpay.com;
+              script-src 'self' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.Nidsscrochet.in https://challenges.cloudflare.com https://checkout.razorpay.com https://api.razorpay.com;
               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
               img-src 'self' data: https: blob:;
               font-src 'self' https://checkout.razorpay.com https://fonts.gstatic.com;
@@ -118,4 +121,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default nextConfig;

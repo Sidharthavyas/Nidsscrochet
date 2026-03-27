@@ -1,6 +1,7 @@
 // pages/api/orders/create-cod.js
 // Create a Cash on Delivery order — bypasses Razorpay entirely
 
+import crypto from 'crypto';
 import { getAuth } from '@clerk/nextjs/server';
 import connectDB from '../../../lib/mongodb';
 import Order from '../../../models/Order';
@@ -8,6 +9,7 @@ import Coupon from '../../../models/Coupon';
 import Product from '../../../models/Product';
 import mongoose from 'mongoose';
 import { sendOrderConfirmationEmail } from '../../../lib/email';
+
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -119,8 +121,9 @@ export default async function handler(req, res) {
         const serverShipping = discountedSubtotal >= 500 ? 0 : 80;
         const serverAmount = Math.max(0, discountedSubtotal + serverShipping);
 
-        // Generate a unique COD order ID
-        const codOrderId = `COD_${Date.now()}_${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+        // Generate a unique COD order ID using cryptographically random bytes (M-2)
+        const codOrderId = `COD_${Date.now()}_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
 
         const order = await Order.create({
             orderId: codOrderId,

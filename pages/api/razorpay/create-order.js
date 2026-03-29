@@ -160,7 +160,7 @@ export default async function handler(req, res) {
             dbOrderId: order._id,
         });
     } catch (error) {
-        console.error('Create order error:', error);
+        console.error('Create order error:', error?.message || 'Unknown error');
         return res.status(500).json({ error: error.message || 'Failed to create order' });
     }
 }

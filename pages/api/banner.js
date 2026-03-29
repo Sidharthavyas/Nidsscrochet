@@ -8,7 +8,12 @@ import Banner from '../../models/Banner';
 export default async function handler(req, res) {
     const { method } = req;
 
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // SECURITY: Restrict CORS to known origins — never use wildcard '*'
+    const allowedOrigins = [process.env.NEXT_PUBLIC_SITE_URL || 'https://www.nidsscrochet.in', 'http://localhost:3000'];
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 

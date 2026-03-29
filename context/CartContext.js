@@ -21,7 +21,7 @@ const cartReducer = (state, action) => {
             item.id === action.payload.id
               ? {
                 ...item,
-                quantity: item.quantity + action.payload.quantity,
+                quantity: Math.min(item.quantity + action.payload.quantity, 99),
                 // Update shipping/cod in case product data changed
                 shipping_charges: parseFloat(action.payload.shipping_charges) || 0,
                 cod_available: !!action.payload.cod_available,
@@ -40,7 +40,7 @@ const cartReducer = (state, action) => {
         ...state,
         items: state.items.map(item =>
           item.id === action.payload.id
-            ? { ...item, quantity: action.payload.quantity }
+            ? { ...item, quantity: Math.max(1, Math.min(99, action.payload.quantity)) }
             : item
         ).filter(item => item.quantity > 0)
       };

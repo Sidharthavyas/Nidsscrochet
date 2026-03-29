@@ -615,8 +615,9 @@ function AdminDashboard() {
       if (data.success) {
         // Bust the ISR cache so the homepage reflects the new banner immediately
         try {
-          await fetch(`/api/revalidate?secret=${process.env.NEXT_PUBLIC_ADMIN_SECRET || token}`, {
+          await fetch('/api/revalidate', {
             method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
           });
         } catch (_) {
           // Revalidation is best-effort — don't block success message

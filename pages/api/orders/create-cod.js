@@ -184,7 +184,7 @@ export default async function handler(req, res) {
             amount: serverAmount,
         });
     } catch (error) {
-        console.error('COD order creation error:', error);
+        console.error('COD order creation error:', error?.message || 'Unknown error');
         return res.status(500).json({ success: false, message: 'Failed to create COD order' });
     }
 }

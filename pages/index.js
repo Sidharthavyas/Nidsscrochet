@@ -1747,6 +1747,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
         <meta name="FacebookBot" content="index, follow" />
 
         {/* ===== GEO: Speakable Schema (Voice Assistants + AI Summaries) ===== */}
+        {/* SAFETY: dangerouslySetInnerHTML is OK here — JSON.stringify() escapes all HTML entities */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

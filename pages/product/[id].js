@@ -647,6 +647,7 @@ export default function ProductPage({
         <meta name="twitter:image" content={productImages[0]} />
         <meta name="twitter:image:alt" content={product.name} />
 
+        {/* SAFETY: dangerouslySetInnerHTML is OK here — JSON.stringify() escapes all HTML entities */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

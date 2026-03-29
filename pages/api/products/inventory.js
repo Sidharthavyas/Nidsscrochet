@@ -33,9 +33,15 @@ export default async function handler(req, res) {
             return res.status(400).json({ success: false, message: 'Product ID and stock value are required' });
         }
 
+        // SECURITY: Validate stock bounds — reject Infinity, NaN, negative, or excessively large values
+        const stockNum = Number(stock);
+        if (!Number.isFinite(stockNum) || stockNum < 0 || stockNum > 99999) {
+            return res.status(400).json({ success: false, message: 'Stock must be a number between 0 and 99999' });
+        }
+
         const updatedProduct = await Product.findByIdAndUpdate(
             id,
-            { stock: Number(stock) },
+            { stock: Math.floor(stockNum) },
             { new: true, runValidators: true }
         );
 

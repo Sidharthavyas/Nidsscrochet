@@ -85,7 +85,7 @@ export default async function handler(req, res) {
               });
             }
           } catch (err) {
-            console.error('Failed to deduct stock for', item.productId, err);
+            console.error('Failed to deduct stock for', item.productId, err?.message || 'Unknown');
           }
         }
       }
@@ -114,7 +114,7 @@ export default async function handler(req, res) {
       emailSent: emailResult.success, // ✅ Now you can see if it worked
     });
   } catch (error) {
-    console.error('Verify payment error:', error);
+    console.error('Verify payment error:', error?.message || 'Unknown error');
     return res.status(500).json({ error: 'Payment verification failed' });
   }
 }

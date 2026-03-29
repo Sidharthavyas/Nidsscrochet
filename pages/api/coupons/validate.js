@@ -1,10 +1,19 @@
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 import connectDB from '../../../lib/mongodb';
 import Coupon from '../../../models/Coupon';
+
+// SECURITY: Rate limit coupon validation to prevent brute-force enumeration
+const couponLimiter = new RateLimiterMemory({ points: 5, duration: 60 }); // 5 attempts per minute per IP
 
 export default async function handler(req, res) {
     const { method } = req;
 
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // SECURITY: Restrict CORS to known origins — never use wildcard '*'
+    const allowedOrigins = [process.env.NEXT_PUBLIC_SITE_URL || 'https://www.nidsscrochet.in', 'http://localhost:3000'];
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -18,6 +27,14 @@ export default async function handler(req, res) {
     }
 
     try {
+        // SECURITY: Rate limit by IP to prevent coupon code brute-forcing
+        const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
+        try {
+            await couponLimiter.consume(ip);
+        } catch {
+            return res.status(429).json({ success: false, message: 'Too many attempts. Please try again later.' });
+        }
+
         await connectDB();
         const { code, orderValue } = req.body;
 
@@ -28,23 +45,24 @@ export default async function handler(req, res) {
         // Find the coupon
         const coupon = await Coupon.findOne({ code: code.trim().toUpperCase() });
 
+        // SECURITY: Use generic message for all invalid coupon states to prevent enumeration
         if (!coupon) {
-            return res.status(404).json({ success: false, message: 'Invalid coupon code' });
+            return res.status(400).json({ success: false, message: 'This coupon code is invalid or expired' });
         }
 
         // Check if active
         if (!coupon.isActive) {
-            return res.status(400).json({ success: false, message: 'This coupon is no longer active' });
+            return res.status(400).json({ success: false, message: 'This coupon code is invalid or expired' });
         }
 
         // Check expiry
         if (coupon.validUntil && new Date() > new Date(coupon.validUntil)) {
-            return res.status(400).json({ success: false, message: 'This coupon has expired' });
+            return res.status(400).json({ success: false, message: 'This coupon code is invalid or expired' });
         }
 
         // Check max uses
         if (coupon.maxUses !== null && coupon.usageCount >= coupon.maxUses) {
-            return res.status(400).json({ success: false, message: 'This coupon has reached its usage limit' });
+            return res.status(400).json({ success: false, message: 'This coupon code is invalid or expired' });
         }
 
         // Check min order value

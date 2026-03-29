@@ -26,8 +26,7 @@ export default async function handler(req, res) {
       
       return res.status(200).json({ 
         success: true, 
-        message: 'Cart saved successfully',
-        items 
+        message: 'Cart saved successfully'
       });
     }
     

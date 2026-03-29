@@ -40,7 +40,7 @@ export default async function handler(req, res) {
                 totalPages: Math.ceil(total / limit),
             });
         } catch (error) {
-            console.error('Error fetching orders:', error);
+            console.error('Error fetching orders:', error?.message || 'Unknown error');
             return res.status(500).json({ success: false, message: 'Error fetching orders' });
         }
     }
@@ -58,6 +58,31 @@ export default async function handler(req, res) {
                 return res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
             }
 
+            // SECURITY: Enforce valid state transitions — prevent arbitrary status changes
+            const VALID_TRANSITIONS = {
+                'pending': ['processing', 'cancelled'],
+                'created': ['paid', 'cancelled', 'failed'],
+                'paid': ['processing', 'cancelled'],
+                'processing': ['shipped', 'cancelled'],
+                'shipped': ['delivered'],
+                'delivered': [],     // terminal state
+                'cancelled': [],     // terminal state
+                'failed': ['pending'], // allow retry
+            };
+
+            const currentOrder = await Order.findById(orderId).lean();
+            if (!currentOrder) {
+                return res.status(404).json({ success: false, message: 'Order not found' });
+            }
+
+            const allowed = VALID_TRANSITIONS[currentOrder.status] || [];
+            if (!allowed.includes(status)) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Cannot transition from '${currentOrder.status}' to '${status}'. Allowed: ${allowed.join(', ') || 'none (terminal state)'}`
+                });
+            }
+
             const order = await Order.findByIdAndUpdate(
                 orderId,
                 { status },
@@ -73,7 +98,7 @@ export default async function handler(req, res) {
                 data: JSON.parse(JSON.stringify(order)),
             });
         } catch (error) {
-            console.error('Error updating order:', error);
+            console.error('Error updating order:', error?.message || 'Unknown error');
             return res.status(500).json({ success: false, message: 'Error updating order' });
         }
     }

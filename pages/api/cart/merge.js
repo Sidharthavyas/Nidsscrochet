@@ -26,7 +26,8 @@ export default async function handler(req, res) {
     // 3. Update quantities for duplicate items
     // 4. Save merged cart to database
     
-    console.log('Merging cart for user:', userId, 'with items:', items);
+    // Cart merge placeholder — no sensitive data logging
+    // TODO: Implement actual cart merging with a Cart model
     
     // For now, just return the guest items as the merged cart
     return res.status(200).json({

@@ -8,8 +8,13 @@ import Category from '../../models/Category';
 export default async function handler(req, res) {
   const { method, query } = req;
 
-  // CORS Headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // SECURITY: Restrict CORS to known origins — never use wildcard '*'
+  // SECURITY NOTE: GET is public, POST/PUT/DELETE require admin auth (intentional)
+  const allowedOrigins = [process.env.NEXT_PUBLIC_SITE_URL || 'https://www.nidsscrochet.in', 'http://localhost:3000'];
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 

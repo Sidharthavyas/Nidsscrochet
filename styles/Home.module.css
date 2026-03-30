@@ -1059,12 +1059,17 @@
     white-space: nowrap;
     min-height: auto;
     min-width: auto;
+    /* Safari fix for overflow hidden with border radius */
+    transform: translateZ(0);
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
 }
 
 .ctaButtonPrimary {
     background: linear-gradient(135deg, var(--pink-primary), var(--pink));
     color: var(--white);
     box-shadow: var(--shadow-pink);
+    border-color: var(--pink-primary);
 }
 
 .ctaButtonPrimary:hover {
@@ -1092,7 +1097,7 @@
 .buttonRipple {
     position: absolute;
     inset: 0;
-    border-radius: 50px;
+    border-radius: var(--radius-pill);
     border: 2px solid rgba(255, 255, 255, 0.5);
     pointer-events: none;
 }

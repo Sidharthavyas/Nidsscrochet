@@ -94,234 +94,243 @@ export default function Navbar({ showSearch = false, products = [] }) {
   const closeMenu = () => setMobileMenuOpen(false);
 
   return (
-    <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
-      <div className={styles.navWrapper}>
-        <div className={styles.navContent}>
+    <>
+      <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
+        <div className={styles.navWrapper}>
+          <div className={styles.navContent}>
 
-          {/* ── Brand ── */}
-          <Link href="/" className={styles.navBrand} aria-label="Nidsscrochet home">
-            Nidsscrochet
-          </Link>
+            {/* ── Brand ── */}
+            <Link href="/" className={styles.navBrand} aria-label="Nidsscrochet home">
+              Nidsscrochet
+            </Link>
 
-          {/* ── Search Bar (homepage only) ── */}
-          {showSearch && (
-            <div
-              ref={searchContainerRef}
-              className={`${styles.searchContainer} ${searchActive ? styles.searchActive : ''}`}
-            >
-              <button
-                className={styles.searchIconBtn}
-                onClick={() => {
-                  setSearchActive(!searchActive);
-                  if (!searchActive && searchInputRef.current) {
-                    setTimeout(() => searchInputRef.current?.focus(), 100);
-                  }
-                  if (searchActive) {
-                    setShowSuggestions(false);
-                    setSearchQuery('');
-                  }
-                }}
-                aria-label="Toggle search"
+            {/* ── Search Bar (homepage only) ── */}
+            {showSearch && (
+              <div
+                ref={searchContainerRef}
+                className={`${styles.searchContainer} ${searchActive ? styles.searchActive : ''}`}
               >
-                <Search size={18} strokeWidth={1.5} />
-              </button>
-              <input
-                ref={searchInputRef}
-                type="text"
-                className={styles.searchInput}
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => {
-                  setSearchActive(true);
-                  if (searchQuery.trim()) setShowSuggestions(true);
-                }}
-                aria-label="Search products"
-                aria-autocomplete="list"
-                role="combobox"
-                aria-expanded={showSuggestions}
-              />
-              {searchQuery && (
                 <button
-                  className={styles.searchClear}
+                  className={styles.searchIconBtn}
                   onClick={() => {
-                    setSearchQuery('');
-                    setShowSuggestions(false);
-                    searchInputRef.current?.focus();
+                    setSearchActive(!searchActive);
+                    if (!searchActive && searchInputRef.current) {
+                      setTimeout(() => searchInputRef.current?.focus(), 100);
+                    }
+                    if (searchActive) {
+                      setShowSuggestions(false);
+                      setSearchQuery('');
+                    }
                   }}
-                  aria-label="Clear search"
+                  aria-label="Toggle search"
                 >
-                  <X size={16} strokeWidth={1.5} />
+                  <Search size={18} strokeWidth={1.5} />
                 </button>
-              )}
-
-              {/* Suggestions Dropdown */}
-              <AnimatePresence>
-                {showSuggestions && searchSuggestions.length > 0 && (
-                  <motion.div
-                    className={styles.suggestionsDropdown}
-                    initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                    transition={{ duration: 0.18 }}
-                  >
-                    <div className={styles.suggestionsHeader}>
-                      <span className={styles.suggestionsCount}>
-                        {searchSuggestions.length} result{searchSuggestions.length !== 1 ? 's' : ''}
-                      </span>
-                      <span className={styles.suggestionsHint}>↑↓ navigate · Enter select</span>
-                    </div>
-                    <div className={styles.suggestionsList} role="listbox">
-                      {searchSuggestions.map((item) => (
-                        <div
-                          key={item.id}
-                          className={styles.suggestionItem}
-                          onClick={() => handleSuggestionSelect(item.product)}
-                          role="option"
-                          aria-selected={false}
-                        >
-                          <div className={styles.suggestionImageWrap}>
-                            {item.image ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                              />
-                            ) : (
-                              <div className={styles.suggestionImagePlaceholder} />
-                            )}
-                          </div>
-                          <div className={styles.suggestionInfo}>
-                            <span className={styles.suggestionName}>{item.name}</span>
-                            <span className={styles.suggestionCategory}>{item.category}</span>
-                          </div>
-                          <div className={styles.suggestionPriceWrap}>
-                            <span className={styles.suggestionPrice}>
-                              ₹{item.price?.toString().replace(/[^\d]/g, '')}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-                {showSearch && searchActive && searchQuery.trim().length > 0 && searchSuggestions.length === 0 && (
-                  <motion.div
-                    className={styles.suggestionsDropdown}
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.18 }}
-                  >
-                    <div className={styles.noResultsContent}>
-                      <Search size={24} strokeWidth={1} style={{ opacity: 0.3 }} />
-                      <span className={styles.noResultsTitle}>No results for &ldquo;{searchQuery}&rdquo;</span>
-                      <span className={styles.noResultsHint}>Try a different keyword or browse our collections</span>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
-
-          {/* ── Mobile menu toggle ── */}
-          <motion.button
-            className={styles.mobileMenuBtn}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            {mobileMenuOpen
-              ? <X size={22} strokeWidth={1.5} />
-              : <Menu size={22} strokeWidth={1.5} />
-            }
-          </motion.button>
-
-          {/* ── Nav Links ── */}
-          <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''}`}>
-            <motion.a
-              href={router.pathname === '/' ? '#collections' : '/#collections'}
-              whileHover={{ y: -2 }}
-              className={styles.navLink}
-              onClick={closeMenu}
-            >
-              Collections
-            </motion.a>
-
-            <SignedIn>
-              <Link href="/orders" passHref legacyBehavior>
-                <motion.a
-                  whileHover={{ y: -2 }}
-                  className={styles.navLink}
-                  onClick={closeMenu}
-                >
-                  My Orders
-                </motion.a>
-              </Link>
-            </SignedIn>
-
-            <CartButton variant="menu" onClick={closeMenu} />
-
-            <SignedOut>
-              <div className={styles.authButtons}>
-                <SignInButton mode="modal">
-                  <motion.button
-                    whileHover={{ y: -2 }}
-                    className={styles.navLink}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
-                  >
-                    Sign In
-                  </motion.button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <motion.button
-                    whileHover={{ y: -2 }}
-                    className={styles.navLink}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
-                  >
-                    Sign Up
-                  </motion.button>
-                </SignUpButton>
-              </div>
-            </SignedOut>
-
-            <SignedIn>
-              <div className={styles.navProfileItem}>
-                <UserButton
-                  afterSignOutUrl="/"
-                  appearance={{ elements: { avatarBox: 'w-8 h-8' } }}
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  className={styles.searchInput}
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => {
+                    setSearchActive(true);
+                    if (searchQuery.trim()) setShowSuggestions(true);
+                  }}
+                  aria-label="Search products"
+                  aria-autocomplete="list"
+                  role="combobox"
+                  aria-expanded={showSuggestions}
                 />
-                <span className={styles.navProfileLabel}>Profile</span>
+                {searchQuery && (
+                  <button
+                    className={styles.searchClear}
+                    onClick={() => {
+                      setSearchQuery('');
+                      setShowSuggestions(false);
+                      searchInputRef.current?.focus();
+                    }}
+                    aria-label="Clear search"
+                  >
+                    <X size={16} strokeWidth={1.5} />
+                  </button>
+                )}
+
+                {/* Suggestions Dropdown */}
+                <AnimatePresence>
+                  {showSuggestions && searchSuggestions.length > 0 && (
+                    <motion.div
+                      className={styles.suggestionsDropdown}
+                      initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      <div className={styles.suggestionsHeader}>
+                        <span className={styles.suggestionsCount}>
+                          {searchSuggestions.length} result{searchSuggestions.length !== 1 ? 's' : ''}
+                        </span>
+                        <span className={styles.suggestionsHint}>↑↓ navigate · Enter select</span>
+                      </div>
+                      <div className={styles.suggestionsList} role="listbox">
+                        {searchSuggestions.map((item) => (
+                          <div
+                            key={item.id}
+                            className={styles.suggestionItem}
+                            onClick={() => handleSuggestionSelect(item.product)}
+                            role="option"
+                            aria-selected={false}
+                          >
+                            <div className={styles.suggestionImageWrap}>
+                              {item.image ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
+                                />
+                              ) : (
+                                <div className={styles.suggestionImagePlaceholder} />
+                              )}
+                            </div>
+                            <div className={styles.suggestionInfo}>
+                              <span className={styles.suggestionName}>{item.name}</span>
+                              <span className={styles.suggestionCategory}>{item.category}</span>
+                            </div>
+                            <div className={styles.suggestionPriceWrap}>
+                              <span className={styles.suggestionPrice}>
+                                ₹{item.price?.toString().replace(/[^\d]/g, '')}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                  {showSearch && searchActive && searchQuery.trim().length > 0 && searchSuggestions.length === 0 && (
+                    <motion.div
+                      className={styles.suggestionsDropdown}
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      <div className={styles.noResultsContent}>
+                        <Search size={24} strokeWidth={1} style={{ opacity: 0.3 }} />
+                        <span className={styles.noResultsTitle}>No results for &ldquo;{searchQuery}&rdquo;</span>
+                        <span className={styles.noResultsHint}>Try a different keyword or browse our collections</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </SignedIn>
+            )}
 
-            <motion.a
-              href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ y: -2 }}
-              className={styles.navLink}
-              onClick={closeMenu}
+            {/* ── Mobile menu toggle ── */}
+            <motion.button
+              className={styles.mobileMenuBtn}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
             >
-              Instagram
-            </motion.a>
+              {mobileMenuOpen
+                ? <X size={22} strokeWidth={1.5} />
+                : <Menu size={22} strokeWidth={1.5} />
+              }
+            </motion.button>
 
-            <motion.a
-              href="tel:9029562156"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={styles.navCta}
-              onClick={closeMenu}
-            >
-              <Phone size={15} strokeWidth={1.5} />
-              Call Us
-            </motion.a>
+            {/* ── Nav Links ── */}
+            <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''}`}>
+              <motion.a
+                href={router.pathname === '/' ? '#collections' : '/#collections'}
+                whileHover={{ y: -2 }}
+                className={styles.navLink}
+                onClick={closeMenu}
+              >
+                Collections
+              </motion.a>
+
+              <SignedIn>
+                <Link href="/orders" passHref legacyBehavior>
+                  <motion.a
+                    whileHover={{ y: -2 }}
+                    className={styles.navLink}
+                    onClick={closeMenu}
+                  >
+                    My Orders
+                  </motion.a>
+                </Link>
+              </SignedIn>
+
+              <CartButton variant="menu" onClick={closeMenu} />
+
+              <SignedOut>
+                <div className={styles.authButtons}>
+                  <SignInButton mode="modal">
+                    <motion.button
+                      whileHover={{ y: -2 }}
+                      className={styles.navLink}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                    >
+                      Sign In
+                    </motion.button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <motion.button
+                      whileHover={{ y: -2 }}
+                      className={styles.navLink}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
+                    >
+                      Sign Up
+                    </motion.button>
+                  </SignUpButton>
+                </div>
+              </SignedOut>
+
+              <SignedIn>
+                <div className={styles.navProfileItem}>
+                  <UserButton
+                    afterSignOutUrl="/"
+                    appearance={{ elements: { avatarBox: 'w-8 h-8' } }}
+                  />
+                  <span className={styles.navProfileLabel}>Profile</span>
+                </div>
+              </SignedIn>
+
+              <motion.a
+                href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ y: -2 }}
+                className={styles.navLink}
+                onClick={closeMenu}
+              >
+                Instagram
+              </motion.a>
+
+              <motion.a
+                href="tel:9029562156"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={styles.navCta}
+                onClick={closeMenu}
+              >
+                <Phone size={15} strokeWidth={1.5} />
+                Call Us
+              </motion.a>
+            </div>
+
           </div>
-
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* ── Mobile menu backdrop ── */}
+      <div
+        className={`${styles.mobileBackdrop} ${mobileMenuOpen ? styles.active : ''}`}
+        onClick={closeMenu}
+        aria-hidden="true"
+      />
+    </>
   );
 }

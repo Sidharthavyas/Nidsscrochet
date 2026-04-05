@@ -8,15 +8,8 @@ import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/Home.module.css';
 import { useCart } from '@/context/CartContext';
-import {
-  useAuth,
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from '@clerk/nextjs';
-import CartButton from '@/components/CartButton';
+import { useAuth } from '@clerk/nextjs';
+import Navbar from '@/components/Navbar';
 import {
  ShoppingCart,
   Plus,
@@ -376,7 +369,6 @@ export default function ProductPage({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Reviews
   const [reviews, setReviews] = useState(initialReviews || []);
@@ -415,7 +407,6 @@ export default function ProductPage({
       unlockScroll();
       setLightboxOpen(false);
       setShowShareModal(false);
-      setMobileMenuOpen(false);
     };
 
     router.events.on('routeChangeStart', handleRouteChange);
@@ -753,96 +744,8 @@ export default function ProductPage({
       </Head>
 
       <main className={styles.mainContainer}>
-        {/* ============ NAVBAR ============ */}
-        <nav className={`${styles.navbar} ${styles.scrolled}`}>
-          <div className={styles.navWrapper}>
-            <div className={styles.navContent}>
-              <Link
-                href="/"
-                className={styles.navBrand}
-                style={{ textDecoration: 'none' }}
-              >
-                Nidsscrochet
-              </Link>
-
-              <button
-                className={styles.mobileMenuBtn}
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label="Toggle menu"
-              >
-                {mobileMenuOpen ? '✕' : '☰'}
-              </button>
-
-              <div
-                className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''
-                  }`}
-              >
-                <Link
-                  href="/#collections"
-                  className={styles.navLink}
-                  style={{ textDecoration: 'none' }}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Collections
-                </Link>
-
-                <SignedIn>
-                  <Link
-                    href="/orders"
-                    className={styles.navLink}
-                    style={{ textDecoration: 'none' }}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    My Orders
-                  </Link>
-                </SignedIn>
-
-                <CartButton />
-
-                <SignedOut>
-                  <div className={styles.authButtons}>
-                    <SignInButton mode="modal">
-                      <button
-                        className={styles.navLink}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Sign In
-                      </button>
-                    </SignInButton>
-                    <SignUpButton mode="modal">
-                      <button
-                        className={styles.navCta}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Sign Up
-                      </button>
-                    </SignUpButton>
-                  </div>
-                </SignedOut>
-
-                <SignedIn>
-                  <UserButton afterSignOutUrl="/" />
-                </SignedIn>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        {/* ★ Mobile nav backdrop — closes menu on outside tap, never blocks page scroll */}
-        {mobileMenuOpen && (
-          <div
-            onClick={() => setMobileMenuOpen(false)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 999,
-              background: 'rgba(0,0,0,0.25)',
-            }}
-            aria-hidden="true"
-          />
-        )}
+        {/* ============ NAVBAR (shared component) ============ */}
+        <Navbar />
 
         {/* ============ BREADCRUMBS ============ */}
         <div className={styles.productPageContainer}>

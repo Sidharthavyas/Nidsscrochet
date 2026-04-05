@@ -2,7 +2,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { CheckCircle, ShoppingBag, Package, IndianRupee } from 'lucide-react';
+import { CheckCircle, ShoppingBag, Package, IndianRupee, Printer, Phone, Instagram } from 'lucide-react';
+import Navbar from '@/components/Navbar';
 
 export default function OrderSuccess() {
   const router = useRouter();
@@ -45,20 +46,7 @@ export default function OrderSuccess() {
       </Head>
 
       <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
-        {/* Navbar */}
-        <header style={{
-          background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255,107,157,0.1)',
-          boxShadow: '0 2px 20px rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 100,
-        }}>
-          <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0.9rem 1.25rem', display: 'flex', justifyContent: 'center' }}>
-            <Link href="/" style={{
-              fontFamily: "'Pacifico', cursive", fontSize: '1.4rem',
-              background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', textDecoration: 'none',
-            }}>Nidsscrochet</Link>
-          </div>
-        </header>
+        <Navbar />
 
         <div style={{ maxWidth: '460px', margin: '0 auto', padding: '2.5rem 1rem 3rem' }}>
           {/* Success Icon */}
@@ -119,7 +107,9 @@ export default function OrderSuccess() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
                   <span style={{ color: 'var(--text-gray)' }}>Payment Method</span>
                   <span style={{ fontWeight: 600, color: paymentMethod === 'cod' ? '#d97706' : '#059669', fontSize: '0.85rem' }}>
-                    {paymentMethod === 'cod' ? '📦 Cash on Delivery' : '✅ Paid Online'}
+                    {paymentMethod === 'cod'
+                      ? <><Package style={{ width: '13px', height: '13px', display: 'inline' }} /> Cash on Delivery</>
+                      : <><CheckCircle style={{ width: '13px', height: '13px', display: 'inline', color: '#059669' }} /> Paid Online</>}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
@@ -131,7 +121,9 @@ export default function OrderSuccess() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
                   <span style={{ color: 'var(--text-gray)' }}>Status</span>
                   <span style={{ fontWeight: 600, color: '#28a745' }}>
-                    {paymentMethod === 'cod' ? '📦 Confirmed' : '✅ Paid'}
+                    {paymentMethod === 'cod'
+                      ? <><Package style={{ width: '13px', height: '13px', display: 'inline' }} /> Confirmed</>
+                      : <><CheckCircle style={{ width: '13px', height: '13px', display: 'inline', color: '#28a745' }} /> Paid</>}
                   </span>
                 </div>
               </div>
@@ -204,7 +196,7 @@ export default function OrderSuccess() {
                 cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.3s ease',
               }}
             >
-              🖨️ Download / Print Receipt
+              <Printer style={{ width: '16px', height: '16px' }} /> Download / Print Receipt
             </button>
           </div>
 
@@ -213,12 +205,12 @@ export default function OrderSuccess() {
             <p style={{ fontSize: '0.85rem', color: 'var(--text-gray)', marginBottom: '0.5rem' }}>Need help with your order?</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
               <a href="tel:9029562156" style={{ fontSize: '0.85rem', color: 'var(--pink)', textDecoration: 'none', fontWeight: 500 }}>
-                📞 Call Us: 9029562156
+                <Phone style={{ width: '14px', height: '14px', display: 'inline', marginRight: '4px' }} /> Call Us: 9029562156
               </a>
               <a href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3"
                 target="_blank" rel="noopener noreferrer"
                 style={{ fontSize: '0.85rem', color: 'var(--pink)', textDecoration: 'none', fontWeight: 500 }}
-              >📷 Message on Instagram</a>
+              ><Instagram style={{ width: '14px', height: '14px', display: 'inline', marginRight: '4px' }} /> Message on Instagram</a>
             </div>
           </div>
         </div>

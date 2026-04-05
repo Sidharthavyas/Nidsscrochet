@@ -1,7 +1,7 @@
-// pages/404.js
 import Head from 'next/head';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { Home, ShoppingBag, Scissors } from 'lucide-react';
 import styles from '../styles/Home.module.css';
 
 export default function Custom404() {
@@ -25,7 +25,7 @@ export default function Custom404() {
             animate={{ rotate: [0, -10, 10, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
           >
-            🧶
+            <Scissors size={48} strokeWidth={1.2} style={{ color: 'var(--pink)' }} />
           </motion.div>
 
           <h1 className={styles.errorPageTitle}>Oops! Page Not Found</h1>
@@ -42,7 +42,7 @@ export default function Custom404() {
                 whileTap={{ scale: 0.95 }}
                 style={{ cursor: 'pointer' }}
               >
-                🏠 Back to Home
+                <Home size={16} strokeWidth={1.5} style={{ display: 'inline', marginRight: '4px' }} /> Back to Home
               </motion.a>
             </Link>
             <Link href="/#collections">
@@ -52,7 +52,7 @@ export default function Custom404() {
                 whileTap={{ scale: 0.95 }}
                 style={{ cursor: 'pointer' }}
               >
-                🛍️ Browse Collections
+                <ShoppingBag size={16} strokeWidth={1.5} style={{ display: 'inline', marginRight: '4px' }} /> Browse Collections
               </motion.a>
             </Link>
           </div>

@@ -59,7 +59,7 @@ export default function AdminLogin() {
               animate={{ opacity: 1, y: [6, -6, 6] }}
               transition={{ delay: 0.2, duration: 4, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
             >
-              🔐 Admin Login
+              Admin Login
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}

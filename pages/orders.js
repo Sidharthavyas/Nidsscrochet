@@ -3,8 +3,9 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
-import { useAuth, SignedIn, SignedOut } from '@clerk/nextjs';
-import styles from '../styles/Home.module.css';
+import { Package } from 'lucide-react';
+import { useAuth, SignedIn } from '@clerk/nextjs';
+import Navbar from '@/components/Navbar';
 
 export default function MyOrders() {
     const { isLoaded, userId } = useAuth();
@@ -43,45 +44,43 @@ export default function MyOrders() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'delivered': return '#10b981'; // Green
-            case 'shipped': return '#3b82f6'; // Blue
-            case 'processing': return '#f59e0b'; // Yellow
+            case 'delivered': return '#10b981';
+            case 'shipped': return '#3b82f6';
+            case 'processing': return '#f59e0b';
             case 'failed':
-            case 'cancelled': return '#ef4444'; // Red
-            case 'paid': return '#8b5cf6'; // Purple
-            default: return '#6b7280'; // Gray
+            case 'cancelled': return '#ef4444';
+            case 'paid': return '#8b5cf6';
+            default: return '#6b7280';
         }
     };
 
     if (!isLoaded || !userId) return null;
 
     return (
-        <div style={{ backgroundColor: 'var(--bg-color)', minHeight: '100vh', fontFamily: 'var(--font-poppins)' }}>
+        <div style={{ backgroundColor: 'var(--cream)', minHeight: '100vh', fontFamily: 'var(--font-poppins)' }}>
             <Head>
                 <title>My Orders | Nidsscrochet</title>
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
 
-            {/* Simple Navbar Header for Orders Page */}
-            <nav className={styles.navbar} style={{ position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid var(--gray)', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)' }}>
-                <div className={styles.navWrapper} style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Link href="/" style={{ textDecoration: 'none', fontFamily: "'Pacifico', cursive", fontSize: '1.5rem', background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                            Nidsscrochet
-                        </Link>
-                        <Link href="/" style={{ textDecoration: 'none', color: 'var(--pink)', fontWeight: '500' }}>
-                            ← Back to Shop
-                        </Link>
-                    </div>
-                </div>
-            </nav>
+            {/* ── Shared Navbar ── */}
+            <Navbar />
 
-            <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 1rem' }}>
-                <h1 style={{ fontSize: '2rem', marginBottom: '2rem', color: 'var(--black)' }}>Your Orders</h1>
+            <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '6rem 1.5rem 4rem' }}>
+                <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '2.5rem', color: 'var(--black)' }}>
+                    Your Orders
+                </h1>
 
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-gray)' }}>
-                        <div style={{ width: '40px', height: '40px', border: '3px solid var(--pink)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }} />
+                        <div style={{
+                            width: '40px', height: '40px',
+                            border: '3px solid var(--pink-soft)',
+                            borderTopColor: 'var(--pink)',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite',
+                            margin: '0 auto 1rem'
+                        }} />
                         Loading your beautiful orders...
                     </div>
                 ) : error ? (
@@ -89,16 +88,25 @@ export default function MyOrders() {
                         {error}
                     </div>
                 ) : orders.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '4rem 0', background: 'var(--white)', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-                        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📦</div>
-                        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--black)' }}>No orders yet</h2>
-                        <p style={{ color: 'var(--text-gray)', marginBottom: '2rem' }}>Looks like you haven't made any purchases yet.</p>
-                        <Link href="/" style={{ background: 'var(--pink)', color: 'white', padding: '0.8rem 2rem', borderRadius: '12px', textDecoration: 'none', fontWeight: '500' }}>
+                    <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'var(--white)', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                        <Package size={56} strokeWidth={1} style={{ color: 'var(--pink-soft)', margin: '0 auto 1.25rem', display: 'block' }} />
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--black)' }}>
+                            No orders yet
+                        </h2>
+                        <p style={{ color: 'var(--text-gray)', marginBottom: '2rem' }}>
+                            Looks like you haven&apos;t made any purchases yet.
+                        </p>
+                        <Link href="/" style={{
+                            background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
+                            color: 'white', padding: '0.8rem 2rem',
+                            borderRadius: '50px', textDecoration: 'none', fontWeight: 600,
+                            display: 'inline-block'
+                        }}>
                             Start Shopping
                         </Link>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                         {orders.map((order) => (
                             <motion.div
                                 key={order._id}
@@ -108,62 +116,81 @@ export default function MyOrders() {
                                     background: 'var(--white)',
                                     borderRadius: '16px',
                                     overflow: 'hidden',
-                                    border: '1px solid var(--gray)',
-                                    boxShadow: '0 4px 15px rgba(0,0,0,0.02)'
+                                    border: '1px solid rgba(255,107,157,0.1)',
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.04)'
                                 }}
                             >
-                                {/* Order Header - Amazon Style */}
-                                <div style={{ background: 'var(--bg-color)', padding: '1rem 1.5rem', borderBottom: '1px solid var(--gray)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                                {/* Order Header */}
+                                <div style={{
+                                    background: 'var(--cream)',
+                                    padding: '1rem 1.5rem',
+                                    borderBottom: '1px solid rgba(255,107,157,0.08)',
+                                    display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem'
+                                }}>
                                     <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
                                         <div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-gray)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Order Placed</div>
-                                            <div style={{ fontWeight: '500' }}>{new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '0.2rem' }}>Order Placed</div>
+                                            <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                                                {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            </div>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-gray)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Total</div>
-                                            <div style={{ fontWeight: '500' }}>₹{order.amount}</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '0.2rem' }}>Total</div>
+                                            <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>₹{order.amount}</div>
                                         </div>
                                         <div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-gray)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Ship To</div>
-                                            <div style={{ fontWeight: '500' }}>{order.customer.name}</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '0.2rem' }}>Ship To</div>
+                                            <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{order.customer.name}</div>
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-gray)', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Order #</div>
-                                        <div style={{ fontWeight: '500', fontFamily: 'monospace' }}>{order.orderId}</div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-gray)', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '0.2rem' }}>Order #</div>
+                                        <div style={{ fontWeight: 600, fontFamily: 'monospace', fontSize: '0.88rem' }}>{order.orderId}</div>
                                     </div>
                                 </div>
 
-                                {/* Order Status Bar */}
-                                <div style={{ padding: '1.5rem 1.5rem 0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <div style={{ height: '12px', width: '12px', borderRadius: '50%', backgroundColor: getStatusColor(order.status) }} />
-                                    <h3 style={{ margin: 0, textTransform: 'capitalize', fontSize: '1.2rem', color: getStatusColor(order.status) }}>
+                                {/* Order Status */}
+                                <div style={{ padding: '1.25rem 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <div style={{ height: '10px', width: '10px', borderRadius: '50%', backgroundColor: getStatusColor(order.status), flexShrink: 0 }} />
+                                    <h3 style={{ margin: 0, textTransform: 'capitalize', fontSize: '1.1rem', fontWeight: 700, color: getStatusColor(order.status) }}>
                                         {order.status}
                                     </h3>
                                     {order.paymentMethod === 'cod' && (
-                                        <span style={{ fontSize: '0.8rem', background: '#f3f4f6', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid #e5e7eb' }}>Cash on Delivery</span>
+                                        <span style={{ fontSize: '0.78rem', background: '#f3f4f6', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid #e5e7eb', color: '#6b7280' }}>
+                                            Cash on Delivery
+                                        </span>
                                     )}
                                 </div>
 
                                 {/* Order Items */}
-                                <div style={{ padding: '1.5rem' }}>
+                                <div style={{ padding: '1.25rem 1.5rem' }}>
                                     {order.items.map((item, idx) => (
-                                        <div key={idx} style={{ display: 'flex', gap: '1.5rem', marginBottom: idx !== order.items.length - 1 ? '1.5rem' : 0, paddingBottom: idx !== order.items.length - 1 ? '1.5rem' : 0, borderBottom: idx !== order.items.length - 1 ? '1px solid var(--gray)' : 'none' }}>
-                                            <div style={{ width: '80px', height: '80px', position: 'relative', borderRadius: '8px', overflow: 'hidden', background: '#f9f9f9', flexShrink: 0 }}>
+                                        <div key={idx} style={{
+                                            display: 'flex', gap: '1.25rem',
+                                            marginBottom: idx !== order.items.length - 1 ? '1.25rem' : 0,
+                                            paddingBottom: idx !== order.items.length - 1 ? '1.25rem' : 0,
+                                            borderBottom: idx !== order.items.length - 1 ? '1px solid rgba(255,107,157,0.08)' : 'none'
+                                        }}>
+                                            <div style={{ width: '80px', height: '80px', position: 'relative', borderRadius: '10px', overflow: 'hidden', background: '#f9f9f9', flexShrink: 0 }}>
                                                 {item.image ? (
                                                     <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                 ) : (
-                                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>🧶</div>
+                                                    <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #fff5f7, #f0f4ff)', borderRadius: '10px' }} />
                                                 )}
                                             </div>
                                             <div style={{ flex: 1 }}>
                                                 <Link href={`/product/${item.productId}`} style={{ textDecoration: 'none', color: 'var(--black)' }}>
-                                                    <h4 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem' }}>{item.name}</h4>
+                                                    <h4 style={{ margin: '0 0 0.4rem', fontSize: '1rem', fontWeight: 600 }}>{item.name}</h4>
                                                 </Link>
-                                                <div style={{ color: 'var(--text-gray)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                                                <div style={{ color: 'var(--text-gray)', fontSize: '0.88rem', marginBottom: '0.6rem' }}>
                                                     Qty: {item.quantity} × ₹{item.price}
                                                 </div>
-                                                <Link href={`/product/${item.productId}`} style={{ display: 'inline-block', background: 'var(--bg-color)', border: '1px solid var(--gray)', padding: '0.4rem 1rem', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--black)', textDecoration: 'none', transition: 'all 0.2s' }}>
+                                                <Link href={`/product/${item.productId}`} style={{
+                                                    display: 'inline-block', background: 'var(--cream)',
+                                                    border: '1px solid rgba(255,107,157,0.15)', padding: '0.4rem 1rem',
+                                                    borderRadius: '8px', fontSize: '0.82rem', color: 'var(--black)',
+                                                    textDecoration: 'none', transition: 'all 0.2s'
+                                                }}>
                                                     Buy it again
                                                 </Link>
                                             </div>
@@ -173,7 +200,7 @@ export default function MyOrders() {
 
                                 {/* Order Summary Footer */}
                                 {(order.shippingCharges > 0 || order.discountAmount > 0) && (
-                                    <div style={{ padding: '1rem 1.5rem', background: '#fafafa', borderTop: '1px solid var(--gray)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                    <div style={{ padding: '1rem 1.5rem', background: '#fafafa', borderTop: '1px solid rgba(255,107,157,0.08)', fontSize: '0.88rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                         {order.discountAmount > 0 && (
                                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#e91e63' }}>
                                                 <span>Discount Applied ({order.couponCode})</span>

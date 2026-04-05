@@ -4,7 +4,8 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { ArrowLeft, Lock, ShoppingCart, CreditCard, Truck, Shield, IndianRupee } from 'lucide-react';
+import { Lock, ShoppingCart, CreditCard, Truck, Shield, IndianRupee, Package } from 'lucide-react';
+import Navbar from '@/components/Navbar';
 
 // Helper: wait for Razorpay SDK to be available (loaded async in _document.js)
 function loadRazorpaySDK() {
@@ -272,18 +273,10 @@ export default function Checkout() {
       </Head>
 
       <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
-        {/* Navbar */}
-        <header style={pageStyles.header}>
-          <div style={pageStyles.headerInner}>
-            <Link href="/" style={pageStyles.logo}>Nidsscrochet</Link>
-            <Link href="/cart" style={pageStyles.backBtn}>
-              <ArrowLeft style={{ width: '15px', height: '15px' }} />
-              Back to Cart
-            </Link>
-          </div>
-        </header>
+        {/* Shared Navbar */}
+        <Navbar />
 
-        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '1.5rem 1rem 3rem' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '6rem 1.5rem 4rem' }}>
           <div style={{ marginBottom: '1.5rem', animation: 'fadeInUp 0.4s ease both' }}>
             <h1 style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--black)', marginBottom: '0.25rem' }}>Checkout</h1>
             <p style={{ color: 'var(--text-gray)', fontSize: '0.9rem' }}>Complete your order securely</p>
@@ -299,11 +292,11 @@ export default function Checkout() {
             </div>
           )}
 
-          <div className="checkout-grid" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
+          <div className="checkout-grid" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
             {/* Left column */}
             <div className="checkout-main" style={{ flex: '1 1 65%', minWidth: 0 }}>
               {/* Account Info */}
-              <div style={{ ...pageStyles.card, marginBottom: '1rem', animation: 'fadeInUp 0.4s ease 0.05s both' }}>
+              <div style={{ ...pageStyles.card, marginBottom: '1.25rem', animation: 'fadeInUp 0.4s ease 0.05s both' }}>
                 <div style={pageStyles.sectionHeader}>
                   <Shield style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
                   <h2 style={pageStyles.sectionTitle}>Account</h2>
@@ -319,7 +312,7 @@ export default function Checkout() {
               </div>
 
               {/* Order Items */}
-              <div style={{ ...pageStyles.card, marginBottom: '1rem', animation: 'fadeInUp 0.4s ease 0.1s both' }}>
+              <div style={{ ...pageStyles.card, marginBottom: '1.25rem', animation: 'fadeInUp 0.4s ease 0.1s both' }}>
                 <div style={pageStyles.sectionHeader}>
                   <ShoppingCart style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
                   <h2 style={pageStyles.sectionTitle}>Order Items ({itemCount})</h2>
@@ -347,7 +340,7 @@ export default function Checkout() {
               </div>
 
               {/* Delivery Information */}
-              <div style={{ ...pageStyles.card, marginBottom: '1rem', animation: 'fadeInUp 0.4s ease 0.15s both' }}>
+              <div style={{ ...pageStyles.card, marginBottom: '1.25rem', animation: 'fadeInUp 0.4s ease 0.15s both' }}>
                 <div style={pageStyles.sectionHeader}>
                   <Truck style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
                   <h2 style={pageStyles.sectionTitle}>Delivery Information</h2>
@@ -415,8 +408,8 @@ export default function Checkout() {
                       style={{ accentColor: 'var(--pink)', width: '18px', height: '18px' }}
                     />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--black)', marginBottom: '2px' }}>
-                        💳 Online Payment
+                      <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--black)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <CreditCard size={15} strokeWidth={1.5} style={{ flexShrink: 0 }} /> Online Payment
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-gray)' }}>
                         UPI, Cards, Netbanking, Wallets via Razorpay
@@ -446,8 +439,8 @@ export default function Checkout() {
                       style={{ accentColor: 'var(--pink)', width: '18px', height: '18px' }}
                     />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--black)', marginBottom: '2px' }}>
-                        📦 Cash on Delivery
+                      <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--black)', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Package size={15} strokeWidth={1.5} style={{ flexShrink: 0 }} /> Cash on Delivery
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-gray)' }}>
                         {codAvailable ? 'Pay when you receive your order' : 'Not available for all items in your cart'}
@@ -464,7 +457,7 @@ export default function Checkout() {
             </div>
 
             {/* Right column: Order Summary */}
-            <div className="checkout-sidebar" style={{ flex: '0 0 340px', position: 'sticky', top: '1rem' }}>
+            <div className="checkout-sidebar" style={{ flex: '0 0 360px', position: 'sticky', top: '6rem' }}>
               <div style={{ ...pageStyles.card, animation: 'fadeInUp 0.4s ease 0.2s both' }}>
                 <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--black)', marginBottom: '1rem' }}>Order Summary</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1rem' }}>
@@ -495,7 +488,9 @@ export default function Checkout() {
                   {paymentMethod === 'cod' && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-gray)', fontSize: '0.88rem' }}>
                       <span>Payment</span>
-                      <span style={{ color: '#f59e0b', fontWeight: 600 }}>📦 COD</span>
+                      <span style={{ color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <Package size={12} strokeWidth={1.5} /> COD
+                      </span>
                     </div>
                   )}
                 </div>
@@ -550,11 +545,11 @@ export default function Checkout() {
 const pageStyles = {
   loadingPage: { minHeight: '100vh', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   spinner: { width: '40px', height: '40px', border: '3px solid var(--pink-soft)', borderTop: '3px solid var(--pink)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' },
-  header: { background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,107,157,0.1)', boxShadow: '0 2px 20px rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 100 },
-  headerInner: { maxWidth: '1100px', margin: '0 auto', padding: '0.9rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  logo: { fontFamily: "'Pacifico', cursive", fontSize: '1.4rem', background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', textDecoration: 'none' },
-  backBtn: { display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--pink)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: '600', padding: '0.45rem 1rem', borderRadius: '50px', border: '1.5px solid var(--pink-soft)', background: 'var(--white)', transition: 'all 0.3s ease' },
-  card: { background: 'var(--white)', borderRadius: '16px', padding: '1.25rem', boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(255,107,157,0.08)' },
+  header: {},
+  headerInner: {},
+  logo: {},
+  backBtn: {},
+  card: { background: 'var(--white)', borderRadius: '16px', padding: '1.5rem', boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(255,107,157,0.08)' },
   sectionHeader: { display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' },
   sectionTitle: { fontSize: '1rem', fontWeight: 700, color: 'var(--black)', margin: 0 },
   label: { display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--black)', marginBottom: '0.35rem' },

@@ -5,9 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { motion, useScroll, AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
-import { useCart } from '@/context/CartContext';
-import { useAuth, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
-import CartButton from '@/components/CartButton';
+import Navbar from '@/components/Navbar';
+import { Search, Phone, Instagram, Link2, MessageCircle, Facebook, Twitter, MapPin, Users, Package, Sparkles, Palette, Scissors, CheckCircle2, Heart, AlertCircle, Loader2 } from 'lucide-react';
 
 // SSG Imports
 import connectDB from '../lib/mongodb';
@@ -113,7 +112,7 @@ function ShareModalComponent({ product, productUrl, onClose }) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <span className={styles.shareIcon}>{copied ? '✓' : '🔗'}</span>
+            <span className={styles.shareIcon}>{copied ? <CheckCircle2 size={18} strokeWidth={1.5} /> : <Link2 size={18} strokeWidth={1.5} />}</span>
             <span>{copied ? 'Copied!' : 'Copy Link'}</span>
           </motion.button>
           <motion.a
@@ -124,7 +123,7 @@ function ShareModalComponent({ product, productUrl, onClose }) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <span className={styles.shareIcon}>💬</span>
+            <span className={styles.shareIcon}><MessageCircle size={18} strokeWidth={1.5} /></span>
             <span>WhatsApp</span>
           </motion.a>
           <motion.a
@@ -135,7 +134,7 @@ function ShareModalComponent({ product, productUrl, onClose }) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <span className={styles.shareIcon}>📘</span>
+            <span className={styles.shareIcon}><Facebook size={18} strokeWidth={1.5} /></span>
             <span>Facebook</span>
           </motion.a>
           <motion.a
@@ -146,7 +145,7 @@ function ShareModalComponent({ product, productUrl, onClose }) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <span className={styles.shareIcon}>🐦</span>
+            <span className={styles.shareIcon}><Twitter size={18} strokeWidth={1.5} /></span>
             <span>Twitter</span>
           </motion.a>
           <motion.a
@@ -157,7 +156,7 @@ function ShareModalComponent({ product, productUrl, onClose }) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <span className={styles.shareIcon}>📌</span>
+            <span className={styles.shareIcon}><MapPin size={18} strokeWidth={1.5} /></span>
             <span>Pinterest</span>
           </motion.a>
         </div>
@@ -243,7 +242,7 @@ function SearchSuggestions({ suggestions, query, onSelect, onClose, visible, noR
         transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
       >
         <div className={styles.noSuggestionsContent}>
-          <span className={styles.noSuggestionsIcon}>🔍</span>
+          <span className={styles.noSuggestionsIcon}><Search size={18} strokeWidth={1.8} /></span>
           <span className={styles.noSuggestionsTitle}>No results for &ldquo;{query}&rdquo;</span>
           <span className={styles.noSuggestionsHint}>Try a different keyword or browse our collections</span>
         </div>
@@ -266,7 +265,7 @@ function SearchSuggestions({ suggestions, query, onSelect, onClose, visible, noR
         <span className={styles.suggestionsCount}>
           {suggestions.length} result{suggestions.length !== 1 ? 's' : ''}
         </span>
-        <span className={styles.suggestionsHint}>↑↓ to navigate · Enter to select</span>
+        <span className={styles.suggestionsHint}>↑↓ to navigate  Enter to select</span>
       </div>
 
       {/* Suggestions list */}
@@ -291,7 +290,7 @@ function SearchSuggestions({ suggestions, query, onSelect, onClose, visible, noR
                   unoptimized
                 />
               ) : (
-                <div className={styles.suggestionImagePlaceholder}>🧶</div>
+                <div className={styles.suggestionImagePlaceholder} />
               )}
             </div>
             <div className={styles.suggestionInfo}>
@@ -488,7 +487,7 @@ function ImageLightbox({ images, currentIndex, onClose, onNext, onPrev }) {
       touchEndRef.current = e.changedTouches?.[0]?.clientX || 0;
       const distance = touchStartRef.current - touchEndRef.current;
       if (Math.abs(distance) > 45) {
-        distance > 0 ? handleNext() : handlePrev();
+        if (distance > 0) { handleNext(); } else { handlePrev(); }
       }
       touchStartRef.current = 0;
       touchEndRef.current = 0;
@@ -768,7 +767,7 @@ function TestimonialCard({ name, review, rating, image, delay }) {
             whileHover={{ scale: 1.3, rotate: 360 }}
             transition={{ duration: 0.3 }}
           >
-            ⭐
+            <StarIcon filled={true} />
           </motion.span>
         ))}
       </div>
@@ -992,7 +991,11 @@ function ProductCard({ product, index, onClick }) {
                   animate={{ scale: isWishlisted ? [1, 1.3, 1] : 1 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {isWishlisted ? '❤️' : '🤍'}
+                  {isWishlisted ? (
+                    <motion.span animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 0.3 }} style={{ color: '#e91e63', fontSize: '1.2rem' }}>♥</motion.span>
+                  ) : (
+                    <span style={{ color: '#aaa', fontSize: '1.2rem' }}>♡</span>
+                  )}
                 </motion.span>
               </motion.button>
             )}
@@ -1011,7 +1014,7 @@ function ProductCard({ product, index, onClick }) {
                 whileTap={{ scale: 0.9 }}
                 aria-label="Share product"
               >
-                🔗
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
               </motion.button>
             )}
           </AnimatePresence>
@@ -1387,15 +1390,15 @@ function ProductModal({ product, onClose }) {
               transition={{ delay: 0.5 }}
             >
               <div className={styles.feature}>
-                <span className={styles.featureIcon}>🧶</span>
+                <span className={styles.featureIcon}><Scissors size={18} strokeWidth={1.5} /></span>
                 <span>Handcrafted</span>
               </div>
               <div className={styles.feature}>
-                <span className={styles.featureIcon}>✨</span>
+                <span className={styles.featureIcon}><Sparkles size={18} strokeWidth={1.5} /></span>
                 <span>Premium Quality</span>
               </div>
               <div className={styles.feature}>
-                <span className={styles.featureIcon}>💝</span>
+                <span className={styles.featureIcon}><Heart size={18} strokeWidth={1.5} /></span>
                 <span>Gift Ready</span>
               </div>
             </motion.div>
@@ -1414,7 +1417,7 @@ function ProductModal({ product, onClose }) {
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <span className={styles.btnIcon}>📷</span>
+                <span className={styles.btnIcon}><Instagram size={16} strokeWidth={1.5} /></span>
                 Order on Instagram
               </motion.a>
               <motion.a
@@ -1423,7 +1426,7 @@ function ProductModal({ product, onClose }) {
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <span className={styles.btnIcon}>📞</span>
+                <span className={styles.btnIcon}><Phone size={16} strokeWidth={1.5} /></span>
                 Call Us
               </motion.a>
             </motion.div>
@@ -1439,23 +1442,11 @@ function ProductModal({ product, onClose }) {
 // ================================================
 export default function Home({ initialProducts, initialCategories, initialBanner }) {
   const router = useRouter();
-  const { getCartCount } = useCart();
-  const { isSignedIn } = useAuth();
   const [products, setProducts] = useState(initialProducts || []);
   const [categories, setCategories] = useState(initialCategories || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchActive, setSearchActive] = useState(false);
-  const [searchSuggestions, setSearchSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const searchContainerRef = useRef(null);
-  const searchInputRef = useRef(null);
 
   // Intro animation — runs as overlay, does NOT block content rendering
   const [showIntro, setShowIntro] = useState(() => {
@@ -1469,26 +1460,6 @@ export default function Home({ initialProducts, initialCategories, initialBanner
   const sliderRefs = useRef({});
 
   const { scrollYProgress } = useScroll();
-
-  // Scroll handler for navbar
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Close suggestions on scroll (mobile UX)
-  useEffect(() => {
-    const handleScroll = () => {
-      if (showSuggestions) {
-        setShowSuggestions(false);
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [showSuggestions]);
 
   // Intro timer — only marks intro as seen, content is always visible
   useEffect(() => {
@@ -1510,63 +1481,6 @@ export default function Home({ initialProducts, initialCategories, initialBanner
   const getProductsByCategory = useMemo(() => {
     return (category) => products.filter((p) => p.category === category.name);
   }, [products]);
-
-  // Search index for instant filtering
-  const searchIndex = useMemo(() => {
-    return products.map((p) => ({
-      id: p._id,
-      searchText: `${p.name || ''} ${p.description || ''} ${p.category || ''}`.toLowerCase(),
-      name: p.name,
-      category: p.category,
-      image: p.image || (p.images && p.images[0]),
-      price: p.price,
-      product: p
-    }));
-  }, [products]);
-
-  // Search suggestions - instant filtering as you type
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
-    const query = searchQuery.toLowerCase().trim();
-    const matches = searchIndex
-      .filter(item => item.searchText.includes(query))
-      .slice(0, 6);
-
-    setSearchSuggestions(matches);
-    setShowSuggestions(true);
-  }, [searchQuery, searchIndex]);
-
-  // Click outside handler to close suggestions
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
-        setShowSuggestions(false);
-        // On mobile, also close the search bar when clicking outside
-        if (window.innerWidth <= 768) {
-          setSearchActive(false);
-        }
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, []);
-
-  // Handle selecting a suggestion — navigate to product page
-  const handleSuggestionSelect = (product) => {
-    setShowSuggestions(false);
-    setSearchQuery('');
-    setSearchActive(false);
-    router.push(`/product/${product._id}`);
-  };
 
   const scrollSlider = (categorySlug, direction) => {
     const slider = sliderRefs.current[categorySlug];
@@ -2639,181 +2553,8 @@ export default function Home({ initialProducts, initialCategories, initialBanner
         <ScrollProgress />
         <ScrollToTop />
 
-        {/* ===== NAVBAR ===== */}
-        <nav
-          className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}
-        >
-          <div className={styles.navWrapper}>
-            <div className={styles.navContent}>
-              <motion.div
-                className={styles.navBrand}
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.4 }}
-              >
-                Nidsscrochet
-              </motion.div>
-
-              {/* ===== SEARCH BAR — IMPROVED ===== */}
-              <div
-                ref={searchContainerRef}
-                className={`${styles.searchContainer} ${searchActive ? styles.searchActive : ''}`}
-              >
-                <button
-                  className={styles.searchIcon}
-                  onClick={() => {
-                    setSearchActive(!searchActive);
-                    if (!searchActive && searchInputRef.current) {
-                      setTimeout(() => searchInputRef.current?.focus(), 100);
-                    }
-                    if (searchActive) {
-                      setShowSuggestions(false);
-                      setSearchQuery('');
-                    }
-                  }}
-                  aria-label="Toggle search"
-                >
-                  🔍
-                </button>
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  className={styles.searchInput}
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => {
-                    setSearchActive(true);
-                    if (searchQuery.trim()) setShowSuggestions(true);
-                  }}
-                  aria-label="Search products"
-                  aria-autocomplete="list"
-                  role="combobox"
-                  aria-expanded={showSuggestions}
-                  aria-controls={showSuggestions ? 'search-suggestions' : undefined}
-                />
-                {searchQuery && (
-                  <button
-                    className={styles.searchClear}
-                    onClick={() => {
-                      setSearchQuery('');
-                      setShowSuggestions(false);
-                      searchInputRef.current?.focus();
-                    }}
-                    aria-label="Clear search"
-                  >
-                    ✕
-                  </button>
-                )}
-
-                {/* Suggestions Dropdown */}
-                <AnimatePresence>
-                  {(showSuggestions || (searchActive && searchQuery.trim() && searchSuggestions.length === 0)) && (
-                    <SearchSuggestions
-                      suggestions={searchSuggestions}
-                      query={searchQuery}
-                      onSelect={handleSuggestionSelect}
-                      onClose={() => setShowSuggestions(false)}
-                      visible={showSuggestions || (searchActive && searchQuery.trim().length > 0)}
-                      noResults={searchActive && searchQuery.trim().length > 0 && searchSuggestions.length === 0}
-                    />
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <motion.button
-                className={styles.mobileMenuBtn}
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label="Toggle menu"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {mobileMenuOpen ? '✕' : '☰'}
-              </motion.button>
-
-              <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''}`}>
-                <motion.a
-                  href="#collections"
-                  whileHover={{ y: -2 }}
-                  className={styles.navLink}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Collections
-                </motion.a>
-
-                <SignedIn>
-                  <Link href="/orders" passHref legacyBehavior>
-                    <motion.a
-                      whileHover={{ y: -2 }}
-                      className={styles.navLink}
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      My Orders
-                    </motion.a>
-                  </Link>
-                </SignedIn>
-
-                <CartButton variant="menu" onClick={() => setMobileMenuOpen(false)} />
-
-                <SignedOut>
-                  <div className={styles.authButtons}>
-                    <SignInButton mode="modal">
-                      <motion.button
-                        whileHover={{ y: -2 }}
-                        className={styles.navLink}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
-                      >
-                        Sign In
-                      </motion.button>
-                    </SignInButton>
-                    <SignUpButton mode="modal">
-                      <motion.button
-                        whileHover={{ y: -2 }}
-                        className={styles.navLink}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'inherit' }}
-                      >
-                        Sign Up
-                      </motion.button>
-                    </SignUpButton>
-                  </div>
-                </SignedOut>
-
-                <SignedIn>
-                  <div className={styles.navProfileItem}>
-                    <UserButton
-                      afterSignOutUrl="/"
-                      appearance={{
-                        elements: {
-                          avatarBox: "w-8 h-8",
-                        }
-                      }}
-                    />
-                    <span className={styles.navProfileLabel}>Profile</span>
-                  </div>
-                </SignedIn>
-
-                <motion.a
-                  href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ y: -2 }}
-                  className={styles.navLink}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Instagram
-                </motion.a>
-                <motion.a
-                  href="tel:9029562156"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={styles.navCta}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  📞 Call Us
-                </motion.a>
-              </div>
-            </div>
-          </div>
-        </nav>
+        {/* ===== SHARED NAVBAR ===== */}
+        <Navbar showSearch={true} products={products} />
 
         {/* ===== MAIN CONTENT ===== */}
         <main className={styles.mainContainer}>
@@ -2821,11 +2562,6 @@ export default function Home({ initialProducts, initialCategories, initialBanner
 
           {/* HERO */}
           <section className={styles.hero}>
-            <FloatingEmoji emoji="🧶" delay={0} duration={8} x={100} y={100} />
-            <FloatingEmoji emoji="💕" delay={2} duration={10} x={300} y={150} />
-            <FloatingEmoji emoji="✨" delay={4} duration={9} x={500} y={80} />
-            <FloatingEmoji emoji="🌸" delay={1} duration={11} x={700} y={120} />
-            <FloatingEmoji emoji="🎀" delay={3} duration={10} x={200} y={200} />
 
             <div
               className={styles.heroGlassCard}
@@ -2836,7 +2572,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
               >
-                ✨ Handcrafted with Love ✨
+                <Sparkles size={14} strokeWidth={1.5} style={{ display: 'inline' }} /> Handcrafted with Love <Sparkles size={14} strokeWidth={1.5} style={{ display: 'inline' }} />
               </motion.div>
 
               <motion.h1
@@ -2878,7 +2614,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                   rel="noopener noreferrer"
                   className={`${styles.ctaButton} ${styles.ctaButtonPrimary}`}
                 >
-                  <span className={styles.buttonIcon}>📷</span>
+                  <span className={styles.buttonIcon}><Instagram size={17} strokeWidth={1.5} /></span>
                   <span>Follow on Instagram</span>
                   <motion.div
                     className={styles.buttonRipple}
@@ -2892,7 +2628,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                   href="tel:9029562156"
                   className={`${styles.ctaButton} ${styles.ctaButtonSecondary}`}
                 >
-                  <span className={styles.buttonIcon}>📞</span>
+                  <span className={styles.buttonIcon}><Phone size={17} strokeWidth={1.5} /></span>
                   <span>Contact Us</span>
                 </MagneticButton>
               </motion.div>
@@ -2903,10 +2639,10 @@ export default function Home({ initialProducts, initialCategories, initialBanner
           <section className={styles.statsSection}>
             <AnimatedSection>
               <div className={styles.statsGrid}>
-                <StatsCounter end={80} label="Happy Customers" icon="😊" />
-                <StatsCounter end={100} label="Products Crafted" icon="🧶" />
-                <StatsCounter end={50} label="Unique Designs" icon="✨" />
-                <StatsCounter end={1.5} label="Years Experience" icon="🎨" />
+                <StatsCounter end={80} label="Happy Customers" icon={<Users size={28} strokeWidth={1.5} />} />
+                <StatsCounter end={100} label="Products Crafted" icon={<Package size={28} strokeWidth={1.5} />} />
+                <StatsCounter end={50} label="Unique Designs" icon={<Sparkles size={28} strokeWidth={1.5} />} />
+                <StatsCounter end={1.5} label="Years Experience" icon={<Palette size={28} strokeWidth={1.5} />} />
               </div>
             </AnimatedSection>
           </section>
@@ -2945,13 +2681,13 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                   animate={{ rotate: 360 }}
                   transition={{ duration: 0.6, ease: "linear" }}
                 >
-                  🧶
+                  <Loader2 size={28} strokeWidth={1.5} />
                 </motion.div>
                 <p>Loading beautiful creations...</p>
               </div>
             ) : error ? (
               <div className={styles.errorState}>
-                <p>😔 {error}</p>
+                <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}><AlertCircle size={20} strokeWidth={1.5} /> {error}</p>
                 <motion.button
                   className={styles.retryButton}
                   onClick={() => window.location.reload()}
@@ -3022,7 +2758,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                               animate={{ scale: [1, 1.05, 1] }}
                               transition={{ duration: 0.6 }}
                             >
-                              <p>✨ Coming Soon!</p>
+                              <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center' }}><Sparkles size={16} strokeWidth={1.5} /> Coming Soon!</p>
                             </motion.div>
                           )}
                         </div>
@@ -3043,10 +2779,10 @@ export default function Home({ initialProducts, initialCategories, initialBanner
               </div>
             </AnimatedSection>
             <div className={styles.processGrid}>
-              <ProcessStep number="01" title="Design Selection" description="Choose from our collection or request a custom design" icon="🎨" delay={0} />
-              <ProcessStep number="02" title="Handcrafted" description="Each piece is carefully crocheted by hand with premium yarn" icon="🧶" delay={0.2} />
-              <ProcessStep number="03" title="Quality Check" description="Every product is inspected to ensure perfect quality" icon="✨" delay={0.4} />
-              <ProcessStep number="04" title="Delivered with Love" description="Packaged beautifully and delivered to your doorstep" icon="💝" delay={0.6} />
+              <ProcessStep number="01" title="Design Selection" description="Choose from our collection or request a custom design" icon={<Palette size={28} strokeWidth={1.5} />} delay={0} />
+              <ProcessStep number="02" title="Handcrafted" description="Each piece is carefully crocheted by hand with premium yarn" icon={<Scissors size={28} strokeWidth={1.5} />} delay={0.2} />
+              <ProcessStep number="03" title="Quality Check" description="Every product is inspected to ensure perfect quality" icon={<CheckCircle2 size={28} strokeWidth={1.5} />} delay={0.4} />
+              <ProcessStep number="04" title="Delivered with Love" description="Packaged beautifully and delivered to your doorstep" icon={<Heart size={28} strokeWidth={1.5} />} delay={0.6} />
             </div>
           </section>
 
@@ -3142,14 +2878,14 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                     whileHover={{ y: -3, scale: 1.05 }}
                     className={styles.footerLink}
                   >
-                    📷 Instagram
+                    <Instagram size={16} strokeWidth={1.5} style={{ display: 'inline', marginRight: '4px' }} /> Instagram
                   </motion.a>
                   <motion.a
                     href="tel:9029562156"
                     whileHover={{ y: -3, scale: 1.05 }}
                     className={styles.footerLink}
                   >
-                    📞 9029562156
+                    <Phone size={16} strokeWidth={1.5} style={{ display: 'inline', marginRight: '4px' }} /> 9029562156
                   </motion.a>
                   <motion.a
                     href="https://wa.me/919029562156?text=Hey%2C%20I%20would%20like%20to%20order%20from%20Nidsscrochet%21%20%F0%9F%A7%B6"
@@ -3169,7 +2905,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                   </motion.a>
                 </div>
                 <div className={styles.footerLove}>
-                  <p>Made with 💖 by Nidhi Tripathi</p>
+                  <p>Made with <Heart size={14} strokeWidth={1.5} fill="#e91e63" color="#e91e63" style={{ display: 'inline', verticalAlign: 'middle' }} /> by Nidhi Tripathi</p>
                 </div>
                 <div className={styles.footerCopyright}>
                   <p>© {new Date().getFullYear()} Nidsscrochet. All rights reserved.</p>

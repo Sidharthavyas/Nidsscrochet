@@ -1,5 +1,6 @@
 import Cart from '@/components/Cart';
 import Head from 'next/head';
+import Navbar from '@/components/Navbar';
 
 export default function CartPage() {
   return (
@@ -8,6 +9,7 @@ export default function CartPage() {
         <title>Shopping Cart - Nidsscrochet</title>
         <meta name="description" content="View and manage your shopping cart" />
       </Head>
+      <Navbar />
       <Cart />
     </>
   );

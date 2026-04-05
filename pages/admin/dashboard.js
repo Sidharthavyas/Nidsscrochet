@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { Search } from 'lucide-react';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import styles from '../../styles/Admin.module.css';
 import imageCompression from 'browser-image-compression';
@@ -866,7 +867,7 @@ function AdminDashboard() {
                     placeholder="Search products by name..."
                     className={styles.searchInput}
                   />
-                  <span className={styles.searchIcon}>🔍</span>
+                  <span className={styles.searchIcon}><Search size={18} strokeWidth={1.8} /></span>
                 </div>
 
                 <motion.button

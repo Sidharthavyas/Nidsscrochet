@@ -1060,7 +1060,7 @@ function ProductCard({ product, index, onClick }) {
                   className={styles.productImage}
                   loading="lazy"
                   unoptimized
-                  onLoadingComplete={() => setImageLoading(false)}
+                  onLoad={() => setImageLoading(false)}
                   style={{ objectFit: 'contain', objectPosition: 'center' }}
                 />
               </motion.div>

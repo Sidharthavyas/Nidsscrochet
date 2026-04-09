@@ -96,7 +96,7 @@ const Cart = () => {
 
         {/* Header */}
         <div className={styles.cartHeader}>
-          <h1 className={styles.cartTitle}>Shopping Cart</h1>
+          <h1 className={styles.cartTitle}>Shopping Cart 🛒</h1>
           <p className={styles.cartSubtitle}>
             {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart
           </p>

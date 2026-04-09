@@ -2939,8 +2939,8 @@ export async function getStaticProps() {
     // Cloudinary optimization helper - request smaller images
     const optimizeImage = (url) => {
       if (!url || !url.includes('cloudinary')) return url;
-      // w_200 matches mobile display size (177px) with slight buffer for DPR
-      return url.replace('/upload/', '/upload/w_200,q_75,f_auto/');
+      // w_600 matches display size with slight buffer for DPR
+      return url.replace('/upload/', '/upload/w_600,q_80,f_auto/');
     };
 
     // Fetch data from database

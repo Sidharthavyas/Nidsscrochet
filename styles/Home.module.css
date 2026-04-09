@@ -10,14 +10,28 @@
     min-height: 100vh;
     background: var(--cream);
     position: relative;
-    /* overflow-x:clip prevents horizontal overflow including after pinch-zoom.
-       Unlike overflow-x:hidden it doesn't create a new scroll container,
-       so vertical scrolling on the page is unaffected. */
     overflow-x: clip;
-    /* contain:layout stops absolutely-positioned children from expanding
-       the scroll width when the user zooms */
     contain: layout;
+    /* Prevent pinch-zoom from revealing off-screen content */
+    overscroll-behavior-x: none;
+    touch-action: pan-y; /* allow vertical scroll only at container level */
 }
+
+/* ================================================
+   MOBILE GESTURE GUARD — Prevent accidental 
+   swipe-to-open nav drawer on major sections
+   ================================================ */
+.hero,
+.productsSection,
+.statsSection,
+.processSection,
+.testimonialsSection,
+.faqSection {
+    touch-action: pan-y;
+    overscroll-behavior-x: none;
+}
+
+
 
 /* ================================================
    SHIPPING & COD BADGES (Product Detail)
@@ -1432,10 +1446,10 @@
 
 .sliderWrapper {
     position: relative;
-    /* Prevent the horizontally-scrollable slider from widening the page.
-       max-width:100% + overflow-x:clip ensures the row is fully contained. */
     max-width: 100%;
     overflow-x: clip;
+    /* Capture horizontal swipes so they never reach the nav drawer */
+    overscroll-behavior-x: contain;
 }
 
 .sliderFade {
@@ -1462,16 +1476,14 @@
     gap: 1.5rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    /* scroll-snap-stop:always stops momentum scroll from skipping cards
-       and accidentally revealing overflow past the last card */
     scroll-snap-stop: always;
     padding: 1.2rem 0.5rem 1.5rem;
     -webkit-overflow-scrolling: touch;
-    /* Ensures touch-panning inside the slider doesn't bubble up and
-       shift the whole page horizontally */
-    touch-action: pan-x;
-    overscroll-behavior-x: contain;
+    touch-action: pan-x;              /* horizontal swipe stays inside slider */
+    overscroll-behavior-x: contain;   /* prevents bubbling to drawer open */
+    overscroll-behavior-y: none;
 }
+
 
 .productsSlider::-webkit-scrollbar {
     height: 8px;
@@ -2049,9 +2061,9 @@
     border-radius: 24px 0 0 24px;
     display: flex;
     flex-direction: column;
-    /* Allow vertical scrolling while swiping the carousel */
-    touch-action: pan-y;
+    touch-action: pan-y;              /* vertical scroll only — carousel buttons handle left/right */
     min-height: 500px;
+    overscroll-behavior-x: contain;
 }
 
 .modalImage {

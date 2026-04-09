@@ -141,6 +141,8 @@ export default function Navbar({ showSearch = false, products = [] }) {
                   aria-autocomplete="list"
                   role="combobox"
                   aria-expanded={showSuggestions}
+                  aria-controls="search-suggestions-listbox"
+                  aria-haspopup="listbox"
                 />
                 {searchQuery && (
                   <button
@@ -172,7 +174,7 @@ export default function Navbar({ showSearch = false, products = [] }) {
                         </span>
                         <span className={styles.suggestionsHint}>↑↓ navigate · Enter select</span>
                       </div>
-                      <div className={styles.suggestionsList} role="listbox">
+                      <div className={styles.suggestionsList} role="listbox" id="search-suggestions-listbox">
                         {searchSuggestions.map((item) => (
                           <div
                             key={item.id}
@@ -183,7 +185,6 @@ export default function Navbar({ showSearch = false, products = [] }) {
                           >
                             <div className={styles.suggestionImageWrap}>
                               {item.image ? (
-                                // eslint-disable-next-line @next/next/no-img-element
                                 <img
                                   src={item.image}
                                   alt={item.name}

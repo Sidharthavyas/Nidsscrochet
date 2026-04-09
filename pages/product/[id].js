@@ -140,7 +140,7 @@ function ImageLightbox({ images, currentIndex, onClose }) {
       touchEndRef.current = e.changedTouches?.[0]?.clientX || 0;
       const d = touchStartRef.current - touchEndRef.current;
       if (Math.abs(d) > 45) {
-        d > 0 ? handleNext() : handlePrev();
+        if (d > 0) { handleNext(); } else { handlePrev(); }
       }
       touchStartRef.current = 0;
       touchEndRef.current = 0;

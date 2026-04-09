@@ -61,7 +61,7 @@ export default function App({ Component, pageProps }) {
             href="/rose.webp"
             as="image"
             type="image/webp"
-            // @ts-ignore — fetchpriority is valid HTML but not yet in TS types
+            // @ts-expect-error — fetchpriority is valid HTML but not yet in TS types
             fetchpriority="high"
           />
         </Head>

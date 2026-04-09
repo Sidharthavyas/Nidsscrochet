@@ -52,15 +52,17 @@ export default function App({ Component, pageProps }) {
     >
       <CartProvider>
         <Head>
-          {/* Preconnect to Cloudinary for faster image loading */}
-          <link rel="preconnect" href="https://res.cloudinary.com" />
+          {/* Preconnect to Cloudinary — crossOrigin enables full TCP+TLS reuse */}
+          <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-          {/* Preload the LCP image to eliminate resource load delay */}
+          {/* Preload the LCP rose image — fetchpriority=high moves it to top of queue */}
           <link
             rel="preload"
             href="/rose.webp"
             as="image"
             type="image/webp"
+            // @ts-ignore — fetchpriority is valid HTML but not yet in TS types
+            fetchpriority="high"
           />
         </Head>
         <main className={poppins.className}>

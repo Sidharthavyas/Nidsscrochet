@@ -1517,21 +1517,14 @@
 .imageSkeleton {
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, var(--gray) 0%, var(--gray-dark) 50%, var(--gray) 100%);
+    background: linear-gradient(90deg,
+        #f0f0f0 25%, #e8e0e4 50%, #f0f0f0 75%);
     background-size: 200% 100%;
-    animation: shimmer 1.5s 1;
+    animation: shimmer 1.4s infinite;   /* defined in skeleton section */
     z-index: 1;
 }
 
-@keyframes shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-
-    100% {
-        background-position: 200% 0;
-    }
-}
+/* @keyframes shimmer is defined in the SKELETON LOADER section below */
 
 .imageContainer {
     width: 100%;
@@ -2864,6 +2857,12 @@
    SKELETON LOADER
    ================================================ */
 
+/* Shared shimmer base — use on any skeleton element */
+@keyframes shimmer {
+    from { background-position: -200% 0; }
+    to   { background-position:  200% 0; }
+}
+
 .skeletonCard {
     flex: 0 0 270px;
     scroll-snap-align: center;
@@ -2875,31 +2874,25 @@
 
 .skeletonImageWrapper {
     width: 100%;
-    height: 280px;
-    background: linear-gradient(90deg, var(--gray) 0%, var(--gray-dark) 50%, var(--gray) 100%);
+    aspect-ratio: 1 / 1;      /* matches productImageWrapper, prevents CLS */
+    background: linear-gradient(90deg,
+        #f0f0f0 25%, #e8e0e4 50%, #f0f0f0 75%);
     background-size: 200% 100%;
-    animation: shimmer 1.5s 1;
+    animation: shimmer 1.4s infinite;
     position: relative;
     overflow: hidden;
 }
 
-.skeletonImageWrapper::after {
-    content: '';
+/* skeletonShimmer — used by the product card's imageSkeleton overlay */
+.skeletonShimmer {
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
-    transform: translateX(-100%);
-    animation: skeletonShine 2s 1;
-}
-
-@keyframes skeletonShine {
-    0% {
-        transform: translateX(-100%);
-    }
-
-    100% {
-        transform: translateX(100%);
-    }
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.45) 50%,
+        rgba(255,255,255,0) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
 }
 
 .skeletonContent {
@@ -2911,9 +2904,10 @@
 
 .skeletonLine {
     height: 14px;
-    background: linear-gradient(90deg, var(--gray) 0%, var(--gray-dark) 50%, var(--gray) 100%);
+    background: linear-gradient(90deg,
+        #f0f0f0 25%, #e8e0e4 50%, #f0f0f0 75%);
     background-size: 200% 100%;
-    animation: shimmer 1.5s 1;
+    animation: shimmer 1.4s infinite;
     border-radius: 7px;
 }
 
@@ -2933,15 +2927,24 @@
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: linear-gradient(90deg, var(--gray) 0%, var(--gray-dark) 50%, var(--gray) 100%);
+    background: linear-gradient(90deg,
+        #f0f0f0 25%, #e8e0e4 50%, #f0f0f0 75%);
     background-size: 200% 100%;
-    animation: shimmer 1.5s 1;
+    animation: shimmer 1.4s infinite;
 }
 
 .skeletonColors {
     display: flex;
     gap: 8px;
     margin-top: 0.5rem;
+}
+
+/* Grid-level skeleton: shown while categories/products load */
+.skeletonGridRow {
+    display: flex;
+    gap: 1.5rem;
+    overflow: hidden;
+    padding: 0.5rem 0 1rem;
 }
 
 /* ================================================

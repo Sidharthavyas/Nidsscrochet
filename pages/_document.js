@@ -37,7 +37,7 @@ export default function Document() {
         />
 
         {/* Preconnect critical origins */}
-        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
 
         {/* DNS Prefetch */}

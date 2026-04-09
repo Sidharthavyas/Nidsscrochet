@@ -1389,30 +1389,31 @@
 }
 
 .sliderBtn {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    border: 1px solid var(--pink-soft);
-    background: var(--white);
-    color: var(--pink);
-    font-size: 1.2rem;
-    cursor: pointer;
-    box-shadow: var(--shadow);
-    transition: var(--transition);
+    border: 1px solid rgba(201, 135, 154, 0.35);
+    background: rgba(255, 255, 255, 0.9);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 800;
-    min-height: auto;
-    min-width: auto;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    backdrop-filter: blur(4px);
+    padding: 0;
 }
 
 .sliderBtn:hover {
-    background: var(--pink);
-    color: var(--white);
-    border-color: var(--pink);
-    box-shadow: var(--shadow-pink);
-    transform: scale(1.1);
+    background: #fff;
+    border-color: rgba(201, 135, 154, 0.7);
+}
+
+.sliderBtn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #c9879a;
+    stroke-width: 1.5;
+    fill: none;
 }
 
 .sliderWrapper {
@@ -1641,80 +1642,36 @@
     /* No border-top: use spacing instead (Petal & Purl rule) */
 }
 
-.productPrice {
-    font-size: 1.3rem;
-    font-weight: 900;
-    color: #B0546A; /* Deeper rose — more legible, feels higher-end */
-    letter-spacing: 0.2px;
-    transition: var(--transition);
+.priceBlock {
     display: flex;
     align-items: baseline;
-    gap: 2px;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
 }
 
-.priceSymbol {
-    font-size: 0.7em;
-}
-
-.priceAmount {
-    font-size: 1em;
-}
-
-.productCard:hover .productPrice {
-    transform: scale(1.05);
-}
-
-/* Sale Price */
-.priceContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-}
-
-.productPriceSale {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #B0546A; /* Keep brand-consistent — green sale price is confusing */
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-}
-
-.saleBadge {
-    display: inline-block;
-    background: #FDE8EF;
-    color: #B0546A;
-    font-size: 0.55rem;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 12px;
-    border: 1px solid #F5D0DE;
-    margin-left: 6px;
-    /* animation removed — no load-fire animations */
-    min-height: auto;
-    min-width: auto;
-}
-
-@keyframes pulseBadge {
-
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.08);
-    }
-}
-
-.productPriceOriginal {
-    font-size: 0.95rem;
-    color: var(--text-gray);
-    font-weight: 600;
+.priceOriginal {
     text-decoration: line-through;
-    text-decoration-thickness: 2px;
-    text-decoration-color: #ef4444;
-    opacity: 0.8;
+    color: #aaa;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.priceSale {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d2d2d;
+}
+
+.priceBadge {
+    background: #fde8ee;
+    color: #b5434e;
+    font-size: 10px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    display: inline-block;
+    transform: translateY(-1px);
 }
 
 .stockBadge {
@@ -2104,29 +2061,32 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.95);
-    color: var(--black);
-    border: none;
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.1rem;
+    border: 1px solid rgba(201, 135, 154, 0.35);
+    background: rgba(255, 255, 255, 0.9);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    backdrop-filter: blur(4px);
     z-index: 10;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    font-weight: 800;
-    min-height: auto;
-    min-width: auto;
+    padding: 0;
 }
 
 .carouselBtn:hover:not(:disabled) {
-    background: var(--pink);
-    color: var(--white);
-    transform: translateY(-50%) scale(1.08);
+    background: #fff;
+    border-color: rgba(201, 135, 154, 0.7);
+}
+
+.carouselBtn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #c9879a;
+    stroke-width: 1.5;
+    fill: none;
 }
 
 .carouselBtn:disabled {

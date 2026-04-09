@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import { motion, useScroll, AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
 import Navbar from '@/components/Navbar';
-import { Search, Phone, Instagram, Link2, MessageCircle, Facebook, Twitter, MapPin, Users, Package, Sparkles, Palette, Scissors, CheckCircle2, Heart, AlertCircle, Loader2 } from 'lucide-react';
+import { Search, Phone, Instagram, Link2, MessageCircle, Facebook, Twitter, MapPin, Users, Package, Sparkles, Palette, Scissors, CheckCircle2, Heart, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // SSG Imports
 import connectDB from '../lib/mongodb';
@@ -1118,29 +1118,21 @@ function ProductCard({ product, index, onClick }) {
 
           <div className={styles.productFooter}>
             <motion.div
-              className={styles.priceContainer}
+              className={styles.priceBlock}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
               {product.salePrice ? (
                 <>
-                  <motion.div className={styles.productPriceSale} whileHover={{ scale: 1.05 }}>
-                    <span className={styles.priceSymbol}>₹</span>
-                    <span className={styles.priceAmount}>{product.salePrice?.toString().replace(/[^\d]/g, '')}</span>
-                    <span className={styles.saleBadge}>
-                      {Math.round(((parseFloat(product.price.replace(/[^\d.]/g, '')) - parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) / parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100)}% OFF
-                    </span>
-                  </motion.div>
-                  <div className={styles.productPriceOriginal}>
-                    <span>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>
-                  </div>
+                  <span className={styles.priceOriginal}>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>
+                  <span className={styles.priceSale}>₹{product.salePrice?.toString().replace(/[^\d]/g, '')}</span>
+                  <span className={styles.priceBadge}>
+                    {Math.round(((parseFloat(product.price.replace(/[^\d.]/g, '')) - parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) / parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100)}% OFF
+                  </span>
                 </>
               ) : (
-                <motion.div className={styles.productPrice} whileHover={{ scale: 1.05 }}>
-                  <span className={styles.priceSymbol}>₹</span>
-                  <span className={styles.priceAmount}>{product.price?.toString().replace(/[^\d]/g, '')}</span>
-                </motion.div>
+                <span className={styles.priceSale}>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>
               )}
             </motion.div>
 
@@ -1299,15 +1291,17 @@ function ProductModal({ product, onClose }) {
                   className={`${styles.carouselBtn} ${styles.carouselBtnPrev}`}
                   onClick={prevImage}
                   disabled={currentImageIndex === 0}
+                  aria-label="Previous image"
                 >
-                  ←
+                  <ChevronLeft />
                 </button>
                 <button
                   className={`${styles.carouselBtn} ${styles.carouselBtnNext}`}
                   onClick={nextImage}
                   disabled={currentImageIndex === productImages.length - 1}
+                  aria-label="Next image"
                 >
-                  →
+                  <ChevronRight />
                 </button>
               </>
             )}
@@ -1355,7 +1349,7 @@ function ProductModal({ product, onClose }) {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              {product.description}
+              {product.description?.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu, '')}
             </motion.p>
 
             <motion.div
@@ -1364,9 +1358,18 @@ function ProductModal({ product, onClose }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <div className={styles.priceWrapper}>
-                <span className={styles.priceLabel}>Price</span>
-                <span className={styles.modalPrice}>{formatPrice(product.price)}</span>
+              <div className={styles.priceBlock}>
+                {product.salePrice ? (
+                  <>
+                    <span className={styles.priceOriginal}>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>
+                    <span className={styles.priceSale}>₹{product.salePrice?.toString().replace(/[^\d]/g, '')}</span>
+                    <span className={styles.priceBadge}>
+                      {Math.round(((parseFloat(product.price.replace(/[^\d.]/g, '')) - parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) / parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100)}% OFF
+                    </span>
+                  </>
+                ) : (
+                  <span className={styles.priceSale}>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>
+                )}
               </div>
               <span className={styles.modalStock}>
                 {product.stock > 0 ? (
@@ -2706,7 +2709,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                       <div className={styles.categoryHeader}>
                         <h3 className={styles.categoryTitle}>
                           <span className={styles.categoryAccent} aria-hidden="true" />
-                          {category.name}
+                          {category.name.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu, '').trim()}
                         </h3>
                         <div className={styles.sliderControls}>
                           <motion.button
@@ -2716,7 +2719,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                             whileTap={{ scale: 0.9 }}
                             aria-label="Previous products"
                           >
-                            ←
+                            <ChevronLeft />
                           </motion.button>
                           <motion.button
                             className={styles.sliderBtn}
@@ -2725,7 +2728,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                             whileTap={{ scale: 0.9 }}
                             aria-label="Next products"
                           >
-                            →
+                            <ChevronRight />
                           </motion.button>
                         </div>
                       </div>

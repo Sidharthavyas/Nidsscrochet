@@ -10,7 +10,13 @@
     min-height: 100vh;
     background: var(--cream);
     position: relative;
-    overflow: clip; /* clip horizontally handles it without breaking scroll */
+    /* overflow-x:clip prevents horizontal overflow including after pinch-zoom.
+       Unlike overflow-x:hidden it doesn't create a new scroll container,
+       so vertical scrolling on the page is unaffected. */
+    overflow-x: clip;
+    /* contain:layout stops absolutely-positioned children from expanding
+       the scroll width when the user zooms */
+    contain: layout;
 }
 
 /* ================================================
@@ -1389,35 +1395,47 @@
 }
 
 .sliderBtn {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    border: 1px solid rgba(201, 135, 154, 0.35);
-    background: rgba(255, 255, 255, 0.9);
+    border: 1.5px solid rgba(201, 135, 154, 0.4);
+    background: rgba(255, 255, 255, 0.95);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-    backdrop-filter: blur(4px);
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     padding: 0;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(201, 135, 154, 0.15);
 }
 
 .sliderBtn:hover {
     background: #fff;
-    border-color: rgba(201, 135, 154, 0.7);
+    border-color: rgba(201, 135, 154, 0.75);
+    box-shadow: 0 4px 14px rgba(201, 135, 154, 0.25);
+}
+
+.sliderBtn:active {
+    transform: scale(0.94);
 }
 
 .sliderBtn svg {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
     stroke: #c9879a;
-    stroke-width: 1.5;
+    stroke-width: 2;
     fill: none;
 }
 
 .sliderWrapper {
     position: relative;
+    /* Prevent the horizontally-scrollable slider from widening the page.
+       max-width:100% + overflow-x:clip ensures the row is fully contained. */
+    max-width: 100%;
+    overflow-x: clip;
 }
 
 .sliderFade {
@@ -1444,8 +1462,15 @@
     gap: 1.5rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    /* scroll-snap-stop:always stops momentum scroll from skipping cards
+       and accidentally revealing overflow past the last card */
+    scroll-snap-stop: always;
     padding: 1.2rem 0.5rem 1.5rem;
     -webkit-overflow-scrolling: touch;
+    /* Ensures touch-panning inside the slider doesn't bubble up and
+       shift the whole page horizontally */
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
 }
 
 .productsSlider::-webkit-scrollbar {
@@ -3453,9 +3478,15 @@
     }
 
     .sliderBtn {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         font-size: 1rem;
+    }
+
+    .sliderBtn svg {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2;
     }
 
     .sliderFade {

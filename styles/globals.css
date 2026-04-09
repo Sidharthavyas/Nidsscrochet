@@ -86,13 +86,15 @@ body {
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--surface);
   color: var(--on-surface);
-  overflow-x: hidden;
+  overflow-x: clip;               /* pinch-zoom safe; unlike hidden doesn't create stacking ctx */
   /* DO NOT set overflow-y: hidden — must scroll vertically */
   line-height: 1.6;
   font-size: 16px;
   -webkit-tap-highlight-color: rgba(212, 116, 138, 0.15);
   -webkit-overflow-scrolling: touch;
   text-rendering: optimizeSpeed;
+  /* Prevent the elastic over-scroll from revealing horizontal overflow */
+  overscroll-behavior-x: none;
 }
 
 /* ================================================

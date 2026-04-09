@@ -1090,7 +1090,7 @@ function ProductCard({ product, index, onClick }) {
           </div>
 
           <h4 className={styles.productName} style={{ minHeight: '2.5em', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.name}</h4>
-          <p className={styles.productDescription}>{product.description}</p>
+          {/* Description intentionally omitted from card — lives on product detail page only */}
 
           {product.colors && product.colors.length > 0 && (
             <motion.div
@@ -2705,13 +2705,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                     <div className={styles.categoryBlock}>
                       <div className={styles.categoryHeader}>
                         <h3 className={styles.categoryTitle}>
-                          <motion.span
-                            className={styles.categoryIcon}
-                            whileHover={{ rotate: [0, -10, 10, 0], scale: 1.2 }}
-                            transition={{ duration: 0.5 }}
-                          >
-                            {category.icon}
-                          </motion.span>
+                          <span className={styles.categoryAccent} aria-hidden="true" />
                           {category.name}
                         </h3>
                         <div className={styles.sliderControls}>
@@ -2939,8 +2933,8 @@ export async function getStaticProps() {
     // Cloudinary optimization helper - request smaller images
     const optimizeImage = (url) => {
       if (!url || !url.includes('cloudinary')) return url;
-      // w_600 matches display size with slight buffer for DPR
-      return url.replace('/upload/', '/upload/w_600,q_80,f_auto/');
+      // w_400,dpr_auto ensures crisp rendering on 2x retina screens (effective 800px)
+      return url.replace('/upload/', '/upload/w_400,q_80,f_auto,dpr_auto/');
     };
 
     // Fetch data from database

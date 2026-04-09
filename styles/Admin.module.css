@@ -600,14 +600,11 @@
 }
 
 .productCategory {
-  display: inline-block;
-  background: var(--pink-soft);
-  color: var(--pink);
-  padding: 0.4rem 1rem;
-  border-radius: 50px;
-  font-size: 0.85rem;
+  background: #FDE8EF;
+  color: #B0546A;
+  border: 1px solid #F5D0DE;
+  box-shadow: none;
   font-weight: 600;
-  margin-bottom: 0.8rem;
 }
 
 .productDetails h3 {

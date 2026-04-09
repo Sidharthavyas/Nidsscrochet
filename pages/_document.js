@@ -52,13 +52,71 @@ export default function Document() {
       </Head>
       <body>
 
-        {/* Noscript fallback for SEO */}
+        {/* Noscript fallback for SEO — visible to bots and script-blocked users */}
         <noscript>
-          <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'sans-serif' }}>
-            <h1>Nidsscrochet - Handcrafted Crochet by Nidhi Tripathi</h1>
-            <p>Please enable JavaScript to browse our handcrafted crochet collections.
-              Visit us on <a href="https://www.instagram.com/Nidsscrochet">Instagram</a>
-              or call <a href="tel:9029562156">9029562156</a>.</p>
+          <style>{`
+            .noscript-fallback {
+              font-family: Georgia, 'Times New Roman', serif;
+              max-width: 520px;
+              margin: 72px auto;
+              text-align: center;
+              padding: 0 24px;
+              color: #1a1a1a;
+            }
+            .noscript-fallback h1 {
+              font-size: 2rem;
+              margin-bottom: 6px;
+              letter-spacing: 0.5px;
+            }
+            .noscript-fallback .tagline {
+              font-size: 1rem;
+              color: #555;
+              margin-bottom: 4px;
+            }
+            .noscript-fallback .location {
+              font-size: 0.9rem;
+              color: #888;
+              margin-bottom: 24px;
+            }
+            .noscript-fallback p {
+              font-size: 0.95rem;
+              color: #555;
+              line-height: 1.7;
+              margin-bottom: 8px;
+            }
+            .noscript-fallback a {
+              color: #c9879a;
+              text-decoration: none;
+              font-weight: 600;
+            }
+            .noscript-fallback a:hover {
+              text-decoration: underline;
+            }
+            .noscript-fallback .divider {
+              width: 48px;
+              height: 2px;
+              background: #c9879a;
+              margin: 20px auto;
+              border-radius: 2px;
+            }
+          `}</style>
+          <div className="noscript-fallback">
+            <h1>Nidsscrochet</h1>
+            <p className="tagline">Handcrafted crochet by Nidhi Tripathi</p>
+            <p className="location">Mumbai, India</p>
+            <div className="divider"></div>
+            <p>
+              Browse our amigurumi, bouquets, keychains &amp; gifts on{' '}
+              <a href="https://www.instagram.com/Nidsscrochet" rel="noopener noreferrer">Instagram @Nidsscrochet</a>
+            </p>
+            <p>
+              Order via WhatsApp:{' '}
+              <a href="https://wa.me/919029562156">+91 90295 62156</a>
+            </p>
+            <p>
+              Enable JavaScript to shop online at{' '}
+              <a href="https://www.nidsscrochet.in">nidsscrochet.in</a>
+            </p>
           </div>
         </noscript>
         <Main />

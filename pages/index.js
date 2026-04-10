@@ -708,21 +708,36 @@ function FloatingEmoji({ emoji, delay, duration, x, y }) {
 // ================================================
 function AnimatedSection({ children, delay = 0 }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-60px" });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.opacity = '1';
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.05, rootMargin: '-40px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial={{ opacity: 0 }}
-      animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-      transition={{ duration: 0.5, delay, ease: "easeOut" }}
-      style={{ willChange: 'opacity' }}
+      style={{
+        opacity: 0,
+        transition: `opacity 0.5s ease ${delay}s`,
+        willChange: 'opacity',
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
-
 // ================================================
 // STATS COUNTER
 // ================================================
@@ -772,37 +787,22 @@ function TestimonialCard({ name, review, rating, image, delay }) {
   return (
     <motion.div
       className={styles.testimonialCard}
-      initial={{ opacity: 0, scale: 0.9 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6, delay }}
-      viewport={{ once: true }}
-      whileHover={{ y: -8, scale: 1.02 }}
+      whileHover={{ y: -6, scale: 1.01 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
       <div className={styles.testimonialRating}>
         {[...Array(rating)].map((_, i) => (
-          <motion.span
-            key={i}
-            whileHover={{ scale: 1.3, rotate: 360 }}
-            transition={{ duration: 0.3 }}
-          >
-            <StarIcon filled={true} />
-          </motion.span>
+          <span key={i}><StarIcon filled={true} /></span>
         ))}
       </div>
       <p className={styles.testimonialReview}>{review}</p>
       <div className={styles.testimonialAuthor}>
-        <motion.div
-          className={styles.testimonialAvatar}
-          whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-        >
-          {image || name.charAt(0)}
-        </motion.div>
+        <div className={styles.testimonialAvatar}>{image || name.charAt(0)}</div>
         <div className={styles.testimonialName}>{name}</div>
       </div>
     </motion.div>
   );
 }
-
 
 
 // ================================================
@@ -812,13 +812,7 @@ function FAQItem({ question, answer, delay }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <motion.div
-      className={`${styles.faqItem} ${isOpen ? styles.open : ''}`}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
-      viewport={{ once: true }}
-    >
+    <div className={`${styles.faqItem} ${isOpen ? styles.open : ''}`}>
       <motion.button
         className={styles.faqQuestion}
         onClick={() => setIsOpen(!isOpen)}
@@ -829,7 +823,7 @@ function FAQItem({ question, answer, delay }) {
         <motion.span
           className={styles.faqToggle}
           animate={{ rotate: isOpen ? 45 : 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.25 }}
         >
           +
         </motion.span>
@@ -839,7 +833,7 @@ function FAQItem({ question, answer, delay }) {
           <p>{answer}</p>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -850,26 +844,11 @@ function ProcessStep({ number, title, description, icon, delay }) {
   return (
     <motion.div
       className={styles.processStep}
-      initial={{ opacity: 0, x: -50 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.8, delay }}
-      viewport={{ once: true }}
-      whileHover={{ scale: 1.05, rotateY: 5 }}
+      whileHover={{ scale: 1.03, y: -4 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
-      <motion.div
-        className={styles.processNumber}
-        whileHover={{ rotate: 360, scale: 1.2 }}
-        transition={{ duration: 0.6 }}
-      >
-        {number}
-      </motion.div>
-      <motion.div
-        className={styles.processIcon}
-        whileHover={{ scale: 1.2, rotate: 10 }}
-        transition={{ type: "spring", stiffness: 300 }}
-      >
-        {icon}
-      </motion.div>
+      <div className={styles.processNumber}>{number}</div>
+      <div className={styles.processIcon}>{icon}</div>
       <h3 className={styles.processTitle}>{title}</h3>
       <p className={styles.processDescription}>{description}</p>
     </motion.div>
@@ -889,22 +868,225 @@ const formatPrice = (price) => {
 // ================================================
 // PRODUCT CARD SKELETON — mirrors exact card shape, prevents CLS
 // ================================================
-function ProductCardSkeleton() {
+function ProductCard({ product, index, onClick, priority = false }) {
+  const router = useRouter();
+  const [isHovered, setIsHovered] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  const productImages = product.images && product.images.length > 0
+    ? product.images
+    : [product.image];
+
+  const productUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/product/${product._id}`
+    : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/product/${product._id}`;
+
+  const getBadge = () => {
+    if (product.isNew) return { text: 'NEW', color: 'green' };
+    if (product.isBestSeller) return { text: 'BEST SELLER', color: 'pink' };
+    if (product.stock < 3 && product.stock > 0) return { text: 'LIMITED', color: 'orange' };
+    return null;
+  };
+  const badge = getBadge();
+
+  const handleWishlistToggle = (e) => { e.stopPropagation(); setIsWishlisted(!isWishlisted); };
+
+  const handleShare = async (e) => {
+    e.stopPropagation();
+    const shareData = {
+      title: `${product.name} | Nidsscrochet`,
+      text: `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`,
+      url: productUrl,
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); }
+      catch (err) { if (err.name !== 'AbortError') setShowShareModal(true); }
+    } else {
+      setShowShareModal(true);
+    }
+  };
+
   return (
-    <div className={styles.skeletonCard}>
-      <div className={styles.skeletonImageWrapper} />
-      <div className={styles.skeletonContent}>
-        <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} />
-        <div className={`${styles.skeletonLine} ${styles.skeletonLineMedium}`} />
-        <div className={`${styles.skeletonLine} ${styles.skeletonLineLong}`} />
-        <div className={styles.skeletonColors}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} className={styles.skeletonCircle} />
-          ))}
+    <>
+      {/* Plain div — CSS handles hover and fade-in */}
+      <div
+        className={styles.productCard}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => { setIsHovered(false); setCurrentImageIndex(0); }}
+        onClick={() => router.push(`/product/${product._id}`)}
+        onKeyPress={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/product/${product._id}`); }}
+        role="button"
+        tabIndex={0}
+        aria-label={`View ${product.name}`}
+      >
+        <div className={styles.productImageWrapper}>
+          {badge && (
+            <div
+              className={`${styles.productBadge} ${styles[`badge${badge.color}`]}`}
+              style={{ transform: 'rotate(-12deg)' }}
+            >
+              {badge.text}
+            </div>
+          )}
+
+          <AnimatePresence>
+            {isHovered && (
+              <motion.button
+                className={`${styles.wishlistBtn} ${isWishlisted ? styles.wishlisted : ''}`}
+                onClick={handleWishlistToggle}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="Add to favorites"
+              >
+                {isWishlisted
+                  ? <span style={{ color: '#e91e63', fontSize: '1.2rem' }}>♥</span>
+                  : <span style={{ color: '#aaa', fontSize: '1.2rem' }}>♡</span>}
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {isHovered && (
+              <motion.button
+                className={styles.shareCardBtn}
+                onClick={handleShare}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ delay: 0.05 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="Share product"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          {productImages.length > 1 && (
+            <div className={styles.imageIndicator}>
+              {productImages.map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`${styles.dot} ${idx === currentImageIndex ? styles.activeDot : ''}`}
+                  onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* CSS opacity transition — no DOM removal/insertion */}
+          <div
+            className={styles.imageSkeleton}
+            style={{
+              opacity: imageLoaded ? 0 : 1,
+              transition: 'opacity 0.3s ease',
+              pointerEvents: 'none',
+            }}
+          >
+            <div className={styles.skeletonShimmer} />
+          </div>
+
+          <div className={styles.imageContainer}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentImageIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className={styles.imageWrapper}
+              >
+                <Image
+                  loader={cloudinaryLoader}
+                  src={productImages[currentImageIndex]}
+                  alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                  fill
+                  sizes="(max-width: 480px) 45vw, (max-width: 768px) 30vw, 20vw"
+                  className={styles.productImage}
+                  priority={priority}
+                  {...(priority ? {} : { loading: 'lazy' })}
+                  placeholder="blur"
+                  blurDataURL={LQIP_BASE64}
+                  onLoad={() => setImageLoaded(true)}
+                  style={{ objectFit: 'contain', objectPosition: 'center' }}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
-        <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} style={{ marginTop: '0.4rem' }} />
+
+        <div className={styles.productInfo}>
+          <div className={styles.productHeader}>
+            <span className={styles.productCategory}>{product.category}</span>
+            <div className={styles.ratingStars}>
+              {[...Array(5)].map((_, i) => (
+                <StarIcon key={i} filled={i < Math.round(product.averageRating || 0)} />
+              ))}
+              <span className={styles.reviewCountBadge}>
+                {product.reviewCount > 0 ? `(${product.reviewCount})` : ''}
+              </span>
+            </div>
+          </div>
+
+          <h4 className={styles.productName} style={{ minHeight: '2.5em', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {product.name}
+          </h4>
+
+          {product.colors && product.colors.length > 0 && (
+            <div className={styles.colorVariants}>
+              <span className={styles.colorLabel}>Colors:</span>
+              {product.colors.slice(0, 5).map((color, idx) => (
+                <span key={idx} className={styles.colorDot} style={{ backgroundColor: color }} />
+              ))}
+              {product.colors.length > 5 && (
+                <span className={styles.moreColors}>+{product.colors.length - 5}</span>
+              )}
+            </div>
+          )}
+
+          <div className={styles.productFooter}>
+            <div className={styles.priceBlock}>
+              {product.salePrice ? (
+                <>
+                  <span className={styles.priceOriginal}>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>
+                  <span className={styles.priceSale}>₹{product.salePrice?.toString().replace(/[^\d]/g, '')}</span>
+                  <span className={styles.priceBadge}>
+                    {Math.round(((parseFloat(product.price.replace(/[^\d.]/g, '')) - parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) / parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100)}% OFF
+                  </span>
+                </>
+              ) : (
+                <span className={styles.priceSale}>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>
+              )}
+            </div>
+            {product.stock !== undefined && (
+              <div className={styles.stockBadge}>
+                {product.stock > 0
+                  ? <span className={styles.inStock}><span className={styles.stockIcon}>✓</span>In Stock</span>
+                  : <span className={styles.outOfStock}><span className={styles.stockIcon}>✗</span>Out of Stock</span>}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+
+      <AnimatePresence>
+        {showShareModal && (
+          <ShareModalComponent
+            product={product}
+            productUrl={productUrl}
+            onClose={() => setShowShareModal(false)}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 

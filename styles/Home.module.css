@@ -1525,6 +1525,11 @@
    PRODUCT CARD
    ================================================ */
 
+@keyframes cardFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 .productCard {
     flex: 0 0 270px;
     scroll-snap-align: center;
@@ -1539,6 +1544,8 @@
     /* GPU layer — no reflow on scroll */
     will-change: transform;
     transform: translateZ(0);
+    animation: cardFadeIn 0.4s ease both;
+  animation-play-state: running;
 }
 
 .productCard::before {
@@ -1555,7 +1562,7 @@
 
 .productCard:hover {
     /* Keep hover light and mobile-friendly */
-    transform: translateY(-4px) translateZ(0);
+    transform: translateY(-4px) scale(1.01) translateZ(0);
     outline: 2px solid var(--pink);
 }
 
@@ -5845,6 +5852,8 @@
         transform: scale(0.95);
     }
 }
+
+
 
 .cartBounce {
     animation: cartBounceAnim 0.6s cubic-bezier(0.4, 0, 0.2, 1);

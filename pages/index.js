@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { motion, useScroll, AnimatePresence, useInView } from 'framer-motion';
+import { motion,  AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
 import Navbar from '@/components/Navbar';
 import { Search, Phone, Instagram, Link2, MessageCircle, Facebook, Twitter, MapPin, Users, Package, Sparkles, Palette, Scissors, CheckCircle2, Heart, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -431,14 +431,30 @@ function DecorativeShapes() {
 // ================================================
 // SCROLL PROGRESS
 // ================================================
+// REPLACE the old ScrollProgress component with this
 function ScrollProgress() {
-  const { scrollYProgress } = useScroll();
-  return (
-    <motion.div
-      className={styles.scrollProgress}
-      style={{ scaleX: scrollYProgress }}
-    />
-  );
+  const barRef = useRef(null);
+
+  useEffect(() => {
+    let rafId;
+    const onScroll = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (!barRef.current) return;
+        const scrolled = window.scrollY;
+        const total = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = total > 0 ? scrolled / total : 0;
+        barRef.current.style.transform = `scaleX(${progress})`;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(rafId);
+    };
+  }, []);
+
+  return <div ref={barRef} className={styles.scrollProgress} />;
 }
 
 
@@ -914,7 +930,10 @@ function ProductCard({ product, index, onClick, priority = false }) {
   };
   const badge = getBadge();
 
-  const handleWishlistToggle = (e) => { e.stopPropagation(); setIsWishlisted(!isWishlisted); };
+  const handleWishlistToggle = (e) => {
+    e.stopPropagation();
+    setIsWishlisted(!isWishlisted);
+  };
 
   const handleShare = async (e) => {
     e.stopPropagation();
@@ -933,7 +952,6 @@ function ProductCard({ product, index, onClick, priority = false }) {
 
   return (
     <>
-      {/* Plain div — CSS handles hover and fade-in */}
       <div
         className={styles.productCard}
         onMouseEnter={() => setIsHovered(true)}
@@ -954,43 +972,28 @@ function ProductCard({ product, index, onClick, priority = false }) {
             </div>
           )}
 
-          <AnimatePresence>
-            {isHovered && (
-              <motion.button
-                className={`${styles.wishlistBtn} ${isWishlisted ? styles.wishlisted : ''}`}
-                onClick={handleWishlistToggle}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                whileTap={{ scale: 0.9 }}
-                aria-label="Add to favorites"
-              >
-                {isWishlisted
-                  ? <span style={{ color: '#e91e63', fontSize: '1.2rem' }}>♥</span>
-                  : <span style={{ color: '#aaa', fontSize: '1.2rem' }}>♡</span>}
-              </motion.button>
-            )}
-          </AnimatePresence>
+          {/* CSS-driven wishlist button — no AnimatePresence */}
+          <button
+            className={`${styles.wishlistBtn} ${isWishlisted ? styles.wishlisted : ''} ${isHovered ? styles.btnVisible : ''}`}
+            onClick={handleWishlistToggle}
+            aria-label="Add to favorites"
+          >
+            {isWishlisted
+              ? <span style={{ color: '#e91e63', fontSize: '1.2rem' }}>♥</span>
+              : <span style={{ color: '#aaa', fontSize: '1.2rem' }}>♡</span>}
+          </button>
 
-          <AnimatePresence>
-            {isHovered && (
-              <motion.button
-                className={styles.shareCardBtn}
-                onClick={handleShare}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ delay: 0.05 }}
-                whileTap={{ scale: 0.9 }}
-                aria-label="Share product"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                </svg>
-              </motion.button>
-            )}
-          </AnimatePresence>
+          {/* CSS-driven share button — no AnimatePresence */}
+          <button
+            className={`${styles.shareCardBtn} ${isHovered ? styles.btnVisible : ''}`}
+            onClick={handleShare}
+            aria-label="Share product"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+          </button>
 
           {productImages.length > 1 && (
             <div className={styles.imageIndicator}>
@@ -1004,7 +1007,7 @@ function ProductCard({ product, index, onClick, priority = false }) {
             </div>
           )}
 
-          {/* CSS opacity transition — no DOM removal/insertion */}
+          {/* Skeleton overlay — CSS opacity transition, no DOM removal */}
           <div
             className={styles.imageSkeleton}
             style={{
@@ -1017,31 +1020,23 @@ function ProductCard({ product, index, onClick, priority = false }) {
           </div>
 
           <div className={styles.imageContainer}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentImageIndex}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className={styles.imageWrapper}
-              >
-                <Image
-                  loader={cloudinaryLoader}
-                  src={productImages[currentImageIndex]}
-                  alt={`${product.name} - Image ${currentImageIndex + 1}`}
-                  fill
-                  sizes="(max-width: 480px) 45vw, (max-width: 768px) 30vw, 20vw"
-                  className={styles.productImage}
-                  priority={priority}
-                  {...(priority ? {} : { loading: 'lazy' })}
-                  placeholder="blur"
-                  blurDataURL={LQIP_BASE64}
-                  onLoad={() => setImageLoaded(true)}
-                  style={{ objectFit: 'contain', objectPosition: 'center' }}
-                />
-              </motion.div>
-            </AnimatePresence>
+            {/* CSS keyframe crossfade — no Framer Motion AnimatePresence */}
+            <div key={currentImageIndex} className={styles.imageWrapper}>
+              <Image
+                loader={cloudinaryLoader}
+                src={productImages[currentImageIndex]}
+                alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                fill
+                sizes="(max-width: 480px) 45vw, (max-width: 768px) 30vw, 20vw"
+                className={styles.productImage}
+                priority={priority}
+                {...(priority ? {} : { loading: 'lazy' })}
+                placeholder="blur"
+                blurDataURL={LQIP_BASE64}
+                onLoad={() => setImageLoaded(true)}
+                style={{ objectFit: 'contain', objectPosition: 'center' }}
+              />
+            </div>
           </div>
         </div>
 
@@ -1058,7 +1053,16 @@ function ProductCard({ product, index, onClick, priority = false }) {
             </div>
           </div>
 
-          <h4 className={styles.productName} style={{ minHeight: '2.5em', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <h4
+            className={styles.productName}
+            style={{
+              minHeight: '2.5em',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
             {product.name}
           </h4>
 
@@ -1078,14 +1082,24 @@ function ProductCard({ product, index, onClick, priority = false }) {
             <div className={styles.priceBlock}>
               {product.salePrice ? (
                 <>
-                  <span className={styles.priceOriginal}>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>
-                  <span className={styles.priceSale}>₹{product.salePrice?.toString().replace(/[^\d]/g, '')}</span>
+                  <span className={styles.priceOriginal}>
+                    ₹{product.price?.toString().replace(/[^\d]/g, '')}
+                  </span>
+                  <span className={styles.priceSale}>
+                    ₹{product.salePrice?.toString().replace(/[^\d]/g, '')}
+                  </span>
                   <span className={styles.priceBadge}>
-                    {Math.round(((parseFloat(product.price.replace(/[^\d.]/g, '')) - parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) / parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100)}% OFF
+                    {Math.round(
+                      ((parseFloat(product.price.replace(/[^\d.]/g, '')) -
+                        parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) /
+                        parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100
+                    )}% OFF
                   </span>
                 </>
               ) : (
-                <span className={styles.priceSale}>₹{product.price?.toString().replace(/[^\d]/g, '')}</span>
+                <span className={styles.priceSale}>
+                  ₹{product.price?.toString().replace(/[^\d]/g, '')}
+                </span>
               )}
             </div>
             {product.stock !== undefined && (
@@ -1464,7 +1478,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
   const [banner, setBanner] = useState(initialBanner || { text: '', active: false });
   const sliderRefs = useRef({});
 
-  const { scrollYProgress } = useScroll();
+
 
   // Intro timer — only marks intro as seen, content is always visible
   useEffect(() => {

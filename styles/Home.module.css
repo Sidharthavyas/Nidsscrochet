@@ -1531,21 +1531,18 @@
 }
 
 .productCard {
-    flex: 0 0 270px;
-    scroll-snap-align: center;
-    background: var(--surface-card);
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    cursor: pointer;
-    transition: transform 0.15s ease;
-    border: 1px solid var(--outline-ghost);
-    position: relative;
-    /* GPU layer — no reflow on scroll */
-    will-change: transform;
-    transform: translateZ(0);
-    animation: cardFadeIn 0.4s ease both;
-  animation-play-state: running;
+  flex: 0 0 270px;
+  scroll-snap-align: center;
+  background: var(--surface-card);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid var(--outline-ghost);
+  position: relative;
+  contain: layout paint;           /* isolates reflow to the card only */
+  animation: cardFadeIn 0.4s ease both;
 }
 
 .productCard::before {
@@ -1561,9 +1558,9 @@
 }
 
 .productCard:hover {
-    /* Keep hover light and mobile-friendly */
-    transform: translateY(-4px) scale(1.01) translateZ(0);
-    outline: 2px solid var(--pink);
+  transform: translateY(-4px);
+  outline: 2px solid var(--pink);
+  will-change: transform;          /* only promotes to GPU layer on hover */
 }
 
 .productCard:hover::before {
@@ -1604,11 +1601,18 @@
     cursor: pointer;
 }
 
+/* imageWrapper — CSS keyframe crossfade replaces AnimatePresence mode="wait" */
 .imageWrapper {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  animation: imgFadeIn 0.2s ease;
+}
+
+@keyframes imgFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .productImage {
@@ -1874,24 +1878,28 @@
 
 /* Wishlist Button */
 .wishlistBtn {
-    position: absolute;
-    top: 0.8rem;
-    right: 0.8rem;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.95);
-    border: 2px solid var(--pink-soft);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 6;
-    font-size: 1.3rem;
-    box-shadow: var(--shadow-md);
-    transition: var(--transition);
-    min-height: auto;
-    min-width: auto;
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid var(--pink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 6;
+  font-size: 1.3rem;
+  box-shadow: var(--shadow-md);
+  /* CSS transition replaces Framer Motion */
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+  min-height: auto;
+  min-width: auto;
 }
 
 .wishlistBtn:hover {
@@ -1900,9 +1908,8 @@
 }
 
 .wishlistBtn.wishlisted {
-    background: linear-gradient(135deg, var(--pink-soft), #ffe8f0);
-    border-color: var(--pink);
-    animation: heartBeat 0.6s ease;
+  background: linear-gradient(135deg, var(--pink-soft), #ffe8f0);
+  border-color: var(--pink);
 }
 
 @keyframes heartBeat {
@@ -1923,25 +1930,37 @@
 
 /* Share Button */
 .shareCardBtn {
-    position: absolute;
-    top: 3.8rem;
-    right: 0.8rem;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.95);
-    border: 2px solid var(--blue);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 6;
-    font-size: 1.2rem;
-    box-shadow: var(--shadow-md);
-    transition: var(--transition);
-    min-height: auto;
-    min-width: auto;
+  position: absolute;
+  top: 3.8rem;
+  right: 0.8rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid var(--blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 6;
+  font-size: 1.2rem;
+  box-shadow: var(--shadow-md);
+  /* CSS transition replaces Framer Motion */
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+  min-height: auto;
+  min-width: auto;
 }
+
+/* Single utility class toggled by isHovered state */
+.btnVisible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
 
 .shareCardBtn:hover {
     background: var(--blue-light);

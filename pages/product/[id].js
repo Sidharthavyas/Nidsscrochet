@@ -1,5 +1,5 @@
 // pages/product/[id].js
-
+//ProductPage
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';

@@ -2,44 +2,48 @@
 
 :root {
   /* ============================================
-     NIDSSCROCHET — LIGHT PINK PREMIUM PALETTE
-     Updated: April 2026
+     NIDSSCROCHET — BLUSH PINK + LEMON PALETTE
      ============================================ */
 
   /* Core Brand */
-  --pink:           #D4748A;   /* Rose Bloom — primary brand, CTAs */
-  --pink-soft:      #FDE8EF;   /* Baby Blush — hero bg, section fills */
-  --pink-dark:      #B0546A;   /* Deep Rose — hover states */
-  --pink-primary:   #D4748A;   /* alias for --pink (used in many components) */
+  --pink:           #D64473;
+  --pink-soft:      #FFE8EF;
+  --pink-dark:      #9E2450;
+  --pink-primary:   #D64473;
 
-  /* Accent (replaces the blue system entirely) */
-  --blue:           #F2E8F0;   /* Lavender Mist — replaces cold blue accents */
-  --blue-light:     #FFF5F7;   /* Petal White — replaces blue-light */
+  /* Lemon Accent */
+  --blue:           #FFF6E0;
+  --blue-light:     #FFFAF0;
 
   /* Neutrals */
-  --cream:          #FFF5F7;   /* Petal White — main page background */
-  --gray:           #F5E8EC;   /* Soft blush gray — subtle backgrounds */
-  --gray-dark:      #E8D0D8;   /* Deeper blush — borders, dividers */
+  --cream:          #FFF9F0;
+  --gray:           #FFDEA3;
+  --gray-dark:      #F9C0D2;
   --white:          #FFFFFF;
-  --black:          #3A1A28;   /* Dark Plum — replaces cold #1c1c19 */
-  --text-gray:      #9E7080;   /* Mauve — replaces brownish #574146 */
+  --black:          #3D1A2A;
+  --text-gray:      #9C6030;
 
   /* Surface Hierarchy */
-  --surface:        #FFF5F7;   /* Petal White — page background */
-  --surface-low:    #FDF8F5;   /* Warm Cream — alternating sections */
-  --surface-card:   #FFFFFF;   /* Pure white — product cards */
-  --surface-high:   #F5D0DE;   /* Soft Rose — elevated surfaces */
-  --on-surface:     #3A1A28;   /* Dark Plum — primary text */
-  --text-muted:     #9E7080;   /* Mauve — secondary text */
-  --outline-ghost:  rgba(212, 116, 138, 0.15);
+  --surface:        #FFF9F0;
+  --surface-low:    #FFFCF7;
+  --surface-card:   #FFFFFF;
+  --surface-high:   #FFE8EF;
+  --on-surface:     #3D1A2A;
+  --text-muted:     #9C6030;
+  --outline-ghost:  rgba(214, 68, 115, 0.18);
 
-  /* Shadows — warmer, softer than before */
-  --shadow-sm:      0 2px 8px  rgba(58, 26, 40, 0.05);
-  --shadow:         0 4px 16px rgba(58, 26, 40, 0.08);
-  --shadow-md:      0 8px 24px rgba(58, 26, 40, 0.10);
-  --shadow-lg:      0 16px 40px rgba(58, 26, 40, 0.12);
-  --shadow-pink:    0 6px 20px rgba(212, 116, 138, 0.25);
-  --shadow-ambient: 0 12px 40px rgba(212, 116, 138, 0.30);
+  /* Lemon Accent Tokens */
+  --lemon:          #F5B800;
+  --lemon-soft:     #FFDEA3;
+  --lemon-pale:     #FFF6E0;
+
+  /* Shadows */
+  --shadow-sm:      0 2px 8px  rgba(61, 26, 42, 0.06);
+  --shadow:         0 4px 16px rgba(61, 26, 42, 0.09);
+  --shadow-md:      0 8px 24px rgba(61, 26, 42, 0.11);
+  --shadow-lg:      0 16px 40px rgba(61, 26, 42, 0.14);
+  --shadow-pink:    0 6px 20px rgba(214, 68, 115, 0.30);
+  --shadow-ambient: 0 12px 40px rgba(214, 68, 115, 0.35);
 
   /* Radius */
   --radius-sm:        12px;
@@ -47,7 +51,7 @@
   --border-radius-lg: 22px;
   --radius-pill:      9999px;
 
-  /* Transitions — specific properties only, never "all" */
+  /* Transitions */
   --transition:        transform 0.2s ease, opacity 0.2s ease;
   --transition-smooth: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                        opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -69,7 +73,6 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* CRITICAL: never set overflow:hidden or height:100% on html */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -86,14 +89,12 @@ body {
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--surface);
   color: var(--on-surface);
-  overflow-x: clip;               /* pinch-zoom safe; unlike hidden doesn't create stacking ctx */
-  /* DO NOT set overflow-y: hidden — must scroll vertically */
+  overflow-x: clip;
   line-height: 1.6;
   font-size: 16px;
-  -webkit-tap-highlight-color: rgba(212, 116, 138, 0.15);
+  -webkit-tap-highlight-color: rgba(214, 68, 115, 0.12);
   -webkit-overflow-scrolling: touch;
   text-rendering: optimizeSpeed;
-  /* Prevent the elastic over-scroll from revealing horizontal overflow */
   overscroll-behavior-x: none;
 }
 
@@ -135,7 +136,7 @@ textarea {
 }
 
 /* ================================================
-   SCROLLBAR — brand-matched, light
+   SCROLLBAR
    ================================================ */
 
 ::-webkit-scrollbar {
@@ -144,17 +145,17 @@ textarea {
 }
 
 ::-webkit-scrollbar-track {
-  background: #FFF5F7;
+  background: #FFF9F0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #E8B0C4;          /* Dusty Pink — soft, not aggressive */
+  background: #F0A0BE;
   border-radius: 10px;
-  border: 2px solid #FFF5F7;    /* creates floating pill effect */
+  border: 2px solid #FFF9F0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #D4748A;
+  background: #D64473;
 }
 
 @media (max-width: 768px) {
@@ -169,16 +170,16 @@ textarea {
    ================================================ */
 
 ::selection {
-  background: #FDE8EF;
-  color: #B0546A;
+  background: #FFDEA3;
+  color: #7A2040;
 }
 
 /* ================================================
-   FOCUS — keyboard only, never on mouse/touch
+   FOCUS
    ================================================ */
 
 :focus-visible {
-  outline: 2px solid #D4748A;
+  outline: 2px solid #D64473;
   outline-offset: 3px;
   border-radius: 6px;
 }
@@ -223,11 +224,10 @@ textarea {
 
 /* ================================================
    GRADIENT TEXT UTILITY
-   Updated: two-tone rose only — no blue
    ================================================ */
 
 .gradient-text {
-  background: linear-gradient(135deg, #C9879A, #8C3550);
+  background: linear-gradient(135deg, #D64473, #7A2040);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -242,14 +242,14 @@ textarea {
   align-items: center;
   gap: 0.5rem;
   padding: 0.8rem 1.8rem;
-  background: linear-gradient(135deg, #D4748A, #B0546A);
+  background: linear-gradient(135deg, #D64473, #9E2450);
   color: #fff;
   font-weight: 600;
   font-size: 0.88rem;
   border-radius: var(--radius-pill);
   border: none;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(212, 116, 138, 0.25);
+  box-shadow: 0 6px 20px rgba(214, 68, 115, 0.30);
   transition: var(--transition-smooth);
   text-decoration: none;
   letter-spacing: 0.3px;
@@ -258,7 +258,7 @@ textarea {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(212, 116, 138, 0.35);
+  box-shadow: 0 12px 32px rgba(214, 68, 115, 0.40);
 }
 
 .btn-primary:active {
@@ -271,11 +271,11 @@ textarea {
   gap: 0.5rem;
   padding: 0.8rem 1.8rem;
   background: transparent;
-  color: #D4748A;
+  color: #D64473;
   font-weight: 600;
   font-size: 0.88rem;
   border-radius: var(--radius-pill);
-  border: 1.5px solid #D4748A;
+  border: 1.5px solid #D64473;
   cursor: pointer;
   transition: var(--transition-smooth);
   text-decoration: none;
@@ -284,12 +284,43 @@ textarea {
 }
 
 .btn-ghost:hover {
-  background: #FDE8EF;
+  background: #FFE8EF;
   transform: translateY(-2px);
 }
 
 .btn-ghost:active {
   transform: scale(0.98) translateY(0);
+}
+
+/* ================================================
+   LEMON ACCENT BADGE UTILITY
+   — use for "Limited", "New", "Sale" tags only
+   ================================================ */
+
+.badge-lemon {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  background: #FFDEA3;
+  color: #6B4000;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.badge-lemon-vivid {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  background: #F5B800;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 
 /* ================================================
@@ -299,7 +330,7 @@ textarea {
 .card-surface {
   background: var(--surface-card);
   border-radius: var(--border-radius-lg);
-  border: 1px solid #F5D0DE;    /* Soft Rose border — replaces invisible ghost */
+  border: 1px solid #F9C0D2;
   box-shadow: var(--shadow);
 }
 
@@ -315,8 +346,6 @@ textarea {
 
 /* ================================================
    MODAL SCROLL LOCK
-   JS does the actual locking (position:fixed on body).
-   NEVER set overflow:hidden here — breaks iOS scroll.
    ================================================ */
 
 body.modal-open {
@@ -339,23 +368,3 @@ body.no-scroll {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-
-/* ================================================
-   QUICK COLOUR REFERENCE (for devs)
-   ================================================
-
-   Page bg:       #FFF5F7  →  var(--surface) / var(--cream)
-   Section fill:  #FDE8EF  →  var(--pink-soft)
-   Alt section:   #FDF8F5  →  var(--surface-low)
-   Card bg:       #FFFFFF  →  var(--surface-card)
-   Card border:   #F5D0DE  →  use inline or via var(--surface-high)
-   Brand CTA:     #D4748A  →  var(--pink)
-   CTA hover:     #B0546A  →  var(--pink-dark)
-   Heading text:  #3A1A28  →  var(--black) / var(--on-surface)
-   Body text:     #9E7080  →  var(--text-gray) / var(--text-muted)
-   Footer bg:     #3A1A28  →  hardcode, not a token
-
-   Rule: 90% of every page surface uses the top 4 colours.
-   #D4748A (brand rose) appears ONLY on buttons and key accents.
-   #3A1A28 (dark plum) appears ONLY in the footer.
-   ================================================ */

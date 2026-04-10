@@ -868,6 +868,28 @@ const formatPrice = (price) => {
 // ================================================
 // PRODUCT CARD SKELETON — mirrors exact card shape, prevents CLS
 // ================================================
+// ================================================
+// PRODUCT CARD SKELETON
+// ================================================
+function ProductCardSkeleton() {
+  return (
+    <div className={styles.skeletonCard}>
+      <div className={styles.skeletonImageWrapper} />
+      <div className={styles.skeletonContent}>
+        <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} />
+        <div className={`${styles.skeletonLine} ${styles.skeletonLineMedium}`} />
+        <div className={`${styles.skeletonLine} ${styles.skeletonLineLong}`} />
+        <div className={styles.skeletonColors}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className={styles.skeletonCircle} />
+          ))}
+        </div>
+        <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} style={{ marginTop: '0.4rem' }} />
+      </div>
+    </div>
+  );
+}
+
 function ProductCard({ product, index, onClick, priority = false }) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);

@@ -624,78 +624,45 @@ function ImageLightbox({ images, currentIndex, onClose, onNext, onPrev }) {
 // ================================================
 // SCROLL TO TOP
 // ================================================
+// REPLACE ScrollToTop
 function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    let rafId;
     const toggleVisibility = () => {
-      setIsVisible(window.pageYOffset > 300);
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        setIsVisible(window.scrollY > 300);
+      });
     };
-    window.addEventListener('scroll', toggleVisibility);
-    return () => window.removeEventListener('scroll', toggleVisibility);
+    window.addEventListener('scroll', toggleVisibility, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', toggleVisibility);
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (!isVisible) return null;
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.button
-          className={styles.scrollToTop}
-          onClick={scrollToTop}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <motion.span
-            animate={{ y: [0, -5, 0] }}
-            transition={{ duration: 0.25 }}
-          >
-            ↑
-          </motion.span>
-        </motion.button>
-      )}
-    </AnimatePresence>
+    <button className={styles.scrollToTop} onClick={scrollToTop} aria-label="Scroll to top">
+      ↑
+    </button>
   );
 }
 
 // ================================================
 // MAGNETIC BUTTON
 // ================================================
+
 function MagneticButton({ children, className, href, target, rel, ...props }) {
-  const ref = useRef(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  const handleMouse = (e) => {
-    if (!ref.current) return;
-    const { clientX, clientY } = e;
-    const { width, height, left, top } = ref.current.getBoundingClientRect();
-    const x = (clientX - (left + width / 2)) * 0.3;
-    const y = (clientY - (top + height / 2)) * 0.3;
-    setPosition({ x, y });
-  };
-
-  const reset = () => setPosition({ x: 0, y: 0 });
-
   return (
-    <motion.a
-      ref={ref}
-      href={href}
-      target={target}
-      rel={rel}
-      className={className}
-      onMouseMove={handleMouse}
-      onMouseLeave={reset}
-      animate={{ x: position.x, y: position.y }}
-      transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
-      {...props}
-    >
+    <a href={href} target={target} rel={rel} className={className} {...props}>
       {children}
-    </motion.a>
+    </a>
   );
 }
 
@@ -722,6 +689,7 @@ function FloatingEmoji({ emoji, delay, duration, x, y }) {
 // ================================================
 // ANIMATED SECTION
 // ================================================
+// REPLACE AnimatedSection with this
 function AnimatedSection({ children, delay = 0 }) {
   const ref = useRef(null);
 
@@ -732,6 +700,7 @@ function AnimatedSection({ children, delay = 0 }) {
       ([entry]) => {
         if (entry.isIntersecting) {
           el.style.opacity = '1';
+          el.style.willChange = 'auto'; // release GPU layer after fade-in
           obs.disconnect();
         }
       },
@@ -747,7 +716,7 @@ function AnimatedSection({ children, delay = 0 }) {
       style={{
         opacity: 0,
         transition: `opacity 0.5s ease ${delay}s`,
-        willChange: 'opacity',
+        // No willChange here — only set it right before the animation
       }}
     >
       {children}
@@ -757,7 +726,7 @@ function AnimatedSection({ children, delay = 0 }) {
 // ================================================
 // STATS COUNTER
 // ================================================
-function StatsCounter({ end, duration = 2, label, icon }) {
+function StatsCounter({ end, label, icon }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -770,42 +739,25 @@ function StatsCounter({ end, duration = 2, label, icon }) {
         obs.disconnect();
       }
     }, { threshold: 0.2 });
-    
-    if (ref.current) {
-      obs.observe(ref.current);
-    }
+    if (ref.current) obs.observe(ref.current);
     return () => obs.disconnect();
   }, [end]);
 
   return (
-    <motion.div
-      className={styles.statCard}
-      whileHover={{ scale: 1.05, y: -5 }}
-      transition={{ type: "spring", stiffness: 300 }}
-    >
-      <motion.div
-        className={styles.statIcon}
-        whileHover={{ scale: 1.2, rotate: [0, -10, 10, 0] }}
-        transition={{ duration: 0.5 }}
-      >
-        {icon}
-      </motion.div>
-      <div ref={ref} className={`${styles.statNumber} ${styles.counter}`}></div>
+    <div className={styles.statCard}>
+      <div className={styles.statIcon}>{icon}</div>
+      <div ref={ref} className={`${styles.statNumber} ${styles.counter}`} />
       <div className={styles.statLabel}>{label}</div>
-    </motion.div>
+    </div>
   );
 }
 
 // ================================================
 // TESTIMONIAL CARD
 // ================================================
-function TestimonialCard({ name, review, rating, image, delay }) {
+function TestimonialCard({ name, review, rating, image }) {
   return (
-    <motion.div
-      className={styles.testimonialCard}
-      whileHover={{ y: -6, scale: 1.01 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-    >
+    <div className={styles.testimonialCard}>
       <div className={styles.testimonialRating}>
         {[...Array(rating)].map((_, i) => (
           <span key={i}><StarIcon filled={true} /></span>
@@ -816,7 +768,7 @@ function TestimonialCard({ name, review, rating, image, delay }) {
         <div className={styles.testimonialAvatar}>{image || name.charAt(0)}</div>
         <div className={styles.testimonialName}>{name}</div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -824,26 +776,25 @@ function TestimonialCard({ name, review, rating, image, delay }) {
 // ================================================
 // FAQ ITEM COMPONENT
 // ================================================
-function FAQItem({ question, answer, delay }) {
+
+function FAQItem({ question, answer }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className={`${styles.faqItem} ${isOpen ? styles.open : ''}`}>
-      <motion.button
+      <button
         className={styles.faqQuestion}
         onClick={() => setIsOpen(!isOpen)}
-        whileHover={{ x: 4 }}
         aria-expanded={isOpen}
       >
         <span>{question}</span>
-        <motion.span
+        <span
           className={styles.faqToggle}
-          animate={{ rotate: isOpen ? 45 : 0 }}
-          transition={{ duration: 0.25 }}
+          style={{ transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)', transition: 'transform 0.25s ease' }}
         >
           +
-        </motion.span>
-      </motion.button>
+        </span>
+      </button>
       <div className={`${styles.faqContentWrapper} ${isOpen ? styles.open : ''}`}>
         <div className={styles.faqAnswer}>
           <p>{answer}</p>
@@ -856,18 +807,14 @@ function FAQItem({ question, answer, delay }) {
 // ================================================
 // PROCESS STEP
 // ================================================
-function ProcessStep({ number, title, description, icon, delay }) {
+function ProcessStep({ number, title, description, icon }) {
   return (
-    <motion.div
-      className={styles.processStep}
-      whileHover={{ scale: 1.03, y: -4 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-    >
+    <div className={styles.processStep}>
       <div className={styles.processNumber}>{number}</div>
       <div className={styles.processIcon}>{icon}</div>
       <h3 className={styles.processTitle}>{title}</h3>
       <p className={styles.processDescription}>{description}</p>
-    </motion.div>
+    </div>
   );
 }
 

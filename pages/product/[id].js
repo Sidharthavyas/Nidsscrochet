@@ -1,6 +1,6 @@
 // pages/product/[id].js
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -397,6 +397,32 @@ export default function ProductPage({
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const reviewSectionRef = useRef(null);
 
+  const productImages = useMemo(() => {
+    if (!product) return [];
+    return product.images && product.images.length > 0
+      ? product.images
+      : [product.image];
+  }, [product]);
+
+  const handleAddToCart = useCallback((e) => {
+    if (!product || addedToCart || product.stock <= 0) return;
+
+    setAddedToCart(true);
+    addToCart(
+      {
+        ...product,
+        _id: product._id,
+        name: product.name,
+        price: product.salePrice || product.price,
+        image: productImages[0],
+        shipping_charges: product.shipping_charges,
+        cod_available: product.cod_available,
+      },
+      quantity
+    );
+    setTimeout(() => setAddedToCart(false), 1200);
+  }, [addToCart, product, productImages, quantity, addedToCart]);
+
   // Unlock scrolling on mount + route changes/unload
   useEffect(() => {
     unlockScroll();
@@ -506,11 +532,6 @@ export default function ProductPage({
     );
   }
 
-  const productImages =
-    product.images && product.images.length > 0
-      ? product.images
-      : [product.image];
-
   // ★ FIX 4: Use canonical URL to avoid hydration mismatch
   const productUrl = `https://www.Nidsscrochet.in/product/${product._id}`;
 
@@ -542,25 +563,6 @@ export default function ProductPage({
     setLightboxIndex(index);
     setLightboxOpen(true);
   };
-
-  const handleAddToCart = useCallback((e) => {
-    if (addedToCart || product.stock <= 0) return;
-
-    setAddedToCart(true);
-    addToCart(
-      {
-        ...product,
-        _id: product._id,
-        name: product.name,
-        price: product.salePrice || product.price,
-        image: productImages[0],
-        shipping_charges: product.shipping_charges,
-        cod_available: product.cod_available,
-      },
-      quantity
-    );
-    setTimeout(() => setAddedToCart(false), 1200);
-  }, [addToCart, product, productImages, quantity, addedToCart]);
 
   const getSalePercent = () => {
     try {

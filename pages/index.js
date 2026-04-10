@@ -1525,6 +1525,11 @@ function ProgressiveProductGrid({ products, onClick }) {
           onClick={onClick}
         />
       ))}
+      {rendered < products.length &&
+        Array.from({ length: Math.min(4, products.length - rendered) }).map((_, i) => (
+          <div key={`sk-${i}`} className={styles.skeleton} aria-hidden="true" />
+        ))
+      }
       {rendered < products.length && (
         <div ref={sentinelRef} aria-hidden="true" style={{ minWidth: '1px', flexShrink: 0 }} />
       )}

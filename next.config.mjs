@@ -12,9 +12,8 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
-    // Disable Vercel's image optimization to save free tier quota
-    // We use Cloudinary URL transforms instead
-    unoptimized: true,
+    deviceSizes: [390, 640, 828],   // mobile-first breakpoints
+    imageSizes: [160, 320, 400],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
     // Configure quality levels to prevent Next.js 16 warning

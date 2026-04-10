@@ -16,6 +16,27 @@ import Banner from '../models/Banner';
 import Review from '../models/Review';
 
 // ================================================
+// IMAGE OPTIMIZATION LOGIC
+// ================================================
+// A very light pink 1x1 placeholder
+const LQIP_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+// Cloudinary loader — strips existing optimizations (like dpr_auto, w_400) and uses Next.js w param
+const cloudinaryLoader = ({ src, width, quality }) => {
+  const base = src.split(/\/upload\//);
+  if (base.length < 2) return src; // Not a Cloudinary URL
+
+  let imagePath = base[1];
+  const parts = imagePath.split('/');
+  // If the first part contains a Cloudinary transformation (like w_400,q_80, etc.), strip it out
+  if (parts.length > 1 && parts[0].includes('_')) {
+    parts.shift();
+  }
+  
+  return `${base[0]}/upload/w_${width},q_${quality || 75},f_auto/${parts.join('/')}`;
+};
+
+// ================================================
 // Scroll lock helpers (position-fixed, no overflow:hidden)
 // ================================================
 let __isScrollLocked = false;
@@ -381,7 +402,6 @@ function RoseBurstIntro({ onComplete }) {
                 height={200}
                 className={styles.roseMainImage}
                 priority
-                fetchPriority="high"
                 quality={85}
                 unoptimized
               />
@@ -707,29 +727,26 @@ function AnimatedSection({ children, delay = 0 }) {
 // ================================================
 function StatsCounter({ end, duration = 2, label, icon }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    if (isInView) {
-      let startTime;
-      const animate = (currentTime) => {
-        if (!startTime) startTime = currentTime;
-        const progress = (currentTime - startTime) / (duration * 1000);
-        if (progress < 1) {
-          setCount(Math.floor(end * progress));
-          requestAnimationFrame(animate);
-        } else {
-          setCount(end);
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        if (ref.current) {
+          ref.current.style.setProperty('--target', end);
+          ref.current.style.animationPlayState = 'running';
         }
-      };
-      requestAnimationFrame(animate);
+        obs.disconnect();
+      }
+    }, { threshold: 0.2 });
+    
+    if (ref.current) {
+      obs.observe(ref.current);
     }
-  }, [isInView, end, duration]);
+    return () => obs.disconnect();
+  }, [end]);
 
   return (
     <motion.div
-      ref={ref}
       className={styles.statCard}
       whileHover={{ scale: 1.05, y: -5 }}
       transition={{ type: "spring", stiffness: 300 }}
@@ -741,7 +758,7 @@ function StatsCounter({ end, duration = 2, label, icon }) {
       >
         {icon}
       </motion.div>
-      <div className={styles.statNumber}>{count}+</div>
+      <div ref={ref} className={`${styles.statNumber} ${styles.counter}`}></div>
       <div className={styles.statLabel}>{label}</div>
     </motion.div>
   );
@@ -795,7 +812,7 @@ function FAQItem({ question, answer, delay }) {
 
   return (
     <motion.div
-      className={styles.faqItem}
+      className={`${styles.faqItem} ${isOpen ? styles.open : ''}`}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
@@ -816,19 +833,11 @@ function FAQItem({ question, answer, delay }) {
           +
         </motion.span>
       </motion.button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            className={styles.faqAnswer}
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          >
-            <p>{answer}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className={`${styles.faqContentWrapper} ${isOpen ? styles.open : ''}`}>
+        <div className={styles.faqAnswer}>
+          <p>{answer}</p>
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -924,7 +933,7 @@ function ProductGridSkeleton() {
 // ================================================
 // PRODUCT CARD
 // ================================================
-function ProductCard({ product, index, onClick }) {
+function ProductCard({ product, index, onClick, priority = false }) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
@@ -1098,13 +1107,16 @@ function ProductCard({ product, index, onClick }) {
                 className={styles.imageWrapper}
               >
                 <Image
+                  loader={cloudinaryLoader}
                   src={productImages[currentImageIndex]}
                   alt={`${product.name} - Image ${currentImageIndex + 1}`}
                   fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  sizes="(max-width: 480px) 45vw, (max-width: 768px) 30vw, 20vw"
                   className={styles.productImage}
-                  loading="lazy"
-                  unoptimized
+                  priority={priority}
+                  {...(priority ? {} : { loading: "lazy" })}
+                  placeholder="blur"
+                  blurDataURL={LQIP_BASE64}
                   onLoad={() => setImageLoading(false)}
                   style={{ objectFit: 'contain', objectPosition: 'center' }}
                 />
@@ -1482,6 +1494,41 @@ function ProductModal({ product, onClose }) {
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+// ================================================
+// PROGRESSIVE PRODUCT GRID
+// ================================================
+function ProgressiveProductGrid({ products, onClick }) {
+  const [rendered, setRendered] = useState(4);
+  const sentinelRef = useRef(null);
+
+  useEffect(() => {
+    if (rendered >= products.length) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setRendered(n => Math.min(n + 4, products.length)) },
+      { rootMargin: '400px' }
+    );
+    if (sentinelRef.current) obs.observe(sentinelRef.current);
+    return () => obs.disconnect();
+  }, [rendered, products.length]);
+
+  return (
+    <>
+      {products.slice(0, rendered).map((product, i) => (
+        <ProductCard
+          key={product._id}
+          product={product}
+          index={i}
+          priority={i < 2}
+          onClick={onClick}
+        />
+      ))}
+      {rendered < products.length && (
+        <div ref={sentinelRef} aria-hidden="true" style={{ minWidth: '1px', flexShrink: 0 }} />
+      )}
+    </>
   );
 }
 
@@ -2778,14 +2825,10 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                           ref={(el) => (sliderRefs.current[category.slug] = el)}
                         >
                           {categoryProducts.length > 0 ? (
-                            categoryProducts.map((product, index) => (
-                              <ProductCard
-                                key={product._id}
-                                product={product}
-                                index={index}
-                                onClick={setSelectedProduct}
-                              />
-                            ))
+                            <ProgressiveProductGrid
+                              products={categoryProducts}
+                              onClick={setSelectedProduct}
+                            />
                           ) : (
                             <motion.div
                               className={styles.emptyCategory}

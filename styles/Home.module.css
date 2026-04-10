@@ -1180,6 +1180,27 @@
     letter-spacing: 0.8px;
 }
 
+@keyframes countUp {
+    from { --n: 0; }
+    to { --n: var(--target); }
+}
+
+@property --n {
+    syntax: '<integer>';
+    initial-value: 0;
+    inherits: false;
+}
+
+.counter {
+    animation: countUp 1.5s ease-out forwards;
+    animation-play-state: paused;
+    counter-reset: n var(--n);
+}
+
+.counter::after {
+    content: counter(n) "+";
+}
+
 .statLabel {
     font-size: 0.9rem;
     color: var(--text-gray);
@@ -1512,11 +1533,12 @@
     overflow: hidden;
     box-shadow: var(--shadow);
     cursor: pointer;
-    transition: var(--transition-smooth);
+    transition: transform 0.15s ease;
     border: 1px solid var(--outline-ghost);
     position: relative;
-    /* GPU-composited layer for smooth animation */
-    will-change: transform, box-shadow;
+    /* GPU layer — no reflow on scroll */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .productCard::before {
@@ -1533,8 +1555,8 @@
 
 .productCard:hover {
     /* Keep hover light and mobile-friendly */
-    transform: scale(1.01);
-    box-shadow: var(--shadow-sm);
+    transform: translateY(-4px) translateZ(0);
+    outline: 2px solid var(--pink);
 }
 
 .productCard:hover::before {
@@ -2397,10 +2419,22 @@
 .modalBtnPrimary {
   background: linear-gradient(135deg, #D4748A, #B0546A);
   box-shadow: 0 5px 18px rgba(212,116,138,.30);
+  touch-action: manipulation;
 }
 
 .modalBtnPrimary:hover {
   box-shadow: 0 8px 25px rgba(212,116,138,.45);
+}
+
+.modalBtnPrimary:active:not(:disabled) {
+  transform: scale(0.96);
+  transition: transform 80ms ease;
+}
+
+.addedButton {
+  background: #10b981 !important;
+  color: white !important;
+  box-shadow: 0 5px 18px rgba(16, 185, 129, 0.3) !important;
 }
 
 .modalBtnSecondary {
@@ -2433,6 +2467,8 @@
     padding: 4rem 2rem;
     max-width: 1400px;
     margin: 0 auto;
+    content-visibility: auto;
+    contain-intrinsic-size: 0 400px;
 }
 
 .processGrid {
@@ -2507,6 +2543,8 @@
     padding: 4rem 2rem;
     background: var(--surface-low);
     margin: 3rem 0;
+    content-visibility: auto;
+    contain-intrinsic-size: 0 400px;
 }
 
 .testimonialsGrid {
@@ -2659,11 +2697,17 @@
 .whatsappLink {
     background: linear-gradient(135deg, #25D366, #128C7E);
     border-color: #25D366;
+    will-change: transform;
+    transform: translateZ(0);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.whatsappLink:active {
+    transform: scale(0.92) translateZ(0);
 }
 
 .whatsappLink:hover {
     background: linear-gradient(135deg, #20bd5a, #0d7a6e);
-    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
 }
 
 .whatsappIcon {
@@ -3523,7 +3567,7 @@
     }
 
     .productCard:hover {
-        transform: translateY(-4px);
+        transform: translateY(-4px) translateZ(0);
     }
 
     .productImageWrapper {
@@ -4549,7 +4593,8 @@
 
 @media (hover: none) and (pointer: coarse) {
     .productCard:hover {
-        transform: translateY(-3px);
+        transform: translateY(-3px) translateZ(0);
+        outline: 2px solid var(--pink);
     }
 
     .productCard:hover .productImage {
@@ -5055,6 +5100,8 @@
     padding: 4rem 2rem;
     max-width: 900px;
     margin: 0 auto;
+    content-visibility: auto;
+    contain-intrinsic-size: 0 400px;
 }
 
 .faqGrid {
@@ -5114,8 +5161,19 @@
     justify-content: center;
 }
 
-.faqAnswer {
+.faqContentWrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 250ms ease;
     overflow: hidden;
+}
+
+.faqContentWrapper.open {
+    grid-template-rows: 1fr;
+}
+
+.faqAnswer {
+    min-height: 0;
 }
 
 .faqAnswer p {

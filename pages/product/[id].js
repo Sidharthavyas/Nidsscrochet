@@ -543,7 +543,10 @@ export default function ProductPage({
     setLightboxOpen(true);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = useCallback((e) => {
+    if (addedToCart || product.stock <= 0) return;
+
+    setAddedToCart(true);
     addToCart(
       {
         ...product,
@@ -556,9 +559,8 @@ export default function ProductPage({
       },
       quantity
     );
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 3000);
-  };
+    setTimeout(() => setAddedToCart(false), 1200);
+  }, [addToCart, product, productImages, quantity, addedToCart]);
 
   const getSalePercent = () => {
     try {
@@ -1153,13 +1155,10 @@ export default function ProductPage({
                 </div>
 
                 <button
-                  onClick={handleAddToCart}
-                  className={`${styles.modalBtn} ${styles.modalBtnPrimary}`}
+                  onPointerDown={handleAddToCart}
+                  className={`${styles.modalBtn} ${styles.modalBtnPrimary} ${addedToCart ? styles.addedButton : ''}`}
                   style={{
                     width: '100%',
-                    backgroundColor: addedToCart
-                      ? '#10b981'
-                      : '#3b82f6',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1170,10 +1169,11 @@ export default function ProductPage({
                         : 'pointer',
                     opacity: product.stock <= 0 ? 0.5 : 1,
                   }}
-                  disabled={product.stock <= 0}
+                  disabled={product.stock <= 0 || addedToCart}
+                  aria-label={addedToCart ? 'Added to cart' : 'Add to cart'}
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  {addedToCart ? '✓ Added to Cart' : 'Add to Cart'}
+                  {addedToCart ? '✓ Added' : 'Add to Cart'}
                 </button>
 
                 {addedToCart && (

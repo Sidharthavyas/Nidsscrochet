@@ -1366,6 +1366,7 @@
 
 .categoryBlock {
     margin-bottom: 4rem;
+    content-visibility: ;
 }
 
 .categoryHeader {
@@ -1483,9 +1484,7 @@
     display: flex;
     gap: 1.5rem;
     overflow-x: auto;
-    scroll-snap-type: x proximity;
     padding: 1.2rem 0.5rem 1.5rem;
-    -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;   /* prevents bubbling to drawer open */
     overscroll-behavior-y: none;
 }
@@ -1517,7 +1516,7 @@
 
 .productCard {
   flex: 0 0 270px;
-  scroll-snap-align: center;
+  scroll-snap-align: start;
   background: var(--surface-card);
   border-radius: var(--border-radius-lg);
   overflow: hidden;
@@ -1526,8 +1525,8 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   border: 1px solid var(--outline-ghost);
   position: relative;
-  contain:  paint;           /* isolates reflow to the card only */
-  animation: cardFadeIn 0.4s ease both;
+  contain:  layout style;           /* isolates reflow to the card only */
+
 }
 
 .productCard::before {
@@ -1592,7 +1591,7 @@
   height: 100%;
   position: relative;
   overflow: hidden;
-  animation: imgFadeIn 0.2s ease;
+
 }
 
 @keyframes imgFadeIn {
@@ -2972,16 +2971,17 @@
     overflow: hidden;
 }
 
-/* skeletonShimmer — used by the product card's imageSkeleton overlay */
 .skeletonShimmer {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg,
-        rgba(255,255,255,0) 0%,
-        rgba(255,255,255,0.45) 50%,
-        rgba(255,255,255,0) 100%);
-    background-size: 200% 100%;
-    animation: none ;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.45) 50%,
+      rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  /* REMOVED: animation: none; — was already none, but also remove background-size
+     since there's no animation to drive it. Simplify the element: */
+  will-change: auto;
 }
 
 .skeletonContent {
@@ -2998,6 +2998,20 @@
     background-size: 200% 100%;
     animation: shimmer 1.4s infinite;
     border-radius: 7px;
+}
+/* ADD after .skeletonLine definition: */
+.skeletonLine,
+.skeletonImageWrapper,
+.skeletonCircle {
+  /* Pause shimmer when the parent card is off-screen */
+  animation: shimmer 1.4s infinite;
+  animation-play-state: running;
+}
+
+/* Stop ALL skeleton animations once a real image has loaded 
+   (handled by the opacity:0 on skeletonRef, but also stop GPU work) */
+.imageSkeleton[style*="opacity: 0"] ~ .imageContainer .skeletonShimmer {
+  animation: none;
 }
 
 .skeletonLineShort {

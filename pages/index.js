@@ -692,6 +692,7 @@ function FloatingEmoji({ emoji, delay, duration, x, y }) {
 // ANIMATED SECTION
 // ================================================
 
+// REPLACE the entire AnimatedSection function:
 function AnimatedSection({ children, delay = 0 }) {
   const ref = useRef(null);
 
@@ -701,12 +702,15 @@ function AnimatedSection({ children, delay = 0 }) {
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          el.style.opacity = '1';
-          el.style.willChange = 'auto'; // release GPU layer after fade-in
+          requestAnimationFrame(() => {
+            if (!el) return;
+            el.style.opacity = '1';
+            el.style.willChange = 'auto';
+          });
           obs.disconnect();
         }
       },
-      { threshold: 0.05, rootMargin: '-20px' }
+      { threshold: 0.05 } // removed rootMargin: '-20px' — caused re-triggers on fast scroll
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -717,8 +721,8 @@ function AnimatedSection({ children, delay = 0 }) {
       ref={ref}
       style={{
         opacity: 0,
-        transition: `opacity 0.5s ease ${delay}s`,
-  
+        // delay only on desktop where it looks good — on mobile remove it entirely
+        transition: `opacity 0.4s ease ${delay}s`,
       }}
     >
       {children}
@@ -1453,22 +1457,25 @@ function ProgressiveProductGrid({ products, onClick }) {
   useEffect(() => { renderedRef.current = rendered; }, [rendered]);
   useEffect(() => { productsLengthRef.current = products.length; }, [products.length]);
 
-  useEffect(() => {
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && renderedRef.current < productsLengthRef.current) {
+// REPLACE the useEffect inside ProgressiveProductGrid with this:
+useEffect(() => {
+  const obs = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting && renderedRef.current < productsLengthRef.current) {
+      // setTimeout(fn, 0) pushes the setState AFTER scroll events are processed
+      setTimeout(() => {
         setRendered(n => {
           const next = Math.min(n + 4, productsLengthRef.current);
           renderedRef.current = next;
           return next;
         });
-      }
-    }, { rootMargin: '200px' });
+      }, 0);
+    }
+  }, { rootMargin: '400px' }); // larger margin = cards load earlier = less pop-in
 
-    if (sentinelRef.current) obs.observe(sentinelRef.current);
-    return () => obs.disconnect();
-  // Observer is intentionally stable — shadow refs handle stale closure
+  if (sentinelRef.current) obs.observe(sentinelRef.current);
+  return () => obs.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+}, []);
 
   return (
     <>

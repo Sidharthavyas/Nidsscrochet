@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+//main file where dashboard product pages all is there 
+
+import { useState, useEffect, useRef, useMemo, useCallback,memo } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -727,26 +729,38 @@ function AnimatedSection({ children, delay = 0 }) {
 // STATS COUNTER
 // ================================================
 function StatsCounter({ end, label, icon }) {
-  const ref = useRef(null);
+  const [count, setCount] = useState(0);
+  const hasAnimated = useRef(false);
+  const cardRef = useRef(null);
 
   useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) {
-        if (ref.current) {
-          ref.current.style.setProperty('--target', end);
-          ref.current.style.animationPlayState = 'running';
-        }
+    const el = cardRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !hasAnimated.current) {
+        hasAnimated.current = true;
         obs.disconnect();
+        const duration = 1200;
+        const startTime = performance.now();
+        const tick = (now) => {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          // ease-out cubic
+          const eased = 1 - Math.pow(1 - progress, 3);
+          setCount(Math.round(eased * end));
+          if (progress < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
       }
     }, { threshold: 0.2 });
-    if (ref.current) obs.observe(ref.current);
+    obs.observe(el);
     return () => obs.disconnect();
   }, [end]);
 
   return (
-    <div className={styles.statCard}>
+    <div ref={cardRef} className={styles.statCard}>
       <div className={styles.statIcon}>{icon}</div>
-      <div ref={ref} className={`${styles.statNumber} ${styles.counter}`} />
+      <div className={styles.statNumber}>{count}+</div>
       <div className={styles.statLabel}>{label}</div>
     </div>
   );
@@ -853,58 +867,109 @@ function ProductCardSkeleton() {
   );
 }
 
-function ProductCard({ product, index, onClick, priority = false }) {
+ 
+const ProductCard = memo(function ProductCard({ product, index, onClick, priority = false }) {
   const router = useRouter();
-  const [isHovered, setIsHovered] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-
-  const productImages = product.images && product.images.length > 0
-    ? product.images
-    : [product.image];
-
-  const productUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/product/${product._id}`
-    : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/product/${product._id}`;
-
-  const getBadge = () => {
+  const [isWishlisted, setIsWishlisted]           = useState(false);
+  const [showShareModal, setShowShareModal]         = useState(false);
+ 
+  const skeletonRef = useRef(null);
+ 
+  const productImages = useMemo(
+    () =>
+      product.images && product.images.length > 0
+        ? product.images
+        : [product.image],
+    [product.images, product.image]
+  );
+ 
+  const getProductUrl = useCallback(() => {
+    if (typeof window !== 'undefined')
+      return `${window.location.origin}/product/${product._id}`;
+    return `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/product/${product._id}`;
+  }, [product._id]);
+ 
+  const badge = useMemo(() => {
     if (product.isNew) return { text: 'NEW', color: 'green' };
     if (product.isBestSeller) return { text: 'BEST SELLER', color: 'pink' };
     if (product.stock < 3 && product.stock > 0) return { text: 'LIMITED', color: 'orange' };
     return null;
-  };
-  const badge = getBadge();
-
-  const handleWishlistToggle = (e) => {
-    e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
-  };
-
-  const handleShare = async (e) => {
-    e.stopPropagation();
-    const shareData = {
-      title: `${product.name} | Nidsscrochet`,
-      text: `Check out this beautiful ${product.name} from Nidsscrochet! ₹${product.price}`,
-      url: productUrl,
-    };
-    if (navigator.share) {
-      try { await navigator.share(shareData); }
-      catch (err) { if (err.name !== 'AbortError') setShowShareModal(true); }
-    } else {
-      setShowShareModal(true);
+  }, [product.isNew, product.isBestSeller, product.stock]);
+ 
+  const { rawPrice, rawSalePrice, discountPct } = useMemo(() => {
+    const raw = product.price?.toString().replace(/[^\d.]/g, '') || '0';
+    const rawSale = product.salePrice?.toString().replace(/[^\d.]/g, '') || null;
+    const pct = rawSale
+      ? Math.round(((parseFloat(raw) - parseFloat(rawSale)) / parseFloat(raw)) * 100)
+      : null;
+    return { rawPrice: raw, rawSalePrice: rawSale, discountPct: pct };
+  }, [product.price, product.salePrice]);
+ 
+  const handleImageLoad = useCallback(() => {
+    if (skeletonRef.current) {
+      skeletonRef.current.style.opacity = '0';
+      skeletonRef.current.style.pointerEvents = 'none';
     }
-  };
-
+  }, []);
+ 
+  const handleWishlistToggle = useCallback((e) => {
+    e.stopPropagation();
+    setIsWishlisted((prev) => !prev);
+  }, []);
+ 
+  const handleShare = useCallback(
+    async (e) => {
+      e.stopPropagation();
+      const url = getProductUrl();
+      const shareData = {
+        title: `${product.name} | Nidsscrochet`,
+        text: `Check out this beautiful ${product.name} from Nidsscrochet! ₹${rawPrice}`,
+        url,
+      };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+        } catch (err) {
+          if (err.name !== 'AbortError') setShowShareModal(true);
+        }
+      } else {
+        setShowShareModal(true);
+      }
+    },
+    [getProductUrl, product.name, rawPrice]
+  );
+ 
+  const handleCardClick = useCallback(() => {
+    router.push(`/product/${product._id}`);
+  }, [router, product._id]);
+ 
+  const handleKeyPress = useCallback(
+    (e) => {
+      if (e.key === 'Enter' || e.key === ' ') router.push(`/product/${product._id}`);
+    },
+    [router, product._id]
+  );
+ 
+  const handleMouseLeave = useCallback(() => {
+    setCurrentImageIndex(0);
+  }, []);
+ 
+  const handleDotClick = useCallback((e, idx) => {
+    e.stopPropagation();
+    setCurrentImageIndex(idx);
+  }, []);
+ 
+  const handleShareModalClose = useCallback(() => setShowShareModal(false), []);
+ 
   return (
     <>
       <div
         className={styles.productCard}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => { setIsHovered(false); setCurrentImageIndex(0); }}
-        onClick={() => router.push(`/product/${product._id}`)}
-        onKeyPress={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/product/${product._id}`); }}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleCardClick}
+        onKeyPress={handleKeyPress}
         role="button"
         tabIndex={0}
         aria-label={`View ${product.name}`}
@@ -919,26 +984,34 @@ function ProductCard({ product, index, onClick, priority = false }) {
             </div>
           )}
 
-          {/* CSS-driven wishlist button — no AnimatePresence */}
           <button
-            className={`${styles.wishlistBtn} ${isWishlisted ? styles.wishlisted : ''} ${isHovered ? styles.btnVisible : ''}`}
+            className={`${styles.wishlistBtn} ${isWishlisted ? styles.wishlisted : ''}`}
             onClick={handleWishlistToggle}
-            aria-label="Add to favorites"
+            aria-label="Add to favourites"
           >
             {isWishlisted
               ? <span style={{ color: '#e91e63', fontSize: '1.2rem' }}>♥</span>
               : <span style={{ color: '#aaa', fontSize: '1.2rem' }}>♡</span>}
           </button>
 
-          {/* CSS-driven share button — no AnimatePresence */}
           <button
-            className={`${styles.shareCardBtn} ${isHovered ? styles.btnVisible : ''}`}
+            className={styles.shareCardBtn}
             onClick={handleShare}
             aria-label="Share product"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
             </svg>
           </button>
 
@@ -948,26 +1021,21 @@ function ProductCard({ product, index, onClick, priority = false }) {
                 <span
                   key={idx}
                   className={`${styles.dot} ${idx === currentImageIndex ? styles.activeDot : ''}`}
-                  onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
+                  onClick={(e) => handleDotClick(e, idx)}
                 />
               ))}
             </div>
           )}
 
-          {/* Skeleton overlay — CSS opacity transition, no DOM removal */}
           <div
+            ref={skeletonRef}
             className={styles.imageSkeleton}
-            style={{
-              opacity: imageLoaded ? 0 : 1,
-              transition: 'opacity 0.3s ease',
-              pointerEvents: 'none',
-            }}
+            style={{ transition: 'opacity 0.3s ease' }}
           >
             <div className={styles.skeletonShimmer} />
           </div>
 
           <div className={styles.imageContainer}>
-            {/* CSS keyframe crossfade — no Framer Motion AnimatePresence */}
             <div key={currentImageIndex} className={styles.imageWrapper}>
               <Image
                 loader={cloudinaryLoader}
@@ -980,7 +1048,7 @@ function ProductCard({ product, index, onClick, priority = false }) {
                 {...(priority ? {} : { loading: 'lazy' })}
                 placeholder="blur"
                 blurDataURL={LQIP_BASE64}
-                onLoad={() => setImageLoaded(true)}
+                onLoad={handleImageLoad}
                 style={{ objectFit: 'contain', objectPosition: 'center' }}
               />
             </div>
@@ -1017,7 +1085,11 @@ function ProductCard({ product, index, onClick, priority = false }) {
             <div className={styles.colorVariants}>
               <span className={styles.colorLabel}>Colors:</span>
               {product.colors.slice(0, 5).map((color, idx) => (
-                <span key={idx} className={styles.colorDot} style={{ backgroundColor: color }} />
+                <span
+                  key={idx}
+                  className={styles.colorDot}
+                  style={{ backgroundColor: color }}
+                />
               ))}
               {product.colors.length > 5 && (
                 <span className={styles.moreColors}>+{product.colors.length - 5}</span>
@@ -1027,33 +1099,28 @@ function ProductCard({ product, index, onClick, priority = false }) {
 
           <div className={styles.productFooter}>
             <div className={styles.priceBlock}>
-              {product.salePrice ? (
+              {rawSalePrice ? (
                 <>
-                  <span className={styles.priceOriginal}>
-                    ₹{product.price?.toString().replace(/[^\d]/g, '')}
-                  </span>
-                  <span className={styles.priceSale}>
-                    ₹{product.salePrice?.toString().replace(/[^\d]/g, '')}
-                  </span>
-                  <span className={styles.priceBadge}>
-                    {Math.round(
-                      ((parseFloat(product.price.replace(/[^\d.]/g, '')) -
-                        parseFloat(product.salePrice.replace(/[^\d.]/g, ''))) /
-                        parseFloat(product.price.replace(/[^\d.]/g, ''))) * 100
-                    )}% OFF
-                  </span>
+                  <span className={styles.priceOriginal}>₹{rawPrice}</span>
+                  <span className={styles.priceSale}>₹{rawSalePrice}</span>
+                  <span className={styles.priceBadge}>{discountPct}% OFF</span>
                 </>
               ) : (
-                <span className={styles.priceSale}>
-                  ₹{product.price?.toString().replace(/[^\d]/g, '')}
-                </span>
+                <span className={styles.priceSale}>₹{rawPrice}</span>
               )}
             </div>
+
             {product.stock !== undefined && (
               <div className={styles.stockBadge}>
-                {product.stock > 0
-                  ? <span className={styles.inStock}><span className={styles.stockIcon}>✓</span>In Stock</span>
-                  : <span className={styles.outOfStock}><span className={styles.stockIcon}>✗</span>Out of Stock</span>}
+                {product.stock > 0 ? (
+                  <span className={styles.inStock}>
+                    <span className={styles.stockIcon}>✓</span>In Stock
+                  </span>
+                ) : (
+                  <span className={styles.outOfStock}>
+                    <span className={styles.stockIcon}>✗</span>Out of Stock
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -1064,16 +1131,22 @@ function ProductCard({ product, index, onClick, priority = false }) {
         {showShareModal && (
           <ShareModalComponent
             product={product}
-            productUrl={productUrl}
-            onClose={() => setShowShareModal(false)}
+            productUrl={getProductUrl()}
+            onClose={handleShareModalClose}
           />
         )}
       </AnimatePresence>
     </>
   );
-}
+// ↓ This closing is the only change from your original ↓
+}, (prev, next) =>
+  prev.product._id       === next.product._id    &&
+  prev.product.stock     === next.product.stock  &&
+  prev.product.salePrice === next.product.salePrice &&
+  prev.priority          === next.priority
+);
+ 
 
-// 3 category rows × 4 skeleton cards — exact stand-in for the real grid
 function ProductGridSkeleton() {
   return (
     <>
@@ -1366,19 +1439,36 @@ function ProductModal({ product, onClose }) {
 // ================================================
 // PROGRESSIVE PRODUCT GRID
 // ================================================
+
+// REPLACE the entire ProgressiveProductGrid function with this:
+
 function ProgressiveProductGrid({ products, onClick }) {
-  const [rendered, setRendered] = useState(4);
+  const [rendered, setRendered] = useState(Math.min(4, products.length));
   const sentinelRef = useRef(null);
+  const renderedRef = useRef(rendered);
+  // Shadow ref so the observer callback never closes over stale products.length
+  const productsLengthRef = useRef(products.length);
+
+  // Keep shadow refs in sync on every render — no observer teardown
+  useEffect(() => { renderedRef.current = rendered; }, [rendered]);
+  useEffect(() => { productsLengthRef.current = products.length; }, [products.length]);
 
   useEffect(() => {
-    if (rendered >= products.length) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setRendered(n => Math.min(n + 4, products.length)) },
-      { rootMargin: '400px' }
-    );
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && renderedRef.current < productsLengthRef.current) {
+        setRendered(n => {
+          const next = Math.min(n + 4, productsLengthRef.current);
+          renderedRef.current = next;
+          return next;
+        });
+      }
+    }, { rootMargin: '200px' });
+
     if (sentinelRef.current) obs.observe(sentinelRef.current);
     return () => obs.disconnect();
-  }, [rendered, products.length]);
+  // Observer is intentionally stable — shadow refs handle stale closure
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -1392,8 +1482,8 @@ function ProgressiveProductGrid({ products, onClick }) {
         />
       ))}
       {rendered < products.length &&
-        Array.from({ length: Math.min(4, products.length - rendered) }).map((_, i) => (
-          <div key={`sk-${i}`} className={styles.skeleton} aria-hidden="true" />
+        Array.from({ length: Math.min(2, products.length - rendered) }).map((_, i) => (
+          <ProductCardSkeleton key={`sk-${i}`} />
         ))
       }
       {rendered < products.length && (
@@ -1444,9 +1534,17 @@ export default function Home({ initialProducts, initialCategories, initialBanner
   // Data is now provided via getStaticProps (SSG)
   // No client-side fetching needed - improves SEO and performance
 
-  const getProductsByCategory = useMemo(() => {
-    return (category) => products.filter((p) => p.category === category.name);
-  }, [products]);
+const productsByCategory = useMemo(() => {
+    const map = new Map();
+    categories.forEach(cat => {
+        map.set(cat._id, products.filter(p => p.category === cat.name));
+    });
+    return map;
+}, [products, categories]);
+
+const handleProductClick = useCallback((product) => {
+    setSelectedProduct(product);
+}, []);
 
   const scrollSlider = (categorySlug, direction) => {
     const slider = sliderRefs.current[categorySlug];
@@ -2657,7 +2755,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
               </div>
             ) : (
               categories.map((category, idx) => {
-                const categoryProducts = getProductsByCategory(category);
+                const categoryProducts = productsByCategory.get(category._id);
                 return (
                   <AnimatedSection key={category._id} delay={idx * 0.15}>
                     <div className={styles.categoryBlock}>
@@ -2698,7 +2796,7 @@ export default function Home({ initialProducts, initialCategories, initialBanner
                           {categoryProducts.length > 0 ? (
                             <ProgressiveProductGrid
                               products={categoryProducts}
-                              onClick={setSelectedProduct}
+                              onClick={handleProductClick}
                             />
                           ) : (
                             <motion.div

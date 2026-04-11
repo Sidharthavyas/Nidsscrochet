@@ -3,7 +3,7 @@
    ================================================ */
 
 /* ================================================
-   MAIN CONTAINER
+   MAin Css file for home page dashboard , products all 
    ================================================ */
 
 .mainContainer {
@@ -31,7 +31,13 @@
     overscroll-behavior-x: none;
 }
 
-
+/* Replace the JS-driven isHovered toggle with pure CSS */
+.productCard:hover .wishlistBtn,
+.productCard:hover .shareCardBtn {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
 
 /* ================================================
    SHIPPING & COD BADGES (Product Detail)
@@ -1181,26 +1187,7 @@
     letter-spacing: 0.8px;
 }
 
-@keyframes countUp {
-    from { --n: 0; }
-    to { --n: var(--target); }
-}
 
-@property --n {
-    syntax: '<integer>';
-    initial-value: 0;
-    inherits: false;
-}
-
-.counter {
-    animation: countUp 1.5s ease-out forwards;
-    animation-play-state: paused;
-    counter-reset: n var(--n);
-}
-
-.counter::after {
-    content: counter(n) "+";
-}
 
 .statLabel {
     font-size: 0.9rem;
@@ -1962,7 +1949,7 @@
 
 .shareCardBtn:hover {
     background: var(--blue-light);
-    transform: scale(1.1);
+    transform: scale(1);
 }
 
 /* Rating Stars */

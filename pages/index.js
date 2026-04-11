@@ -722,7 +722,7 @@ function AnimatedSection({ children, delay = 0 }) {
       style={{
         opacity: 0,
         // delay only on desktop where it looks good — on mobile remove it entirely
-        transition: `opacity 0.4s ease ${delay}s`,
+        transition: 'opacity 0.4s ease ',
       }}
     >
       {children}
@@ -1457,20 +1457,27 @@ function ProgressiveProductGrid({ products, onClick }) {
   useEffect(() => { renderedRef.current = rendered; }, [rendered]);
   useEffect(() => { productsLengthRef.current = products.length; }, [products.length]);
 
-// REPLACE the useEffect inside ProgressiveProductGrid with this:
 useEffect(() => {
+  const scheduleUpdate = (fn) => {
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(fn, { timeout: 300 });
+    } else {
+      // Safari fallback
+      setTimeout(fn, 50);
+    }
+  };
+
   const obs = new IntersectionObserver(([entry]) => {
     if (entry.isIntersecting && renderedRef.current < productsLengthRef.current) {
-      // setTimeout(fn, 0) pushes the setState AFTER scroll events are processed
-      setTimeout(() => {
+      scheduleUpdate(() => {
         setRendered(n => {
           const next = Math.min(n + 4, productsLengthRef.current);
           renderedRef.current = next;
           return next;
         });
-      }, 0);
+      });
     }
-  }, { rootMargin: '400px' }); // larger margin = cards load earlier = less pop-in
+  }, { rootMargin: '300px' }); // reduced from 400px — less eager preload = less jank
 
   if (sentinelRef.current) obs.observe(sentinelRef.current);
   return () => obs.disconnect();
@@ -2764,60 +2771,58 @@ const handleProductClick = useCallback((product) => {
               categories.map((category, idx) => {
                 const categoryProducts = productsByCategory.get(category._id);
                 return (
-                  <AnimatedSection key={category._id} delay={idx * 0.15}>
-                    <div className={styles.categoryBlock}>
-                      <div className={styles.categoryHeader}>
-                        <h3 className={styles.categoryTitle}>
-                          <span className={styles.categoryAccent} aria-hidden="true" />
-                          {category.name.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu, '').trim()}
-                        </h3>
-                        <div className={styles.sliderControls}>
-                          <motion.button
-                            className={styles.sliderBtn}
-                            onClick={() => scrollSlider(category.slug, 'left')}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            aria-label="Previous products"
-                          >
-                            <ChevronLeft />
-                          </motion.button>
-                          <motion.button
-                            className={styles.sliderBtn}
-                            onClick={() => scrollSlider(category.slug, 'right')}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            aria-label="Next products"
-                          >
-                            <ChevronRight />
-                          </motion.button>
-                        </div>
-                      </div>
-
-                      <div className={styles.sliderWrapper}>
-                        <div className={`${styles.sliderFade} ${styles.sliderFadeLeft}`}></div>
-                        <div className={`${styles.sliderFade} ${styles.sliderFadeRight}`}></div>
-                        <div
-                          className={styles.productsSlider}
-                          ref={(el) => (sliderRefs.current[category.slug] = el)}
+                  <div key={category._id} className={styles.categoryBlock}>
+                    <div className={styles.categoryHeader}>
+                      <h3 className={styles.categoryTitle}>
+                        <span className={styles.categoryAccent} aria-hidden="true" />
+                        {category.name.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu, '').trim()}
+                      </h3>
+                      <div className={styles.sliderControls}>
+                        <motion.button
+                          className={styles.sliderBtn}
+                          onClick={() => scrollSlider(category.slug, 'left')}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          aria-label="Previous products"
                         >
-                          {categoryProducts.length > 0 ? (
-                            <ProgressiveProductGrid
-                              products={categoryProducts}
-                              onClick={handleProductClick}
-                            />
-                          ) : (
-                            <motion.div
-                              className={styles.emptyCategory}
-                              animate={{ scale: [1, 1.05, 1] }}
-                              transition={{ duration: 0.6 }}
-                            >
-                              <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center' }}><Sparkles size={16} strokeWidth={1.5} /> Coming Soon!</p>
-                            </motion.div>
-                          )}
-                        </div>
+                          <ChevronLeft />
+                        </motion.button>
+                        <motion.button
+                          className={styles.sliderBtn}
+                          onClick={() => scrollSlider(category.slug, 'right')}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          aria-label="Next products"
+                        >
+                          <ChevronRight />
+                        </motion.button>
                       </div>
                     </div>
-                  </AnimatedSection>
+
+                    <div className={styles.sliderWrapper}>
+                      <div className={`${styles.sliderFade} ${styles.sliderFadeLeft}`}></div>
+                      <div className={`${styles.sliderFade} ${styles.sliderFadeRight}`}></div>
+                      <div
+                        className={styles.productsSlider}
+                        ref={(el) => (sliderRefs.current[category.slug] = el)}
+                      >
+                        {categoryProducts.length > 0 ? (
+                          <ProgressiveProductGrid
+                            products={categoryProducts}
+                            onClick={handleProductClick}
+                          />
+                        ) : (
+                          <motion.div
+                            className={styles.emptyCategory}
+                            animate={{ scale: [1, 1.05, 1] }}
+                            transition={{ duration: 0.6 }}
+                          >
+                            <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center' }}><Sparkles size={16} strokeWidth={1.5} /> Coming Soon!</p>
+                          </motion.div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 );
               })
             )}

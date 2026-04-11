@@ -22,12 +22,15 @@
    swipe-to-open nav drawer on major sections
    ================================================ */
 .hero,
-.productsSection,
+
 .statsSection,
 .processSection,
 .testimonialsSection,
 .faqSection {
     touch-action: pan-y;
+    overscroll-behavior-x: none;
+}
+.productsSection {
     overscroll-behavior-x: none;
 }
 
@@ -1366,7 +1369,7 @@
 
 .categoryBlock {
     margin-bottom: 4rem;
-    content-visibility: none;
+ 
 }
 
 .categoryHeader {
@@ -1459,6 +1462,7 @@
     overflow-x: hidden;
     /* Capture horizontal swipes so they never reach the nav drawer */
     overscroll-behavior-x: contain;
+      touch-action: pan-x pan-y;
 }
 
 .sliderFade {
@@ -1485,8 +1489,9 @@
     gap: 1.5rem;
     overflow-x: auto;
     padding: 1.2rem 0.5rem 1.5rem;
-    overscroll-behavior-x: contain;   /* prevents bubbling to drawer open */
-    overscroll-behavior-y: none;
+    overscroll-behavior-x: contain;
+       /* prevents bubbling to drawer open */
+      touch-action: pan-x pan-y;
 }
 
 
@@ -1525,7 +1530,7 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   border: 1px solid var(--outline-ghost);
   position: relative;
-  contain:  layout style;           /* isolates reflow to the card only */
+  contain: style;           /* isolates reflow to the card only */
 
 }
 

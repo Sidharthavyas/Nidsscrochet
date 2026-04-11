@@ -689,7 +689,7 @@ function FloatingEmoji({ emoji, delay, duration, x, y }) {
 // ================================================
 // ANIMATED SECTION
 // ================================================
-// REPLACE AnimatedSection with this
+
 function AnimatedSection({ children, delay = 0 }) {
   const ref = useRef(null);
 
@@ -704,7 +704,7 @@ function AnimatedSection({ children, delay = 0 }) {
           obs.disconnect();
         }
       },
-      { threshold: 0.05, rootMargin: '-40px' }
+      { threshold: 0.05, rootMargin: '-20px' }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -716,7 +716,7 @@ function AnimatedSection({ children, delay = 0 }) {
       style={{
         opacity: 0,
         transition: `opacity 0.5s ease ${delay}s`,
-        // No willChange here — only set it right before the animation
+  
       }}
     >
       {children}

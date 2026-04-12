@@ -97,6 +97,9 @@ body {
   -webkit-overflow-scrolling: touch;
   text-rendering: optimizeSpeed;
   overscroll-behavior-x: none;
+  /* ADDED: Ensure body is never position:fixed unless explicitly set by modal */
+  position: relative;
+  min-height: 100dvh; /* FIXED: Use dvh for mobile */
 }
 
 /* ================================================

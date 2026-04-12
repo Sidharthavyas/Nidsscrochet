@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { ShoppingCart, IndianRupee, ArrowLeft, Trash2, Package, Tag, X } from 'lucide-react';
 import CartItem from './CartItem';
@@ -13,6 +13,22 @@ const Cart = () => {
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState('');
   const [isValidating, setIsValidating] = useState(false);
+
+  // CRITICAL FIX: Clean up any leaked scroll-lock styles on mount
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      document.body.classList.remove('modal-open');
+      document.body.classList.remove('no-scroll');
+    }
+  }, []);
 
   const cartTotal = getCartTotal();
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);

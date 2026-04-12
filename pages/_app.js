@@ -23,14 +23,28 @@ export default function App({ Component, pageProps }) {
   // This prevents pages from getting "stuck" if a modal/lightbox leaks overflow:hidden
   useEffect(() => {
     const handleRouteChange = () => {
+      // CRITICAL FIX: Aggressively clean up ALL scroll-lock styles
       document.body.style.overflow = '';
+      document.body.style.position = ''; // ADDED: Clean up position:fixed
+      document.body.style.top = ''; // ADDED: Clean up top offset
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
       document.body.style.touchAction = '';
       document.body.classList.remove('modal-open');
       document.body.classList.remove('no-scroll');
     };
+    
+    // Run cleanup immediately on mount (fixes cart page on direct navigation)
+    handleRouteChange();
+    
     router.events.on('routeChangeStart', handleRouteChange);
+    router.events.on('routeChangeComplete', handleRouteChange);
+    
     return () => {
       router.events.off('routeChangeStart', handleRouteChange);
+      router.events.off('routeChangeComplete', handleRouteChange);
     };
   }, [router]);
 

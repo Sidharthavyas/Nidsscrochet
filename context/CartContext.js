@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import { createContext, useContext, useReducer, useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/nextjs';
 
 const CartContext = createContext();
@@ -6,6 +6,7 @@ const CartContext = createContext();
 // Ensures every cart item has shipping_charges and cod_available fields
 const normalizeItem = (item) => ({
   ...item,
+  id: item.id || item.productId, // Ensure id exists for frontend
   shipping_charges: parseFloat(item.shipping_charges) || 0,
   cod_available: !!item.cod_available,
 });
@@ -70,28 +71,106 @@ const cartReducer = (state, action) => {
 
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, { items: [] });
-  const [isClient, setIsClient] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const { isSignedIn, userId } = useAuth();
-
-  // Mark as client-side only after mount
+  const [isHydrated, setIsHydrated] = useState(false);
+  const { isSignedIn, userId, isLoaded } = useAuth();
+  
+  // Use ref to track latest state for backend sync
+  const stateRef = useRef(state);
+  const syncTimeoutRef = useRef(null);
+  const isSyncingRef = useRef(false);
+  
+  // Keep ref in sync with state
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    stateRef.current = state;
+  }, [state]);
 
-  // Load cart from localStorage on mount (client-side only)
+  // CRITICAL FIX: Debounced backend sync using latest state from ref
+  const syncToBackend = useCallback(async (items) => {
+    if (!isSignedIn || isSyncingRef.current) return;
+    
+    try {
+      isSyncingRef.current = true;
+      await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      });
+    } catch (error) {
+      console.error('Error syncing cart to backend:', error);
+    } finally {
+      isSyncingRef.current = false;
+    }
+  }, [isSignedIn]);
+
+  // Debounced sync - prevents rapid fire requests
+  const debouncedSync = useCallback(() => {
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+    }
+    
+    syncTimeoutRef.current = setTimeout(() => {
+      syncToBackend(stateRef.current.items);
+    }, 500);
+  }, [syncToBackend]);
+
+  // HYDRATION: Load cart on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedCart = localStorage.getItem('guestCart');
-      if (savedCart) {
+    if (!isLoaded) return;
+
+    const loadCart = async () => {
+      if (isSignedIn && userId) {
+        // Load from backend for authenticated users
         try {
-          const cartItems = JSON.parse(savedCart);
-          dispatch({ type: 'LOAD_CART', payload: cartItems });
+          const guestCart = localStorage.getItem('guestCart');
+          const guestCartItems = guestCart ? JSON.parse(guestCart) : [];
+
+          if (guestCartItems.length > 0) {
+            // Merge guest cart with user cart
+            const response = await fetch('/api/cart/merge', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ items: guestCartItems }),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              dispatch({ type: 'LOAD_CART', payload: data.items });
+              localStorage.removeItem('guestCart');
+            }
+          } else {
+            // Load existing user cart
+            const response = await fetch('/api/cart');
+            if (response.ok) {
+              const data = await response.json();
+              dispatch({ type: 'LOAD_CART', payload: data.items || [] });
+            }
+          }
         } catch (error) {
-          console.error('Error loading cart from localStorage:', error);
+          console.error('Error loading cart from backend:', error);
+        }
+      } else {
+        // Load from localStorage for guests
+        const savedCart = localStorage.getItem('guestCart');
+        if (savedCart) {
+          try {
+            const cartItems = JSON.parse(savedCart);
+            dispatch({ type: 'LOAD_CART', payload: cartItems });
+          } catch (error) {
+            console.error('Error loading cart from localStorage:', error);
+          }
         }
       }
+      
+      setIsHydrated(true);
+    };
 
+    loadCart();
+  }, [isLoaded, isSignedIn, userId]);
+
+  // Load coupon from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
       const savedCoupon = localStorage.getItem('appliedCoupon');
       if (savedCoupon) {
         try {
@@ -103,55 +182,31 @@ export const CartProvider = ({ children }) => {
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes (for guests)
+  // Save to localStorage for guests, sync to backend for authenticated users
   useEffect(() => {
-    if (typeof window !== 'undefined' && !isSignedIn) {
-      localStorage.setItem('guestCart', JSON.stringify(state.items));
-    }
-  }, [state.items, isSignedIn]);
+    if (!isHydrated) return; // Don't sync during initial hydration
 
-  // Sync cart with backend for authenticated users
-  useEffect(() => {
-    if (isSignedIn && userId) {
-      syncCartWithBackend();
-    }
-  }, [isSignedIn, userId]);
-
-  const syncCartWithBackend = async () => {
-    try {
-      // Get guest cart from localStorage
-      const guestCart = localStorage.getItem('guestCart');
-      const guestCartItems = guestCart ? JSON.parse(guestCart) : [];
-
-      if (guestCartItems.length > 0) {
-        // Merge guest cart with user cart
-        const response = await fetch('/api/cart/merge', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ items: guestCartItems }),
-        });
-
-        if (response.ok) {
-          const mergedCart = await response.json();
-          dispatch({ type: 'LOAD_CART', payload: mergedCart.items });
-          localStorage.removeItem('guestCart'); // Clear guest cart after merging
-        }
-      } else {
-        // Load existing user cart
-        const response = await fetch('/api/cart');
-        if (response.ok) {
-          const userCart = await response.json();
-          dispatch({ type: 'LOAD_CART', payload: userCart.items || [] });
-        }
+    if (isSignedIn) {
+      // Sync to backend for authenticated users
+      debouncedSync();
+    } else {
+      // Save to localStorage for guests
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('guestCart', JSON.stringify(state.items));
       }
-    } catch (error) {
-      console.error('Error syncing cart with backend:', error);
     }
-  };
+  }, [state.items, isSignedIn, isHydrated, debouncedSync]);
 
-  const addToCart = (product, quantity = 1) => {
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const addToCart = useCallback((product, quantity = 1) => {
     // Use salePrice if available, otherwise use regular price
     const rawPrice = product.salePrice || product.price;
     const numericPrice = parseFloat(String(rawPrice).replace(/[^\d.]/g, '')) || 0;
@@ -165,95 +220,63 @@ export const CartProvider = ({ children }) => {
       shipping_charges: parseFloat(product.shipping_charges) || 0,
       cod_available: !!product.cod_available,
     };
+    
     dispatch({ type: 'ADD_TO_CART', payload: cartItem });
+  }, []);
 
-    // Update backend if user is authenticated
-    if (isSignedIn) {
-      updateCartBackend();
-    }
-  };
-
-  const updateQuantity = (id, quantity) => {
+  const updateQuantity = useCallback((id, quantity) => {
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
+  }, []);
 
-    // Update backend if user is authenticated
-    if (isSignedIn) {
-      updateCartBackend();
-    }
-  };
-
-  const removeFromCart = (id) => {
+  const removeFromCart = useCallback((id) => {
     dispatch({ type: 'REMOVE_FROM_CART', payload: { id } });
+  }, []);
 
-    // Update backend if user is authenticated
-    if (isSignedIn) {
-      updateCartBackend();
-    }
-  };
-
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     dispatch({ type: 'CLEAR_CART' });
     removeCoupon();
+  }, []);
 
-    // Update backend if user is authenticated
-    if (isSignedIn) {
-      updateCartBackend();
-    }
-  };
-
-  const applyCoupon = (couponData) => {
+  const applyCoupon = useCallback((couponData) => {
     setAppliedCoupon(couponData);
     if (typeof window !== 'undefined') {
       localStorage.setItem('appliedCoupon', JSON.stringify(couponData));
     }
-  };
+  }, []);
 
-  const removeCoupon = () => {
+  const removeCoupon = useCallback(() => {
     setAppliedCoupon(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('appliedCoupon');
     }
-  };
+  }, []);
 
-  const updateCartBackend = async () => {
-    try {
-      await fetch('/api/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ items: state.items }),
-      });
-    } catch (error) {
-      console.error('Error updating cart backend:', error);
-    }
-  };
-
-  const getCartTotal = () => {
-    return state.items.reduce((total, item) => {
+  const getCartTotal = useCallback(() => {
+    return stateRef.current.items.reduce((total, item) => {
       const price = parseFloat(String(item.price).replace(/[^\d.]/g, '')) || 0;
       return total + (price * item.quantity);
     }, 0);
-  };
+  }, []);
 
-  const getShippingTotal = () => {
-    return state.items.reduce((total, item) => {
+  const getShippingTotal = useCallback(() => {
+    return stateRef.current.items.reduce((total, item) => {
       return total + (parseFloat(item.shipping_charges) || 0);
     }, 0);
-  };
+  }, []);
 
-  const allItemsSupportCOD = () => {
-    if (state.items.length === 0) return false;
-    return state.items.every(item => item.cod_available === true);
-  };
+  const allItemsSupportCOD = useCallback(() => {
+    if (stateRef.current.items.length === 0) return false;
+    return stateRef.current.items.every(item => item.cod_available === true);
+  }, []);
 
-  const getCartCount = () => {
-    return state.items.reduce((count, item) => count + item.quantity, 0);
-  };
+  const getCartCount = useCallback(() => {
+    return stateRef.current.items.reduce((count, item) => count + item.quantity, 0);
+  }, []);
 
   const value = {
     items: state.items,
     appliedCoupon,
+    isHydrated,
     addToCart,
     updateQuantity,
     removeFromCart,
@@ -262,9 +285,8 @@ export const CartProvider = ({ children }) => {
     getShippingTotal,
     allItemsSupportCOD,
     getCartCount,
-    syncCartWithBackend,
     applyCoupon,
-    removeCoupon
+    removeCoupon,
   };
 
   return (

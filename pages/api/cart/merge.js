@@ -1,5 +1,6 @@
 import { getAuth } from '@clerk/nextjs/server';
 import connectDb from '../../../lib/mongodb';
+import Cart from '../../../models/Cart';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -15,29 +16,50 @@ export default async function handler(req, res) {
   try {
     await connectDb();
     
-    const { items } = req.body;
+    const { items: guestItems } = req.body;
     
-    // This is a placeholder for cart merging logic
-    // You would implement your actual cart model and merging logic here
+    if (!Array.isArray(guestItems)) {
+      return res.status(400).json({ error: 'Items must be an array' });
+    }
     
-    // Example merging logic:
-    // 1. Get existing user cart from database
-    // 2. Merge with guest cart items
-    // 3. Update quantities for duplicate items
-    // 4. Save merged cart to database
+    // Transform guest items to use productId
+    const transformedGuestItems = guestItems.map(item => ({
+      productId: item.id || item.productId,
+      name: item.name,
+      price: parseFloat(item.price),
+      image: item.image,
+      quantity: parseInt(item.quantity),
+      shipping_charges: parseFloat(item.shipping_charges) || 0,
+      cod_available: !!item.cod_available,
+    }));
     
-    // Cart merge placeholder — no sensitive data logging
-    // TODO: Implement actual cart merging with a Cart model
+    // Get or create user cart
+    let cart = await Cart.findOne({ userId });
     
-    // For now, just return the guest items as the merged cart
+    if (!cart) {
+      // No existing cart - create new one with guest items
+      cart = new Cart({
+        userId,
+        items: transformedGuestItems,
+      });
+    } else {
+      // Merge guest cart with existing user cart
+      cart.mergeItems(transformedGuestItems);
+    }
+    
+    await cart.save();
+    
     return res.status(200).json({
       success: true,
       message: 'Cart merged successfully',
-      items: items || []
+      items: cart.items,
     });
     
   } catch (error) {
     console.error('Cart merge error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
   }
 }

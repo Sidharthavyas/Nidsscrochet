@@ -3,35 +3,16 @@
 import { useCart } from '@/context/CartContext';
 import { ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useMemo } from 'react';
 import styles from '../styles/Home.module.css';
 
 const CartButton = ({ showLabel = false, variant = 'default', onClick }) => {
-  const { getCartCount } = useCart();
-  const [cartCount, setCartCount] = useState(0);
-  const [animate, setAnimate] = useState(false);
-  const prevCountRef = useRef(0);
-
-  useEffect(() => {
-    const newCount = getCartCount();
-
-    // Trigger bounce animation when count increases
-    if (newCount > prevCountRef.current) {
-      setAnimate(true);
-      const timer = setTimeout(() => setAnimate(false), 600);
-      return () => clearTimeout(timer);
-    }
-
-    prevCountRef.current = newCount;
-    setCartCount(newCount);
-  }, [getCartCount]);
-
-  // Sync count without animation on mount
-  useEffect(() => {
-    const count = getCartCount();
-    setCartCount(count);
-    prevCountRef.current = count;
-  }, [getCartCount]);
+  const { items } = useCart();
+  
+  // Calculate count directly from items - no stale closures
+  const cartCount = useMemo(() => {
+    return items.reduce((count, item) => count + item.quantity, 0);
+  }, [items]);
 
   // ===== MENU VARIANT (inside slide-out mobile menu) =====
   if (variant === 'menu') {
@@ -56,7 +37,7 @@ const CartButton = ({ showLabel = false, variant = 'default', onClick }) => {
   return (
     <Link
       href="/cart"
-      className={`${styles.cartButton} ${animate ? styles.cartBounce : ''}`}
+      className={styles.cartButton}
       onClick={onClick}
       aria-label={`Shopping cart with ${cartCount} items`}
     >
@@ -66,9 +47,7 @@ const CartButton = ({ showLabel = false, variant = 'default', onClick }) => {
           className={styles.cartIcon}
         />
         {cartCount > 0 && (
-          <span
-            className={`${styles.badge} ${animate ? styles.badgePop : ''}`}
-          >
+          <span className={styles.badge}>
             {cartCount > 99 ? '99+' : cartCount}
           </span>
         )}

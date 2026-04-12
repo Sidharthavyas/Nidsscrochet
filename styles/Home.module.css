@@ -2295,6 +2295,7 @@
     min-width: auto;
 }
 
+
 .modalDetails h2 {
     font-size: 1.7rem;
     color: var(--black);
@@ -2864,6 +2865,7 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
+    padding-bottom: 2rem;
 }
 
 .productDetailGrid {

@@ -366,6 +366,7 @@ export default function ProductPage({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
+  const addedTimerRef = useRef(null); 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Reviews
@@ -403,25 +404,26 @@ export default function ProductPage({
       ? product.images
       : [product.image];
   }, [product]);
+const handleAddToCart = useCallback(() => {
+  if (!product || product.stock <= 0) return;
+  addToCart(
+    {
+      ...product,
+      _id: product._id,
+      name: product.name,
+      price: product.salePrice || product.price,
+      image: productImages[0],
+      shipping_charges: product.shipping_charges,
+      cod_available: product.cod_available,
+    },
+    quantity
+  );
+  setAddedToCart(true);
+  // Clear any pending reset
+  if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
+  addedTimerRef.current = setTimeout(() => setAddedToCart(false), 3500);
+}, [addToCart, product, productImages, quantity]);
 
-  const handleAddToCart = useCallback((e) => {
-    if (!product || addedToCart || product.stock <= 0) return;
-
-    setAddedToCart(true);
-    addToCart(
-      {
-        ...product,
-        _id: product._id,
-        name: product.name,
-        price: product.salePrice || product.price,
-        image: productImages[0],
-        shipping_charges: product.shipping_charges,
-        cod_available: product.cod_available,
-      },
-      quantity
-    );
-    setTimeout(() => setAddedToCart(false), 1200);
-  }, [addToCart, product, productImages, quantity, addedToCart]);
 
   // Unlock scrolling on mount + route changes/unload
   useEffect(() => {
@@ -829,6 +831,7 @@ export default function ProductPage({
           <div
             onClick={() => setMobileMenuOpen(false)}
             style={{
+              height:'66px',
               position: 'fixed',
               inset: 0,
               zIndex: 999,
@@ -839,7 +842,8 @@ export default function ProductPage({
         )}
 
         {/* ============ BREADCRUMBS ============ */}
-        <div className={styles.productPageContainer}>
+        <div className={styles.productPageContainer}
+        style={{paddingTop:'1.25rem'}}>
           <div className={styles.breadcrumbs}>
             <Link href="/" className={styles.breadcrumbLink}>
               Home
@@ -1157,42 +1161,58 @@ export default function ProductPage({
                 </div>
 
                 <button
-                  onPointerDown={handleAddToCart}
-                  className={`${styles.modalBtn} ${styles.modalBtnPrimary} ${addedToCart ? styles.addedButton : ''}`}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    cursor:
-                      product.stock <= 0
-                        ? 'not-allowed'
-                        : 'pointer',
-                    opacity: product.stock <= 0 ? 0.5 : 1,
-                  }}
-                  disabled={product.stock <= 0 || addedToCart}
-                  aria-label={addedToCart ? 'Added to cart' : 'Add to cart'}
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  {addedToCart ? '✓ Added' : 'Add to Cart'}
-                </button>
+    onPointerDown={handleAddToCart}
+    className={`${styles.modalBtn} ${styles.modalBtnPrimary} ${addedToCart ? styles.addedButton : ''}`}
+    style={{
+      width: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '0.5rem',
+      cursor: product.stock <= 0 ? 'not-allowed' : 'pointer',
+      opacity: product.stock <= 0 ? 0.5 : 1,
+      transition: 'background 0.3s ease, transform 0.15s ease',
+    }}
+    disabled={product.stock <= 0}
+    aria-label={addedToCart ? 'Added to cart' : 'Add to cart'}
+  >
+    <ShoppingCart size={18} />
+    {addedToCart ? '✓  Added to Cart!' : product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
+  </button>
 
-                {addedToCart && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{
-                      marginTop: '0.5rem',
-                      textAlign: 'center',
-                      color: '#10b981',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                    }}
-                  >
-                    Item added to cart successfully!
-                  </motion.div>
-                )}
+  {addedToCart && (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0.65rem 1rem',
+        background: 'rgba(16, 185, 129, 0.08)',
+        border: '1px solid rgba(16, 185, 129, 0.2)',
+        borderRadius: '10px',
+        fontSize: '0.85rem',
+        color: '#059669',
+        fontWeight: 600,
+      }}
+    >
+      <span>Item added to your cart</span>
+      <Link
+        href="/cart"
+        style={{
+          color: '#059669',
+          textDecoration: 'underline',
+          fontWeight: 700,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        View Cart →
+      </Link>
+    </motion.div>
+  )}
+
+ 
               </div>
 
               {/* ★ REMOVED: "Order on Instagram" button — using Razorpay now */}

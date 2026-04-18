@@ -95,7 +95,7 @@ export default async function handler(req, res) {
             const alreadyUsed = await Order.findOne({
                 'customer.clerkUserId': userId,
                 couponCode: normalizedCode,
-                status: { $in: ['paid', 'pending', 'processing', 'shipped', 'delivered'] },
+                status: { $in: ['paid', 'processing', 'shipped', 'delivered'] },
             });
             if (alreadyUsed) {
                 return res.status(400).json({ success: false, message: 'You have already used this coupon code' });

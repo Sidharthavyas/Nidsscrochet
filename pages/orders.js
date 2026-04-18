@@ -53,6 +53,18 @@ export default function MyOrders() {
         }
     };
 
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case 'paid': return 'Payment Confirmed';
+            case 'processing': return 'Processing';
+            case 'shipped': return 'Shipped';
+            case 'delivered': return 'Delivered';
+            case 'cancelled': return 'Cancelled';
+            case 'failed': return 'Order Failed';
+            default: return status;
+        }
+    };
+
     if (!isLoaded || !userId) return null;
 
     return (
@@ -138,7 +150,7 @@ export default function MyOrders() {
                                 <div style={{ padding: '1.5rem 1.5rem 0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                     <div style={{ height: '12px', width: '12px', borderRadius: '50%', backgroundColor: getStatusColor(order.status) }} />
                                     <h3 style={{ margin: 0, textTransform: 'capitalize', fontSize: '1.2rem', color: getStatusColor(order.status) }}>
-                                        {order.status}
+                                        {getStatusLabel(order.status)}
                                     </h3>
                                     {order.paymentMethod === 'cod' && (
                                         <span style={{ fontSize: '0.8rem', background: '#f3f4f6', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid #e5e7eb' }}>Cash on Delivery</span>

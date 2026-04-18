@@ -16,8 +16,17 @@ export default async function handler(req, res) {
 
         await connectDB();
 
-        // Fetch all orders for this specific Clerk user, sorted newest first
-        const orders = await Order.find({ 'customer.clerkUserId': userId })
+        // ─────────────────────────────────────────────────────────────────
+        // CRITICAL FIX: Only show orders that have progressed past the
+        // payment attempt stage.  Pending/created orders are payment
+        // attempts — NOT confirmed orders.  Users should only see:
+        //   - paid, processing, shipped, delivered (success path)
+        //   - failed, cancelled (terminal states — for transparency)
+        // ─────────────────────────────────────────────────────────────────
+        const orders = await Order.find({
+            'customer.clerkUserId': userId,
+            status: { $nin: ['pending', 'created'] },
+        })
             .sort({ createdAt: -1 })
             .lean();
 

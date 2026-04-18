@@ -90,7 +90,7 @@ export default async function handler(req, res) {
             const alreadyUsed = await Order.findOne({
                 'customer.clerkUserId': userId,
                 couponCode: normalizedCode,
-                status: { $in: ['paid', 'pending', 'processing', 'shipped', 'delivered'] },
+                status: { $in: ['paid', 'processing', 'shipped', 'delivered'] },
             });
             if (alreadyUsed) {
                 return res.status(400).json({ error: 'You have already used this coupon code' });
@@ -140,13 +140,19 @@ export default async function handler(req, res) {
             },
         });
 
-        // Save order to DB with server-computed amounts
+        // ──────────────────────────────────────────────────────────────────
+        // CRITICAL FIX: Save as "pending" with an expiry — NOT as a
+        // confirmed order.  This order will only become "paid" after
+        // successful signature verification in verify-payment or webhook.
+        // ──────────────────────────────────────────────────────────────────
         const order = await Order.create({
             orderId: razorpayOrder.id,
             amount: serverAmount,
             currency: 'INR',
-            status: 'created',
+            status: 'pending',              // ← was 'created' — now clearly pending
             paymentMethod: 'online',
+            paymentVerified: false,
+            expiresAt: new Date(Date.now() + 30 * 60 * 1000), // auto-expire in 30 min
             shippingCharges: serverShipping,
             couponCode: appliedCouponCode,
             discountAmount: serverDiscount,
@@ -160,6 +166,8 @@ export default async function handler(req, res) {
                 notes: customer.notes || '',
             },
         });
+
+        console.log(`[create-order] Pending order ${razorpayOrder.id} for user ${userId}, amount ₹${serverAmount}`);
 
         return res.status(200).json({
             orderId: razorpayOrder.id,

@@ -10,6 +10,12 @@
     }
   },
   "regions": ["iad1"],
+  "crons": [
+    {
+      "path": "/api/cron/expire-orders",
+      "schedule": "*/10 * * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",

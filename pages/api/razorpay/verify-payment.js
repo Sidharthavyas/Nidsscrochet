@@ -1,3 +1,4 @@
+// pages/api/razorpay/verify-payment.js
 import crypto from 'crypto';
 import { getAuth } from '@clerk/nextjs/server';
 import connectDB from '../../../lib/mongodb';
@@ -25,7 +26,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing payment details' });
     }
 
-    // Verify signature using HMAC SHA256
+    // ── 1. Verify HMAC SHA256 signature ────────────────────────────────
     const body = razorpay_order_id + '|' + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
@@ -33,29 +34,60 @@ export default async function handler(req, res) {
       .digest('hex');
 
     if (expectedSignature !== razorpay_signature) {
-      await Order.findOneAndUpdate(
-        { orderId: razorpay_order_id },
-        { status: 'failed' }
+      console.error(`[verify-payment] SIGNATURE MISMATCH for order ${razorpay_order_id}`);
+      // Mark as failed atomically — only if still pending/created
+      await Order.updateOne(
+        { orderId: razorpay_order_id, status: { $in: ['pending', 'created'] } },
+        { $set: { status: 'failed' } }
       );
       return res.status(400).json({ error: 'Invalid payment signature' });
     }
 
-    // Signature valid — update order to paid
+    // ── 2. Atomic state transition: pending/created → paid ─────────────
+    //    This is the ONLY place an order becomes "paid" via frontend.
+    //    The condition `status: { $in: ['pending', 'created'] }` prevents:
+    //      - double-marking (idempotent if already paid)
+    //      - marking cancelled/failed orders as paid
+    //    We also verify the requesting user owns the order.
     const order = await Order.findOneAndUpdate(
-      { orderId: razorpay_order_id, 'customer.clerkUserId': userId },
       {
-        paymentId: razorpay_payment_id,
-        signature: razorpay_signature,
-        status: 'paid',
+        orderId: razorpay_order_id,
+        'customer.clerkUserId': userId,
+        status: { $in: ['pending', 'created'] },
+      },
+      {
+        $set: {
+          paymentId: razorpay_payment_id,
+          signature: razorpay_signature,
+          status: 'paid',
+          paymentVerified: true,
+          paidAt: new Date(),
+        },
       },
       { new: true }
     );
 
     if (!order) {
+      // Could be already paid (by webhook), or not found
+      const existing = await Order.findOne({ orderId: razorpay_order_id }).lean();
+      if (existing && existing.status === 'paid') {
+        // Already marked paid (likely by webhook) — return success
+        console.log(`[verify-payment] Order ${razorpay_order_id} already paid (webhook race won)`);
+        return res.status(200).json({
+          success: true,
+          orderId: existing.orderId,
+          paymentId: existing.paymentId || razorpay_payment_id,
+          amount: existing.amount,
+          alreadyProcessed: true,
+        });
+      }
+      console.error(`[verify-payment] Order not found or unauthorized: ${razorpay_order_id}, user: ${userId}`);
       return res.status(404).json({ error: 'Order not found or unauthorized' });
     }
 
-    // Increment coupon usage count if applied
+    console.log(`[verify-payment] ✅ Order ${razorpay_order_id} marked PAID for user ${userId}`);
+
+    // ── 3. Increment coupon usage count ────────────────────────────────
     if (order.couponCode) {
       try {
         await Coupon.findOneAndUpdate(
@@ -63,11 +95,13 @@ export default async function handler(req, res) {
           { $inc: { usageCount: 1 } }
         );
       } catch (err) {
-        console.error('Failed to increment coupon usage:', err);
+        console.error('[verify-payment] Failed to increment coupon usage:', err);
       }
     }
 
-    // Deduct stock atomically — only if sufficient stock exists (H-2)
+    // ── 4. Deduct stock atomically ─────────────────────────────────────
+    //    Only deduct AFTER payment is confirmed.
+    //    Guard: { stock: { $gte: quantity } } prevents overselling.
     if (order.items && order.items.length > 0) {
       for (const item of order.items) {
         if (item.productId) {
@@ -78,21 +112,21 @@ export default async function handler(req, res) {
               { new: true }
             );
             if (!updated) {
-              // Mark the order failed rather than silently oversell
+              // Out of stock after payment — mark order failed, will need manual refund
               await Order.findByIdAndUpdate(order._id, { status: 'failed' });
+              console.error(`[verify-payment] STOCK EXHAUSTED for ${item.name} (${item.productId}), order ${order.orderId} marked failed`);
               return res.status(409).json({
                 error: `"${item.name || item.productId}" is out of stock. Payment will be refunded automatically by Razorpay.`,
               });
             }
           } catch (err) {
-            console.error('Failed to deduct stock for', item.productId, err?.message || 'Unknown');
+            console.error('[verify-payment] Failed to deduct stock for', item.productId, err?.message || 'Unknown');
           }
         }
       }
     }
 
-
-    // ✅ FIX: AWAIT the email so it completes before the function terminates
+    // ── 5. Send confirmation email ─────────────────────────────────────
     let emailResult = { success: false, reason: 'not_attempted' };
     try {
       emailResult = await sendOrderConfirmationEmail(
@@ -111,10 +145,10 @@ export default async function handler(req, res) {
       orderId: order.orderId,
       paymentId: order.paymentId,
       amount: order.amount,
-      emailSent: emailResult.success, // ✅ Now you can see if it worked
+      emailSent: emailResult.success,
     });
   } catch (error) {
-    console.error('Verify payment error:', error?.message || 'Unknown error');
+    console.error('[verify-payment] Error:', error?.message || 'Unknown error');
     return res.status(500).json({ error: 'Payment verification failed' });
   }
 }

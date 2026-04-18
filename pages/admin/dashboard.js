@@ -780,8 +780,8 @@ function AdminDashboard() {
                             <span style={pageStyles.kpiTitle}>Total Revenue</span>
                             <span style={{ fontSize: '1.2rem' }}>💰</span>
                           </div>
-                          <div style={pageStyles.kpiValue}>₹{orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').reduce((sum, o) => sum + (o.amount || 0), 0).toFixed(0)}</div>
-                          <div style={pageStyles.kpiSubtext}>From {orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').length} successful orders</div>
+                          <div style={pageStyles.kpiValue}>₹{orders.filter(o => ['paid', 'processing', 'shipped', 'delivered'].includes(o.status)).reduce((sum, o) => sum + (o.amount || 0), 0).toFixed(0)}</div>
+                          <div style={pageStyles.kpiSubtext}>From {orders.filter(o => ['paid', 'processing', 'shipped', 'delivered'].includes(o.status)).length} confirmed orders</div>
                         </div>
 
                         {/* Orders Card */}
@@ -791,7 +791,7 @@ function AdminDashboard() {
                             <span style={{ fontSize: '1.2rem' }}>📦</span>
                           </div>
                           <div style={pageStyles.kpiValue}>{orders.length}</div>
-                          <div style={pageStyles.kpiSubtext}>{orders.filter(o => o.status === 'pending').length} pending processing</div>
+                          <div style={pageStyles.kpiSubtext}>{orders.filter(o => o.status === 'paid').length} paid awaiting fulfillment</div>
                         </div>
 
                         {/* Products Card */}
@@ -1431,7 +1431,7 @@ function AdminDashboard() {
             <div>
               <div className={styles.sectionActions}>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {['all', 'pending', 'processing', 'shipped', 'delivered', 'paid', 'cancelled'].map(status => (
+                  {['all', 'paid', 'processing', 'shipped', 'delivered', 'pending', 'cancelled', 'failed'].map(status => (
                     <motion.button
                       key={status}
                       className={`${styles.tabBtn} ${ordersFilter === status ? styles.active : ''}`}
@@ -1440,7 +1440,7 @@ function AdminDashboard() {
                       whileTap={{ scale: 0.98 }}
                       style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
                     >
-                      {status === 'all' ? '📋 All' : status === 'pending' ? '⏳ Pending' : status === 'processing' ? '⚙️ Processing' : status === 'shipped' ? '🚚 Shipped' : status === 'delivered' ? '✅ Delivered' : status === 'paid' ? '💰 Paid' : '❌ Cancelled'}
+                      {status === 'all' ? '📋 All' : status === 'paid' ? '💰 Paid' : status === 'processing' ? '⚙️ Processing' : status === 'shipped' ? '🚚 Shipped' : status === 'delivered' ? '✅ Delivered' : status === 'pending' ? '⏳ Pending' : status === 'cancelled' ? '❌ Cancelled' : '🔴 Failed'}
                     </motion.button>
                   ))}
                 </div>
@@ -1473,25 +1473,25 @@ function AdminDashboard() {
                     <div style={{ flex: 1, minWidth: '120px' }}>
                       <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Valid Orders</p>
                       <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#1a1a2e', margin: 0 }}>
-                        {orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').length}
+                        {orders.filter(o => ['paid', 'processing', 'shipped', 'delivered'].includes(o.status)).length}
                       </p>
                     </div>
                     <div style={{ flex: 1, minWidth: '120px' }}>
                       <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Total Revenue</p>
                       <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#e91e63', margin: 0 }}>
-                        ₹{orders.filter(o => o.status !== 'cancelled' && o.status !== 'failed').reduce((sum, o) => sum + (o.amount || 0), 0).toFixed(0)}
+                        ₹{orders.filter(o => ['paid', 'processing', 'shipped', 'delivered'].includes(o.status)).reduce((sum, o) => sum + (o.amount || 0), 0).toFixed(0)}
                       </p>
                     </div>
                     <div style={{ flex: 1, minWidth: '120px' }}>
                       <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Online Paid</p>
                       <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#059669', margin: 0 }}>
-                        {orders.filter(o => o.paymentMethod !== 'cod' && o.status !== 'cancelled' && o.status !== 'failed').length}
+                        {orders.filter(o => o.paymentMethod !== 'cod' && ['paid', 'processing', 'shipped', 'delivered'].includes(o.status)).length}
                       </p>
                     </div>
                     <div style={{ flex: 1, minWidth: '120px' }}>
                       <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>COD Orders</p>
                       <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#d97706', margin: 0 }}>
-                        {orders.filter(o => o.paymentMethod === 'cod' && o.status !== 'cancelled' && o.status !== 'failed').length}
+                        {orders.filter(o => o.paymentMethod === 'cod' && ['paid', 'processing', 'shipped', 'delivered'].includes(o.status)).length}
                       </p>
                     </div>
                   </div>
@@ -1545,7 +1545,6 @@ function AdminDashboard() {
                             }}
                           >
                             <option value="pending">⏳ Pending</option>
-                            <option value="created">🆕 Created</option>
                             <option value="paid">💰 Paid</option>
                             <option value="processing">⚙️ Processing</option>
                             <option value="shipped">🚚 Shipped</option>

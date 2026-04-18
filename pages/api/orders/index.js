@@ -59,15 +59,17 @@ export default async function handler(req, res) {
             }
 
             // SECURITY: Enforce valid state transitions — prevent arbitrary status changes
+            // pending/created = unpaid payment attempts (only cancel)
+            // paid = payment verified (begin fulfillment flow)
             const VALID_TRANSITIONS = {
-                'pending': ['processing', 'cancelled'],
-                'created': ['paid', 'cancelled', 'failed'],
-                'paid': ['processing', 'cancelled'],
+                'pending': ['cancelled'],               // unpaid — can only cancel
+                'created': ['cancelled'],               // legacy unpaid — can only cancel
+                'paid': ['processing', 'cancelled'],    // fulfillment starts here
                 'processing': ['shipped', 'cancelled'],
                 'shipped': ['delivered'],
                 'delivered': [],     // terminal state
                 'cancelled': [],     // terminal state
-                'failed': ['pending'], // allow retry
+                'failed': [],        // terminal state — user must retry via new order
             };
 
             const currentOrder = await Order.findById(orderId).lean();

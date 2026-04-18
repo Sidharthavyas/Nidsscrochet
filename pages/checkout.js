@@ -102,13 +102,15 @@ export default function Checkout() {
     }
   };
 
-  // ─── Razorpay (Online) Payment Handler ─── UNCHANGED LOGIC ───
+  // ─── Razorpay (Online) Payment Handler ─── HARDENED FLOW ───
   const handleOnlinePayment = async () => {
     setLoading(true);
     setError('');
 
+    let currentRazorpayOrderId = null; // Track for cancel/failure handling
+
     try {
-      // 1. Create Razorpay order via API
+      // 1. Create Razorpay order via API (order is saved as "pending" in DB)
       const orderRes = await fetch('/api/razorpay/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -133,6 +135,8 @@ export default function Checkout() {
         throw new Error(orderData.error || 'Failed to create order');
       }
 
+      currentRazorpayOrderId = orderData.orderId;
+
       // 2. Wait for Razorpay SDK, then open Checkout popup
       await loadRazorpaySDK();
 
@@ -145,7 +149,7 @@ export default function Checkout() {
         image: '/rose.webp',
         order_id: orderData.orderId,
         handler: async function (response) {
-          // 3. Verify payment on server
+          // 3. Verify payment on server — this is the ONLY path to "paid"
           try {
             const verifyRes = await fetch('/api/razorpay/verify-payment', {
               method: 'POST',
@@ -167,7 +171,8 @@ export default function Checkout() {
             router.push(`/order-success?orderId=${verifyData.orderId}&paymentId=${verifyData.paymentId}`);
           } catch (err) {
             console.error('Payment verification error:', err);
-            // Payment was captured on Razorpay, just redirect with available info
+            // Payment was captured on Razorpay side — the webhook will
+            // eventually mark it paid. Redirect to success with a note.
             clearCart();
             router.push(`/order-success?orderId=${response.razorpay_order_id}&paymentId=${response.razorpay_payment_id}`);
           }
@@ -185,16 +190,41 @@ export default function Checkout() {
           color: '#ff6b9d',
         },
         modal: {
-          ondismiss: function () {
+          // ── CRITICAL FIX: Cancel the pending order when user dismisses ──
+          ondismiss: async function () {
             setLoading(false);
+            if (currentRazorpayOrderId) {
+              try {
+                await fetch('/api/orders/cancel', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ razorpayOrderId: currentRazorpayOrderId }),
+                });
+              } catch (cancelErr) {
+                console.error('Failed to cancel order on dismiss:', cancelErr);
+                // Non-critical — the cron job will expire it in 30 minutes
+              }
+            }
           },
         },
       };
 
       const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', function (response) {
+      // ── CRITICAL FIX: Mark order as failed on payment failure ──
+      rzp.on('payment.failed', async function (response) {
         setError(`Payment failed: ${response.error.description}`);
         setLoading(false);
+        if (currentRazorpayOrderId) {
+          try {
+            await fetch('/api/orders/cancel', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ razorpayOrderId: currentRazorpayOrderId }),
+            });
+          } catch (failErr) {
+            console.error('Failed to mark order as failed:', failErr);
+          }
+        }
       });
       rzp.open();
     } catch (err) {

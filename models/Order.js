@@ -25,14 +25,27 @@ const OrderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['created', 'paid', 'failed', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'],
-        default: 'created',
+        enum: ['pending', 'created', 'paid', 'failed', 'processing', 'shipped', 'delivered', 'cancelled'],
+        default: 'pending',
         index: true,
     },
     paymentMethod: {
         type: String,
         enum: ['online', 'cod'],
         default: 'online',
+    },
+    paymentVerified: {
+        type: Boolean,
+        default: false,
+    },
+    paidAt: {
+        type: Date,
+        default: null,
+    },
+    expiresAt: {
+        type: Date,
+        default: null,
+        index: true,
     },
     shippingCharges: {
         type: Number,
@@ -60,6 +73,11 @@ const OrderSchema = new mongoose.Schema({
         phone: { type: String, index: true },
         address: String,
         notes: String,
+    },
+    // Webhook deduplication
+    processedWebhookEvents: {
+        type: [String],
+        default: [],
     },
 }, {
     timestamps: true,

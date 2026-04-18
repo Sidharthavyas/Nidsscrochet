@@ -7,11 +7,11 @@
    ================================================ */
 
 .cartPage {
-    min-height: 100dvh; /* FIXED: Use dvh for mobile viewport */
+    min-height: 100dvh;
     background: var(--cream);
-    padding-top: 5.5rem; /* FIXED: Account for sticky navbar height */
+    padding-top: 2rem; /* header is sticky so no extra offset needed */
     padding-bottom: 4rem;
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom)); /* iOS safe area */
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
 }
 
 .cartContainer {
@@ -563,7 +563,7 @@
 
 @media (max-width: 768px) {
     .cartPage {
-        padding-top: 4.5rem; /* FIXED: Reduced for mobile navbar */
+        padding-top: 1.5rem;
         padding-bottom: 2rem;
         padding-bottom: calc(2rem + env(safe-area-inset-bottom));
     }

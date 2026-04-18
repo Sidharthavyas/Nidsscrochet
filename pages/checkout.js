@@ -269,6 +269,16 @@ export default function Checkout() {
             .checkout-sidebar { max-width: 100% !important; flex: 1 1 100% !important; position: static !important; }
           }
         `}</style>
+        <style>{`
+          @media (max-width: 768px) {
+            .checkout-sidebar-inner {
+              max-width: 480px !important;
+              margin-left: auto !important;
+              margin-right: auto !important;
+              width: 100% !important;
+            }
+          }
+        `}</style>
       </Head>
 
       <div style={{ minHeight: '100vh', background: 'var(--cream)' }}>
@@ -465,6 +475,7 @@ export default function Checkout() {
 
             {/* Right column: Order Summary */}
             <div className="checkout-sidebar" style={{ flex: '0 0 340px', position: 'sticky', top: '1rem' }}>
+              <div className="checkout-sidebar-inner">
               <div style={{ ...pageStyles.card, animation: 'fadeInUp 0.4s ease 0.2s both' }}>
                 <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--black)', marginBottom: '1rem' }}>Order Summary</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1rem' }}>
@@ -538,6 +549,7 @@ export default function Checkout() {
                     {paymentMethod === 'cod' ? 'Your order will be confirmed by the seller' : 'Your payment is encrypted and secure'}
                   </p>
                 </div>
+              </div>
               </div>
             </div>
           </div>

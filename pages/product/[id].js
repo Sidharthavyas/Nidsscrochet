@@ -406,6 +406,8 @@ export default function ProductPage({
   }, [product]);
 const handleAddToCart = useCallback(() => {
   if (!product || product.stock <= 0) return;
+  // Guard: if already showing "Added" state, don't re-fire
+  if (addedTimerRef.current) return;
   addToCart(
     {
       ...product,
@@ -419,9 +421,10 @@ const handleAddToCart = useCallback(() => {
     quantity
   );
   setAddedToCart(true);
-  // Clear any pending reset
-  if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
-  addedTimerRef.current = setTimeout(() => setAddedToCart(false), 3500);
+  addedTimerRef.current = setTimeout(() => {
+    setAddedToCart(false);
+    addedTimerRef.current = null;
+  }, 4000);
 }, [addToCart, product, productImages, quantity]);
 
 
@@ -1161,7 +1164,7 @@ const handleAddToCart = useCallback(() => {
                 </div>
 
                 <button
-    onPointerDown={handleAddToCart}
+    onClick={handleAddToCart}
     className={`${styles.modalBtn} ${styles.modalBtnPrimary} ${addedToCart ? styles.addedButton : ''}`}
     style={{
       width: '100%',
@@ -1169,11 +1172,12 @@ const handleAddToCart = useCallback(() => {
       alignItems: 'center',
       justifyContent: 'center',
       gap: '0.5rem',
-      cursor: product.stock <= 0 ? 'not-allowed' : 'pointer',
+      cursor: product.stock <= 0 ? 'not-allowed' : (addedToCart ? 'default' : 'pointer'),
       opacity: product.stock <= 0 ? 0.5 : 1,
       transition: 'background 0.3s ease, transform 0.15s ease',
+      pointerEvents: addedToCart ? 'none' : 'auto',
     }}
-    disabled={product.stock <= 0}
+    disabled={product.stock <= 0 || addedToCart}
     aria-label={addedToCart ? 'Added to cart' : 'Add to cart'}
   >
     <ShoppingCart size={18} />

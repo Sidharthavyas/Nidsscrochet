@@ -25,7 +25,10 @@ import {
   Minus,
   Truck,
   CreditCard,
-  Zap,
+  ArrowRight,
+  Scissors,
+  Star,
+  Gift,
 } from 'lucide-react';
 
 import connectDB from '../../lib/mongodb';
@@ -1082,15 +1085,15 @@ const handleBuyNow = useCallback(() => {
               {/* Features */}
               <div className={styles.productFeatures}>
                 <div className={styles.feature}>
-                  <span className={styles.featureIcon}>🧶</span>
+                  <span className={styles.featureIcon}><Scissors size={16} /></span>
                   <span>Handcrafted</span>
                 </div>
                 <div className={styles.feature}>
-                  <span className={styles.featureIcon}>✨</span>
+                  <span className={styles.featureIcon}><Star size={16} /></span>
                   <span>Premium Quality</span>
                 </div>
                 <div className={styles.feature}>
-                  <span className={styles.featureIcon}>💝</span>
+                  <span className={styles.featureIcon}><Gift size={16} /></span>
                   <span>Gift Ready</span>
                 </div>
               </div>
@@ -1227,7 +1230,7 @@ const handleBuyNow = useCallback(() => {
     aria-label="Buy now — go directly to checkout"
     id="buy-now-btn"
   >
-    <Zap size={18} />
+    <ArrowRight size={18} />
     Buy Now
   </button>
 

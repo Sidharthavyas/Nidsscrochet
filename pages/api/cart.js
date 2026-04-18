@@ -3,8 +3,10 @@ import connectDb from '../../lib/mongodb';
 import Cart from '../../models/Cart';
 
 // Validate cart item structure
+// Frontend sends `id`, backend stores `productId` — accept both
 const validateCartItem = (item) => {
-  if (!item.productId || typeof item.productId !== 'string') {
+  const pid = item.productId || item.id;
+  if (!pid || typeof pid !== 'string') {
     throw new Error('Invalid productId');
   }
   if (!item.name || typeof item.name !== 'string') {

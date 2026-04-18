@@ -79,6 +79,12 @@ export const CartProvider = ({ children }) => {
   const stateRef = useRef(state);
   const syncTimeoutRef = useRef(null);
   const isSyncingRef = useRef(false);
+
+  // FIX: Track whether we've had a user-driven mutation since hydration.
+  // This prevents the save effect from overwriting localStorage/DB with []
+  // before LOAD_CART has run.
+  const hasHydratedRef = useRef(false);
+  const userMutatedRef = useRef(false);
   
   // Keep ref in sync with state
   useEffect(() => {
@@ -162,6 +168,9 @@ export const CartProvider = ({ children }) => {
         }
       }
       
+      // FIX: Mark hydration complete AFTER dispatch has been called.
+      // We use a ref so the save effect doesn't fire on the same render cycle.
+      hasHydratedRef.current = true;
       setIsHydrated(true);
     };
 
@@ -182,20 +191,41 @@ export const CartProvider = ({ children }) => {
     }
   }, []);
 
-  // Save to localStorage for guests, sync to backend for authenticated users
+  // FIX: Save to localStorage / sync to backend — but ONLY after hydration
+  // AND only when items have actually changed from a user action (not from LOAD_CART).
+  //
+  // The old code had a race condition:
+  //   1. Component mounts → state.items = []
+  //   2. LOAD_CART dispatches → items = [saved items]
+  //   3. But between steps 1 and 2, this effect fires with items=[] and isHydrated=true
+  //   4. This overwrites localStorage with [] → cart vanishes on next refresh
+  //
+  // FIX: We skip the very first change after hydration (which is the LOAD_CART itself).
+  // We only persist after user-driven mutations (add, remove, update, clear).
+  const prevItemsRef = useRef(state.items);
   useEffect(() => {
-    if (!isHydrated) return; // Don't sync during initial hydration
+    // Don't persist until hydration is fully complete
+    if (!hasHydratedRef.current) return;
 
+    // Skip the first update after hydration — that's LOAD_CART, not a user action
+    if (!userMutatedRef.current) {
+      // Mark: next change will be a real user mutation
+      userMutatedRef.current = true;
+      prevItemsRef.current = state.items;
+      return;
+    }
+
+    // Items actually changed → persist
     if (isSignedIn) {
-      // Sync to backend for authenticated users
       debouncedSync();
     } else {
-      // Save to localStorage for guests
       if (typeof window !== 'undefined') {
         localStorage.setItem('guestCart', JSON.stringify(state.items));
       }
     }
-  }, [state.items, isSignedIn, isHydrated, debouncedSync]);
+
+    prevItemsRef.current = state.items;
+  }, [state.items, isSignedIn, debouncedSync]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -235,6 +265,10 @@ export const CartProvider = ({ children }) => {
   const clearCart = useCallback(() => {
     dispatch({ type: 'CLEAR_CART' });
     removeCoupon();
+    // FIX: Also clear localStorage immediately on cart clear
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('guestCart');
+    }
   }, []);
 
   const applyCoupon = useCallback((couponData) => {

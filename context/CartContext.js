@@ -143,6 +143,11 @@ export const CartProvider = ({ children }) => {
               const data = await response.json();
               dispatch({ type: 'LOAD_CART', payload: data.items });
               localStorage.removeItem('guestCart');
+              // FIX #2: Sync merged cart to backend immediately so DB is
+              // guaranteed up-to-date even if user never mutates the cart.
+              if (data.items?.length > 0) {
+                syncToBackend(data.items);
+              }
             }
           } else {
             // Load existing user cart
@@ -150,6 +155,14 @@ export const CartProvider = ({ children }) => {
             if (response.ok) {
               const data = await response.json();
               dispatch({ type: 'LOAD_CART', payload: data.items || [] });
+              // FIX #1: Sync hydrated cart to backend immediately.
+              // This ensures the DB stays in sync even when the user
+              // reloads without modifying the cart (the save-effect guard
+              // skips LOAD_CART, so without this the DB would never be
+              // written to, causing cart to "disappear" on next reload).
+              if (data.items?.length > 0) {
+                syncToBackend(data.items);
+              }
             }
           }
         } catch (error) {
@@ -175,7 +188,7 @@ export const CartProvider = ({ children }) => {
     };
 
     loadCart();
-  }, [isLoaded, isSignedIn, userId]);
+  }, [isLoaded, isSignedIn, userId, syncToBackend]);
 
   // Load coupon from localStorage
   useEffect(() => {

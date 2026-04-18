@@ -2338,7 +2338,7 @@ const handleProductClick = useCallback((product) => {
                       "name": "How do I order from Nidsscrochet?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "You can order directly on our website Nidsscrochet.in, DM us on Instagram @Nidsscrochet, or message on WhatsApp at +91-9029562156. Browse our collections, pick what you love, and place your order in minutes!"
+                        "text": "Simply browse our collections on Nidsscrochet.in, add items to your cart, and checkout securely via Razorpay (UPI, cards, netbanking, wallets). For custom orders or help, you can also reach us on WhatsApp at +91-9029562156 or Instagram @Nidsscrochet."
                       }
                     },
                     {
@@ -2354,7 +2354,7 @@ const handleProductClick = useCallback((product) => {
                       "name": "Can I request a custom crochet design?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "Absolutely! We specialize in custom orders. Share your design idea, reference image, color preferences, or size requirements via Instagram DM or WhatsApp, and we'll create a unique handcrafted piece just for you. Custom orders typically take 7-14 days."
+                        "text": "Absolutely! We specialize in custom orders. Share your design idea, reference image, color preferences, or size requirements via WhatsApp (+91-9029562156) or Instagram DM (@Nidsscrochet), and we'll create a unique handcrafted piece just for you. Custom orders typically take 7-14 days."
                       }
                     },
                     {
@@ -2888,7 +2888,7 @@ const handleProductClick = useCallback((product) => {
             <div className={styles.faqGrid}>
               <FAQItem
                 question="How do I order from Nidsscrochet?"
-                answer="You can order by DMing us on Instagram @Nidsscrochet, messaging on WhatsApp at +91-9029562156/+91-7021610623, or calling us directly. Browse our collections above and share the product you like!"
+                answer="Add items to your cart, proceed to checkout, and pay securely via Razorpay — we accept UPI, cards, netbanking, and wallets. For custom orders or help, reach us on WhatsApp (+91-9029562156) or Instagram @Nidsscrochet."
                 delay={0}
               />
               <FAQItem
@@ -2898,7 +2898,7 @@ const handleProductClick = useCallback((product) => {
               />
               <FAQItem
                 question="Can I request a custom crochet design?"
-                answer="Absolutely! We love custom orders. Share your design idea, reference image, or color preferences via Instagram DM or WhatsApp, and we'll create a unique piece just for you."
+                answer="Absolutely! We love custom orders. Share your design idea, reference image, or color preferences via WhatsApp (+91-9029562156) or Instagram DM (@Nidsscrochet), and we'll create a unique piece just for you."
                 delay={0.2}
               />
               <FAQItem

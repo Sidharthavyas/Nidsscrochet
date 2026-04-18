@@ -1592,9 +1592,31 @@ const handleBuyNow = useCallback(() => {
 }
 
 // ================================================
-// SSR — direct DB access
+// STATIC GENERATION — pre-render every product page as HTML
 // ================================================
-export async function getServerSideProps({ params }) {
+export async function getStaticPaths() {
+  try {
+    await connectDB();
+    const products = await Product.find({ active: true })
+      .select('_id')
+      .lean();
+
+    const paths = products.map((p) => ({
+      params: { id: p._id.toString() },
+    }));
+
+    return {
+      paths,
+      // 'blocking' = new/unlisted products SSR on first hit, then cache as static
+      fallback: 'blocking',
+    };
+  } catch (err) {
+    console.error('getStaticPaths error:', err);
+    return { paths: [], fallback: 'blocking' };
+  }
+}
+
+export async function getStaticProps({ params }) {
   const { id } = params;
 
   try {
@@ -1609,16 +1631,7 @@ export async function getServerSideProps({ params }) {
 
     if (!product) {
       return {
-        props: {
-          error: 'Product not found',
-          product: null,
-          reviews: [],
-          reviewStats: {
-            averageRating: 0,
-            reviewCount: 0,
-            distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
-          },
-        },
+        notFound: true, // returns 404 page — cleaner than passing error prop
       };
     }
 
@@ -1643,6 +1656,9 @@ export async function getServerSideProps({ params }) {
         reviewStats: { averageRating, reviewCount, distribution },
         error: null,
       },
+      // ISR: re-generate in the background every 10 minutes
+      // keeps reviews & stock fresh without cold starts
+      revalidate: 600,
     };
   } catch (err) {
     console.error('Error fetching product:', err);
@@ -1657,6 +1673,7 @@ export async function getServerSideProps({ params }) {
           distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
         },
       },
+      revalidate: 60, // retry sooner on error
     };
   }
 }

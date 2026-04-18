@@ -8,8 +8,10 @@ import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/Home.module.css';
 import { useCart } from '@/context/CartContext';
+import { useToast } from '@/components/Toast';
 import {
   useAuth,
+  useUser,
   SignedIn,
   SignedOut,
   SignInButton,
@@ -23,6 +25,7 @@ import {
   Minus,
   Truck,
   CreditCard,
+  Zap,
 } from 'lucide-react';
 
 import connectDB from '../../lib/mongodb';
@@ -358,6 +361,8 @@ export default function ProductPage({
   const router = useRouter();
   const { addToCart } = useCart();
   const { isSignedIn } = useAuth();
+  const { user } = useUser();
+  const { showToast } = useToast();
   const isMobile = useIsMobile();
 
   const [quantity, setQuantity] = useState(1);
@@ -425,7 +430,32 @@ const handleAddToCart = useCallback(() => {
     setAddedToCart(false);
     addedTimerRef.current = null;
   }, 4000);
-}, [addToCart, product, productImages, quantity]);
+  // Show global toast — stay on page, no redirect
+  showToast({
+    message: `${product.name} added to cart`,
+    link: '/cart',
+    linkText: 'View Cart →',
+    duration: 3500,
+  });
+}, [addToCart, product, productImages, quantity, showToast]);
+
+// Buy Now — skip cart, go straight to checkout
+const handleBuyNow = useCallback(() => {
+  if (!product || product.stock <= 0) return;
+  addToCart(
+    {
+      ...product,
+      _id: product._id,
+      name: product.name,
+      price: product.salePrice || product.price,
+      image: productImages[0],
+      shipping_charges: product.shipping_charges,
+      cod_available: product.cod_available,
+    },
+    quantity
+  );
+  router.push('/checkout');
+}, [addToCart, product, productImages, quantity, router]);
 
 
   // Unlock scrolling on mount + route changes/unload
@@ -459,7 +489,12 @@ const handleAddToCart = useCallback(() => {
     setReviewError('');
     setReviewSuccess(false);
 
-    if (!reviewName.trim()) {
+    // Use Clerk user name if available, otherwise use manual input
+    const submittedName = user?.firstName
+      ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`.trim()
+      : reviewName.trim();
+
+    if (!submittedName) {
       setReviewError('Please enter your name');
       return;
     }
@@ -475,7 +510,7 @@ const handleAddToCart = useCallback(() => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productId: product._id,
-          name: reviewName.trim(),
+          name: submittedName,
           rating: reviewRating,
           comment: reviewComment.trim(),
         }),
@@ -1184,37 +1219,17 @@ const handleAddToCart = useCallback(() => {
     {addedToCart ? '✓  Added to Cart!' : product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
   </button>
 
-  {addedToCart && (
-    <motion.div
-      initial={{ opacity: 0, y: -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0.65rem 1rem',
-        background: 'rgba(16, 185, 129, 0.08)',
-        border: '1px solid rgba(16, 185, 129, 0.2)',
-        borderRadius: '10px',
-        fontSize: '0.85rem',
-        color: '#059669',
-        fontWeight: 600,
-      }}
-    >
-      <span>Item added to your cart</span>
-      <Link
-        href="/cart"
-        style={{
-          color: '#059669',
-          textDecoration: 'underline',
-          fontWeight: 700,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        View Cart →
-      </Link>
-    </motion.div>
-  )}
+  {/* Buy Now — skips cart, goes directly to checkout */}
+  <button
+    onClick={handleBuyNow}
+    className={styles.buyNowBtn}
+    disabled={product.stock <= 0}
+    aria-label="Buy now — go directly to checkout"
+    id="buy-now-btn"
+  >
+    <Zap size={18} />
+    Buy Now
+  </button>
 
  
               </div>
@@ -1327,13 +1342,34 @@ const handleAddToCart = useCallback(() => {
             </div>
           </div>
 
-          {/* Review Form */}
+          {/* Review Form — gated behind auth */}
           <div className={styles.reviewFormWrapper}>
             <h3 className={styles.reviewFormTitle}>Write a Review</h3>
+
+            {/* Only show form to signed-in users */}
+            <SignedOut>
+              <div style={{
+                textAlign: 'center',
+                padding: '2rem 1rem',
+                color: 'var(--text-gray)',
+              }}>
+                <p style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>
+                  Sign in to share your experience with this product
+                </p>
+                <SignInButton mode="modal">
+                  <button className={styles.reviewSubmitBtn} style={{ cursor: 'pointer' }}>
+                    Sign In to Review
+                  </button>
+                </SignInButton>
+              </div>
+            </SignedOut>
+
+            <SignedIn>
             <form
               onSubmit={handleReviewSubmit}
               className={styles.reviewForm}
             >
+              {/* Name is auto-filled from Clerk profile — shown as read-only */}
               <div className={styles.reviewFormRow}>
                 <label className={styles.reviewLabel}>
                   Your Name
@@ -1341,11 +1377,23 @@ const handleAddToCart = useCallback(() => {
                 <input
                   type="text"
                   className={styles.reviewInput}
+                  value={user?.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`.trim() : reviewName}
+                  readOnly={!!(user?.firstName)}
+                  onChange={(e) => !user?.firstName && setReviewName(e.target.value)}
                   placeholder="Enter your name"
-                  value={reviewName}
-                  onChange={(e) => setReviewName(e.target.value)}
                   maxLength={80}
+                  style={user?.firstName ? {
+                    background: 'rgba(255,107,157,0.04)',
+                    cursor: 'default',
+                    color: 'var(--black)',
+                    fontWeight: 600,
+                  } : {}}
                 />
+                {user?.firstName && (
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-gray)', marginTop: '2px' }}>
+                    Auto-filled from your profile
+                  </span>
+                )}
               </div>
 
               <div className={styles.reviewFormRow}>
@@ -1432,6 +1480,7 @@ const handleAddToCart = useCallback(() => {
                   : 'Submit Review'}
               </button>
             </form>
+            </SignedIn>
           </div>
 
           {/* ★ FIX 8: review cards — no animation on mobile for smooth scrolling */}

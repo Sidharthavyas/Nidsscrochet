@@ -2451,6 +2451,98 @@
   background: #10b981 !important;
   color: white !important;
   box-shadow: 0 5px 18px rgba(16, 185, 129, 0.3) !important;
+  transform: none !important;
+}
+
+/* ── Buy Now CTA ── */
+.buyNowBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 5px 18px rgba(245, 158, 11, 0.35);
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: box-shadow 0.25s ease, transform 0.15s ease;
+  font-family: inherit;
+  min-height: auto;
+  touch-action: manipulation;
+}
+
+.buyNowBtn:hover {
+  box-shadow: 0 8px 28px rgba(245, 158, 11, 0.5);
+  transform: translateY(-1px);
+}
+
+.buyNowBtn:active {
+  transform: scale(0.97);
+  transition: transform 80ms ease;
+}
+
+.buyNowBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Cart Toast / Snackbar ── */
+@keyframes toastSlideIn {
+  from { transform: translateY(80px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes toastSlideOut {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(80px); opacity: 0; }
+}
+
+.cartToast {
+  position: fixed;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background: #111827;
+  color: #fff;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.22);
+  white-space: nowrap;
+  animation: toastSlideIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+  pointer-events: none;
+}
+
+.cartToast.toastOut {
+  animation: toastSlideOut 0.25s ease both;
+}
+
+.cartToastDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
+}
+
+.cartToastLink {
+  color: #86efac;
+  font-weight: 700;
+  text-decoration: underline;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .modalBtnSecondary {
@@ -5949,6 +6041,18 @@
 @media (max-width: 768px) {
     .label {
         display: inline;
+    }
+    /* 15% larger cart icon on mobile for better tap target & visibility */
+    .cartIcon {
+        width: 23px;
+        height: 23px;
+    }
+    .badge {
+        min-width: 19px;
+        height: 19px;
+        font-size: 0.65rem;
+        top: -9px;
+        right: -9px;
     }
 }
 

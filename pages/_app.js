@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { ClerkProvider } from '@clerk/nextjs';
 import { CartProvider } from '@/context/CartContext';
+import { ToastProvider } from '@/components/Toast';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
@@ -65,6 +66,7 @@ export default function App({ Component, pageProps }) {
       }}
     >
       <CartProvider>
+        <ToastProvider>
         <Head>
           {/* Preconnect to Cloudinary — crossOrigin enables full TCP+TLS reuse */}
           <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
@@ -99,6 +101,7 @@ export default function App({ Component, pageProps }) {
           <Component {...pageProps} />
           <Analytics />
         </main>
+        </ToastProvider>
       </CartProvider>
     </ClerkProvider>
   );

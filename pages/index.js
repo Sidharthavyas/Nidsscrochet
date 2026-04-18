@@ -1794,12 +1794,22 @@ const handleProductClick = useCallback((product) => {
                     "https://www.instagram.com/Nidsscrochet",
                     "https://www.Nidsscrochet.in"
                   ],
-                  "aggregateRating": {
-                    "@type": "AggregateRating",
-                    "ratingValue": "4.9",
-                    "reviewCount": "127",
-                    "bestRating": "5"
-                  }
+                  ...((() => {
+                    // Use real aggregated review data from getStaticProps
+                    const totalReviews = products.reduce((sum, p) => sum + (p.reviewCount || 0), 0);
+                    const totalRating = products.reduce((sum, p) => sum + ((p.averageRating || 0) * (p.reviewCount || 0)), 0);
+                    if (totalReviews > 0) {
+                      return {
+                        "aggregateRating": {
+                          "@type": "AggregateRating",
+                          "ratingValue": (totalRating / totalReviews).toFixed(1),
+                          "reviewCount": String(totalReviews),
+                          "bestRating": "5"
+                        }
+                      };
+                    }
+                    return {};
+                  })())
                 },
 
                 // ---- CreativeWork: About the Craft ----
@@ -2220,55 +2230,23 @@ const handleProductClick = useCallback((product) => {
                       "closes": "20:00"
                     }
                   ],
-                  "aggregateRating": {
-                    "@type": "AggregateRating",
-                    "ratingValue": "4.9",
-                    "reviewCount": "127",
-                    "bestRating": "5",
-                    "worstRating": "1"
-                  },
-                  "review": [
-                    {
-                      "@type": "Review",
-                      "author": { "@type": "Person", "name": "Priya Sharma" },
-                      "datePublished": "2024-06-15",
-                      "reviewBody": "Absolutely love the quality! The crochet bag I ordered is so beautiful and well-made. Perfect for gifting! The packaging was also gorgeous.",
-                      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-                      "publisher": { "@type": "Organization", "name": "Google" }
-                    },
-                    {
-                      "@type": "Review",
-                      "author": { "@type": "Person", "name": "Rahul Mehta" },
-                      "datePublished": "2024-07-20",
-                      "reviewBody": "Ordered a custom design for my daughter's birthday. The attention to detail is amazing. Highly recommend Nidsscrochet for any handmade gifts!",
-                      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-                      "publisher": { "@type": "Organization", "name": "Google" }
-                    },
-                    {
-                      "@type": "Review",
-                      "author": { "@type": "Person", "name": "Ananya Singh" },
-                      "datePublished": "2024-08-10",
-                      "reviewBody": "The best handmade crochet products I've seen! Fast delivery and excellent customer service. Will order again for sure!",
-                      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-                      "publisher": { "@type": "Organization", "name": "Google" }
-                    },
-                    {
-                      "@type": "Review",
-                      "author": { "@type": "Person", "name": "Sneha Patel" },
-                      "datePublished": "2024-09-05",
-                      "reviewBody": "Ordered 50 crochet keychains as return gifts for my wedding. Every piece was perfect and my guests loved them! Thank you Nidhi!",
-                      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-                      "publisher": { "@type": "Organization", "name": "Google" }
-                    },
-                    {
-                      "@type": "Review",
-                      "author": { "@type": "Person", "name": "Kavita Deshmukh" },
-                      "datePublished": "2024-10-12",
-                      "reviewBody": "The amigurumi panda I ordered for my niece was absolutely adorable! Such fine craftsmanship. Nidsscrochet is my go-to for unique gifts now.",
-                      "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-                      "publisher": { "@type": "Organization", "name": "Google" }
+                  // aggregateRating: use real data from products (populated by getStaticProps)
+                  ...((() => {
+                    const totalReviews = products.reduce((sum, p) => sum + (p.reviewCount || 0), 0);
+                    const totalRating = products.reduce((sum, p) => sum + ((p.averageRating || 0) * (p.reviewCount || 0)), 0);
+                    if (totalReviews > 0) {
+                      return {
+                        "aggregateRating": {
+                          "@type": "AggregateRating",
+                          "ratingValue": (totalRating / totalReviews).toFixed(1),
+                          "reviewCount": String(totalReviews),
+                          "bestRating": "5",
+                          "worstRating": "1"
+                        }
+                      };
                     }
-                  ],
+                    return {};
+                  })()),
                   "sameAs": [
                     "https://www.instagram.com/Nidsscrochet",
                     "https://www.Nidsscrochet.in"
@@ -2544,29 +2522,16 @@ const handleProductClick = useCallback((product) => {
                           "value": "Mumbai, India"
                         }
                       ],
-                      "aggregateRating": {
-                        "@type": "AggregateRating",
-                        "ratingValue": product.rating || "5",
-                        "reviewCount": product.reviewCount || "12",
-                        "bestRating": "5",
-                        "worstRating": "1"
-                      },
-                      "review": {
-                        "@type": "Review",
-                        "reviewRating": {
-                          "@type": "Rating",
-                          "ratingValue": "5",
-                          "bestRating": "5"
-                        },
-                        "author": {
-                          "@type": "Person",
-                          "name": "Happy Customer"
-                        },
-                        "datePublished": product.createdAt
-                          ? product.createdAt.substring(0, 10)
-                          : "2024-01-01",
-                        "reviewBody": `Beautiful handcrafted ${product.name} from Nidsscrochet. Excellent quality and craftsmanship!`
-                      },
+                      // Only emit aggregateRating for products with real reviews
+                      ...(product.reviewCount > 0 ? {
+                        "aggregateRating": {
+                          "@type": "AggregateRating",
+                          "ratingValue": String(product.averageRating || product.rating || "5"),
+                          "reviewCount": String(product.reviewCount),
+                          "bestRating": "5",
+                          "worstRating": "1"
+                        }
+                      } : {}),
                       "offers": {
                         "@type": "Offer",
                         "priceCurrency": "INR",

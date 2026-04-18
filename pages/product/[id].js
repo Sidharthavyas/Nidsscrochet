@@ -1184,7 +1184,7 @@ const handleBuyNow = useCallback(() => {
                       {quantity}
                     </span>
                     <button
-                      onClick={() => setQuantity(quantity + 1)}
+                      onClick={() => setQuantity(Math.min(quantity + 1, product.stock))}
                       style={{
                         padding: '0.5rem',
                         backgroundColor: '#f3f4f6',

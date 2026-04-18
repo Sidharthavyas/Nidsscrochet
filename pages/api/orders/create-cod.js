@@ -65,6 +65,15 @@ export default async function handler(req, res) {
             const qty = Math.max(1, Math.floor(Number(item.quantity) || 1));
             const rawPrice = dbProduct.salePrice || dbProduct.price;
             const unitPrice = parseFloat(String(rawPrice).replace(/[^0-9.]/g, '') || '0');
+
+            // Stock validation — reject upfront before creating order
+            if (qty > (dbProduct.stock ?? 0)) {
+                return res.status(409).json({
+                    success: false,
+                    message: `Insufficient stock for "${dbProduct.name}". Only ${dbProduct.stock ?? 0} available.`,
+                });
+            }
+
             subtotal += unitPrice * qty;
             resolvedItems.push({
                 productId: id,

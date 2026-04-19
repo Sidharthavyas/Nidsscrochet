@@ -71,15 +71,6 @@ export default function App({ Component, pageProps }) {
           {/* Preconnect to Cloudinary — crossOrigin enables full TCP+TLS reuse */}
           <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-          {/* Preload the LCP rose image — fetchpriority=high moves it to top of queue */}
-          <link
-            rel="preload"
-            href="/rose.webp"
-            as="image"
-            type="image/webp"
-            // @ts-expect-error — fetchpriority is valid HTML but not yet in TS types
-            fetchpriority="high"
-          />
         </Head>
         <main className={poppins.className}>
           {/* Google Analytics */}

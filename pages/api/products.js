@@ -267,6 +267,12 @@ export default async function handler(req, res) {
           cloudinaryIds: cloudinaryIds, // All IDs
           featured: getFieldValue(fields.featured) === 'true',
           stock: parseInt(getFieldValue(fields.stock)) || 0,
+          shipping_charges: (() => {
+            const raw = getFieldValue(fields.shipping_charges);
+            if (raw === '' || raw === undefined || raw === null) return null;
+            const num = Number(raw);
+            return isNaN(num) ? null : num;
+          })(),
           cod_available: getFieldValue(fields.cod_available) === 'true',
         };
 
@@ -346,6 +352,12 @@ export default async function handler(req, res) {
         }
         if (fields.cod_available !== undefined) {
           updates.cod_available = getFieldValue(fields.cod_available) === 'true';
+        }
+        if (fields.shipping_charges !== undefined) {
+          const raw = getFieldValue(fields.shipping_charges);
+          updates.shipping_charges = (raw === '' || raw === undefined || raw === null)
+            ? null
+            : (isNaN(Number(raw)) ? null : Number(raw));
         }
         if (fields.active !== undefined) {
           updates.active = getFieldValue(fields.active) === 'true';

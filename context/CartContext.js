@@ -27,7 +27,9 @@ const cartReducer = (state, action) => {
                 ...item,
                 quantity: Math.min(item.quantity + action.payload.quantity, 99),
                 // Update shipping/cod in case product data changed
-                shipping_charges: parseFloat(action.payload.shipping_charges) || 0,
+                shipping_charges: action.payload.shipping_charges === 0
+                  ? 0
+                  : (action.payload.shipping_charges != null ? parseFloat(action.payload.shipping_charges) : null),
                 cod_available: !!action.payload.cod_available,
               }
               : item
@@ -271,7 +273,10 @@ export const CartProvider = ({ children }) => {
       price: numericPrice,
       image: product.image || product.imageUrl,
       quantity,
-      shipping_charges: parseFloat(product.shipping_charges) || 0,
+      // null = use tier, 0 = admin free. Don't collapse null → 0.
+      shipping_charges: product.shipping_charges === 0
+        ? 0
+        : (product.shipping_charges != null ? parseFloat(product.shipping_charges) : null),
       cod_available: !!product.cod_available,
     };
     

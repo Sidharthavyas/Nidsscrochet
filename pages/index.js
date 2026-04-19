@@ -3020,8 +3020,8 @@ export async function getStaticProps() {
         initialCategories: JSON.parse(JSON.stringify(categories)),
         initialBanner: JSON.parse(JSON.stringify(banner)),
       },
-      // Revalidate once per hour (3600s) - ultra-safe for free tier
-      revalidate: 3600,
+      // Fallback: revalidate every 5 min (on-demand revalidation handles immediate updates)
+      revalidate: 300,
     };
   } catch (error) {
     console.error('getStaticProps error:', error);

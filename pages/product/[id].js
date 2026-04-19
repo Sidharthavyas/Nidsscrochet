@@ -1656,9 +1656,8 @@ export async function getStaticProps({ params }) {
         reviewStats: { averageRating, reviewCount, distribution },
         error: null,
       },
-      // ISR: re-generate in the background every 10 minutes
-      // keeps reviews & stock fresh without cold starts
-      revalidate: 600,
+      // Fallback: re-generate every 2 min (on-demand revalidation handles immediate updates)
+      revalidate: 120,
     };
   } catch (err) {
     console.error('Error fetching product:', err);

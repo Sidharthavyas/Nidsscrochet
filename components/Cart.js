@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import styles from '../styles/Cart.module.css';
 
 const Cart = () => {
-  const { items, getCartTotal, clearCart, appliedCoupon, applyCoupon, removeCoupon } = useCart();
+  const { items, getCartTotal, getShippingTotal, clearCart, appliedCoupon, applyCoupon, removeCoupon } = useCart();
   const router = useRouter();
 
   const [couponCode, setCouponCode] = useState('');
@@ -82,11 +82,11 @@ const Cart = () => {
     if (discountAmount > cartTotal) discountAmount = cartTotal;
   }
 
-  // Mirror the server rule exactly (create-order.js line 175)
-  const discountedSubtotal = cartTotal - discountAmount;
-  const shippingTotal = discountedSubtotal >= 500 ? 0 : 80;
+  // Use the centralized shipping calculation from CartContext (computeShipping).
+  // This respects admin overrides (shipping_charges === 0) and the tiered system.
+  const shippingTotal = getShippingTotal();
 
-  const orderTotal = discountedSubtotal + shippingTotal;
+  const orderTotal = cartTotal - discountAmount + shippingTotal;
 
   if (items.length === 0) {
     return (

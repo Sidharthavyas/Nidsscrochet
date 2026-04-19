@@ -69,6 +69,32 @@ const cartReducer = (state, action) => {
         items: (action.payload || []).map(normalizeItem)
       };
 
+    // Refresh prices/shipping from fresh API data without triggering a "user mutation"
+    case 'REFRESH_ITEMS':
+      return {
+        ...state,
+        items: state.items.map((item) => {
+          const fresh = (action.payload || []).find(
+            (p) => (p._id || p.id) === item.id
+          );
+          if (!fresh) return item;
+          const freshPrice = parseFloat(
+            String(fresh.salePrice || fresh.price).replace(/[^\d.]/g, '')
+          ) || item.price;
+          return {
+            ...item,
+            price: freshPrice,
+            shipping_charges:
+              fresh.shipping_charges === 0
+                ? 0
+                : fresh.shipping_charges != null
+                  ? parseFloat(fresh.shipping_charges)
+                  : null,
+            cod_available: !!fresh.cod_available,
+          };
+        }),
+      };
+
     default:
       return state;
   }
@@ -193,6 +219,43 @@ export const CartProvider = ({ children }) => {
     };
 
     loadCart();
+
+    // ── Refresh stale cart items with fresh prices/shipping from API ──
+    // This runs once after hydration so cart/checkout always reflect
+    // the latest admin-set prices and shipping_charges.
+    const refreshCartFromAPI = async () => {
+      // Wait a tick for LOAD_CART to have fired
+      await new Promise((r) => setTimeout(r, 100));
+
+      const currentItems = stateRef.current.items;
+      if (currentItems.length === 0) return;
+
+      const ids = currentItems.map((i) => i.id).filter(Boolean);
+      if (ids.length === 0) return;
+
+      try {
+        // Fetch each product's fresh data from the API
+        const responses = await Promise.all(
+          ids.map((id) =>
+            fetch(`/api/products?id=${id}`)
+              .then((r) => (r.ok ? r.json() : null))
+              .catch(() => null)
+          )
+        );
+
+        const freshProducts = responses
+          .filter((r) => r?.success && r.data)
+          .map((r) => r.data);
+
+        if (freshProducts.length > 0) {
+          dispatch({ type: 'REFRESH_ITEMS', payload: freshProducts });
+        }
+      } catch (err) {
+        console.error('Error refreshing cart items:', err);
+      }
+    };
+
+    refreshCartFromAPI();
   }, [isLoaded, isSignedIn, userId, syncToBackend]);
 
   // Load coupon from localStorage

@@ -179,7 +179,7 @@ export default async function handler(req, res) {
             appliedCouponCode = normalizedCode;
         }
 
-        // Compute server-side shipping (free over ₹500)
+        // Compute server-side shipping (< ₹500 → ₹80, ₹500–799 → ₹50, ≥ ₹800 → free)
         const discountedSubtotal = subtotal - serverDiscount;
        const serverShipping = computeShipping(resolvedItems, discountedSubtotal);
         const serverAmount = Math.max(0, discountedSubtotal + serverShipping);

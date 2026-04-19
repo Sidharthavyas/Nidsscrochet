@@ -70,8 +70,8 @@ const Cart = () => {
     }
   };
 
-  // Compute discount first so we can apply the same free-shipping threshold
-  // the server uses: free when (subtotal − discount) >= ₹500, else ₹80 flat.
+  // Compute discount first so we can apply the same shipping tiers
+  // the server uses: < ₹500 → ₹80, ₹500–799 → ₹50, ≥ ₹800 → free.
   let discountAmount = 0;
   if (appliedCoupon) {
     if (appliedCoupon.discountType === 'percentage') {

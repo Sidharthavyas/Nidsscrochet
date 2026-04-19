@@ -7,6 +7,7 @@ import connectDB from '../../../lib/mongodb';
 import Order from '../../../models/Order';
 import Product from '../../../models/Product';
 import Coupon from '../../../models/Coupon';
+import { computeShipping } from '../../../lib/shipping';
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -133,6 +134,7 @@ export default async function handler(req, res) {
                 price: unitPrice,
                 quantity: qty,
                 image: dbProduct.image || (dbProduct.images?.[0] ?? ''),
+                 shipping_charges: dbProduct.shipping_charges ?? null,
             });
         }
 
@@ -170,9 +172,9 @@ export default async function handler(req, res) {
             appliedCouponCode = normalizedCode;
         }
 
-        // Compute shipping server-side (free over ₹500)
+        
         const discountedSubtotal = subtotal - serverDiscount;
-        const serverShipping = discountedSubtotal >= 500 ? 0 : 80;
+        const serverShipping = computeShipping(resolvedItems, discountedSubtotal);
         const serverAmount = Math.max(0, discountedSubtotal + serverShipping);
 
         if (serverAmount <= 0) {

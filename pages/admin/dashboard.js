@@ -54,7 +54,7 @@ function AdminDashboard() {
     salePrice: '',
     stock: '0',
     featured: false,
-    shipping_charges: '0',
+    shipping_charges: '',
     cod_available: false,
   });
 
@@ -336,7 +336,9 @@ function AdminDashboard() {
       salePrice: product.salePrice || '',
       stock: product.stock.toString(),
       featured: product.featured,
-      shipping_charges: (product.shipping_charges || 0).toString(),
+      shipping_charges: product.shipping_charges === null || product.shipping_charges === undefined
+  ? ''
+  : product.shipping_charges.toString(),
       cod_available: !!product.cod_available,
     });
     setImagePreviews(product.images || [product.image]);
@@ -360,7 +362,7 @@ function AdminDashboard() {
       salePrice: '',
       stock: '0',
       featured: false,
-      shipping_charges: '0',
+      shipping_charges: '',
       cod_available: false,
     });
     setImageFiles([]);
@@ -391,7 +393,10 @@ function AdminDashboard() {
       formDataToSend.append('salePrice', formData.salePrice || '');
       formDataToSend.append('stock', formData.stock);
       formDataToSend.append('featured', formData.featured);
-      formDataToSend.append('shipping_charges', formData.shipping_charges || '0');
+      formDataToSend.append(
+  'shipping_charges',
+  formData.shipping_charges === '' ? '' : formData.shipping_charges
+);
       formDataToSend.append('cod_available', formData.cod_available);
 
       // Compress and append multiple images before upload
@@ -990,7 +995,7 @@ function AdminDashboard() {
                             min="0"
                             placeholder="0 = Free Shipping"
                           />
-                          <small>Set to 0 for free shipping</small>
+<small>Leave blank = auto tier (₹80/50/40/free). Set to 0 = always free for this product.</small>
                         </div>
                       </div>
 
@@ -1173,11 +1178,11 @@ function AdminDashboard() {
                             <span className={styles.stock}>Stock: {product.stock}</span>
                           </div>
                           <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
-                            {product.shipping_charges > 0 ? (
-                              <span style={{ fontSize: '0.7em', background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: '4px' }}>🚚 ₹{product.shipping_charges}</span>
-                            ) : (
-                              <span style={{ fontSize: '0.7em', background: '#d1fae5', color: '#065f46', padding: '2px 6px', borderRadius: '4px' }}>🚚 Free</span>
-                            )}
+                           {product.shipping_charges === 0 ? (
+                                <span style={{ fontSize: '0.7em', background: '#d1fae5', color: '#065f46', padding: '2px 6px', borderRadius: '4px' }}>🚚 Admin Free</span>
+                              ) : (
+                                <span style={{ fontSize: '0.7em', background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: '4px' }}>🚚 Tier-based</span>
+                              )}
                             {product.cod_available && (
                               <span style={{ fontSize: '0.7em', background: '#ede9fe', color: '#5b21b6', padding: '2px 6px', borderRadius: '4px' }}>📦 COD</span>
                             )}

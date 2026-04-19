@@ -72,7 +72,7 @@ const ProductSchema = new mongoose.Schema(
         },
         shipping_charges: {
             type: Number,
-            default: 0,
+            default: null,
         },
         cod_available: {
             type: Boolean,

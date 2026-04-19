@@ -10,6 +10,7 @@ import Coupon from '../../../models/Coupon';
 import Product from '../../../models/Product';
 import mongoose from 'mongoose';
 import { sendOrderConfirmationEmail } from '../../../lib/email';
+import { computeShipping } from '../../../lib/shipping';
 
 // ── Simple rate limiter (per IP, 5 COD orders/min) ─────────────────────
 const rateLimitMap = new Map();
@@ -133,6 +134,7 @@ export default async function handler(req, res) {
                 price: unitPrice,
                 quantity: qty,
                 image: dbProduct.image || (dbProduct.images?.[0] ?? ''),
+                shipping_charges: dbProduct.shipping_charges ?? null,
             });
         }
 
@@ -179,7 +181,7 @@ export default async function handler(req, res) {
 
         // Compute server-side shipping (free over ₹500)
         const discountedSubtotal = subtotal - serverDiscount;
-        const serverShipping = discountedSubtotal >= 500 ? 0 : 80;
+       const serverShipping = computeShipping(resolvedItems, discountedSubtotal);
         const serverAmount = Math.max(0, discountedSubtotal + serverShipping);
 
         // Generate a unique COD order ID using cryptographically random bytes

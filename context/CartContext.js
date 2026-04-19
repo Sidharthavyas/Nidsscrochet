@@ -1,13 +1,16 @@
 import { createContext, useContext, useReducer, useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/nextjs';
-
+import { computeShipping } from '../lib/shipping';
 const CartContext = createContext();
 
 // Ensures every cart item has shipping_charges and cod_available fields
 const normalizeItem = (item) => ({
   ...item,
-  id: item.id || item.productId, // Ensure id exists for frontend
-  shipping_charges: parseFloat(item.shipping_charges) || 0,
+  id: item.id || item.productId,
+  // null = use tier, 0 = admin free. Don't collapse null → 0.
+  shipping_charges: item.shipping_charges === 0
+    ? 0
+    : (item.shipping_charges != null ? parseFloat(item.shipping_charges) : null),
   cod_available: !!item.cod_available,
 });
 
@@ -313,11 +316,26 @@ export const CartProvider = ({ children }) => {
     }, 0);
   }, []);
 
-  const getShippingTotal = useCallback(() => {
-    return stateRef.current.items.reduce((total, item) => {
-      return total + (parseFloat(item.shipping_charges) || 0);
-    }, 0);
-  }, []);
+const getShippingTotal = useCallback(() => {
+  const items = stateRef.current.items;
+  if (items.length === 0) return 0;
+
+  const subtotal = items.reduce((total, item) => {
+    const price = parseFloat(String(item.price).replace(/[^\d.]/g, '')) || 0;
+    return total + price * item.quantity;
+  }, 0);
+
+  // Apply coupon discount if any
+  const coupon = appliedCoupon;
+  let discount = 0;
+  if (coupon) {
+    discount = coupon.discountType === 'percentage'
+      ? (subtotal * coupon.discountValue) / 100
+      : Math.min(coupon.discountValue, subtotal);
+  }
+
+  return computeShipping(items, subtotal - discount);
+}, [appliedCoupon]);
 
   const allItemsSupportCOD = useCallback(() => {
     if (stateRef.current.items.length === 0) return false;

@@ -1431,7 +1431,7 @@ function AdminDashboard() {
             <div>
               <div className={styles.sectionActions}>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {['all', 'paid', 'processing', 'shipped', 'delivered', 'pending', 'cancelled', 'failed'].map(status => (
+                  {['all', 'paid', 'processing', 'shipped', 'delivered', 'pending', 'cancelled', 'failed', 'guest'].map(status => (
                     <motion.button
                       key={status}
                       className={`${styles.tabBtn} ${ordersFilter === status ? styles.active : ''}`}
@@ -1440,7 +1440,7 @@ function AdminDashboard() {
                       whileTap={{ scale: 0.98 }}
                       style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
                     >
-                      {status === 'all' ? '📋 All' : status === 'paid' ? '💰 Paid' : status === 'processing' ? '⚙️ Processing' : status === 'shipped' ? '🚚 Shipped' : status === 'delivered' ? '✅ Delivered' : status === 'pending' ? '⏳ Pending' : status === 'cancelled' ? '❌ Cancelled' : '🔴 Failed'}
+                      {status === 'all' ? '📋 All' : status === 'paid' ? '💰 Paid' : status === 'processing' ? '⚙️ Processing' : status === 'shipped' ? '🚚 Shipped' : status === 'delivered' ? '✅ Delivered' : status === 'pending' ? '⏳ Pending' : status === 'cancelled' ? '❌ Cancelled' : status === 'guest' ? '👤 Guest' : '🔴 Failed'}
                     </motion.button>
                   ))}
                 </div>
@@ -1510,6 +1510,9 @@ function AdminDashboard() {
                           <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.25rem', color: '#1a1a2e' }}>
                             {order.paymentMethod === 'cod' ? '📦' : '💳'} Order #{order.orderId?.slice(0, 20) || order._id?.slice(-8)}
                           </h3>
+                          {order.isGuest && (
+                            <span style={{ fontSize: '0.7rem', background: '#ede9fe', color: '#5b21b6', padding: '2px 8px', borderRadius: '6px', fontWeight: 600 }}>👤 Guest</span>
+                          )}
                           <p style={{ fontSize: '0.78rem', color: '#999' }}>
                             {new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
                           </p>

@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import styles from '../styles/Cart.module.css';
 
 const Cart = () => {
-  const { items, getCartTotal, getShippingTotal, clearCart, appliedCoupon, applyCoupon, removeCoupon } = useCart();
+  const { items, getCartTotal, clearCart, appliedCoupon, applyCoupon, removeCoupon } = useCart();
   const router = useRouter();
 
   const [couponCode, setCouponCode] = useState('');
@@ -70,8 +70,8 @@ const Cart = () => {
     }
   };
 
-  const shippingTotal = getShippingTotal();
-
+  // Compute discount first so we can apply the same free-shipping threshold
+  // the server uses: free when (subtotal − discount) >= ₹500, else ₹80 flat.
   let discountAmount = 0;
   if (appliedCoupon) {
     if (appliedCoupon.discountType === 'percentage') {
@@ -82,7 +82,11 @@ const Cart = () => {
     if (discountAmount > cartTotal) discountAmount = cartTotal;
   }
 
-  const orderTotal = cartTotal - discountAmount + shippingTotal;
+  // Mirror the server rule exactly (create-order.js line 175)
+  const discountedSubtotal = cartTotal - discountAmount;
+  const shippingTotal = discountedSubtotal >= 500 ? 0 : 80;
+
+  const orderTotal = discountedSubtotal + shippingTotal;
 
   if (items.length === 0) {
     return (

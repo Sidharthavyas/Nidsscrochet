@@ -12,12 +12,16 @@ export default function MyOrders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    // Guest track order state
+    const [activeTab, setActiveTab] = useState(userId ? 'my-orders' : 'track');
+    const [trackOrderId, setTrackOrderId] = useState('');
+    const [trackEmail, setTrackEmail] = useState('');
+    const [trackedOrder, setTrackedOrder] = useState(null);
+    const [trackLoading, setTrackLoading] = useState(false);
+    const [trackError, setTrackError] = useState('');
 
-    useEffect(() => {
-        if (isLoaded && !userId) {
-            router.push('/');
-        }
-    }, [isLoaded, userId, router]);
+    // Switch to 'my-orders' tab once user logs in
+    useEffect(() => { if (userId) setActiveTab('my-orders'); }, [userId]);
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -37,9 +41,35 @@ export default function MyOrders() {
                 setLoading(false);
             }
         };
-
         if (userId) fetchOrders();
+        else setLoading(false);
     }, [userId]);
+
+    const handleTrackOrder = async (e) => {
+        e.preventDefault();
+        if (!trackOrderId.trim() || !trackEmail.trim()) {
+            setTrackError('Please enter both Order ID and email address.');
+            return;
+        }
+        setTrackLoading(true);
+        setTrackError('');
+        setTrackedOrder(null);
+        try {
+            const res = await fetch('/api/orders/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: trackOrderId.trim(), email: trackEmail.trim() }),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.message || 'Order not found');
+            setTrackedOrder(data.data);
+        } catch (err) {
+            setTrackError(err.message);
+        } finally {
+            setTrackLoading(false);
+        }
+    };
+
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -65,7 +95,7 @@ export default function MyOrders() {
         }
     };
 
-    if (!isLoaded || !userId) return null;
+    if (!isLoaded) return null;
 
     return (
         <div style={{ backgroundColor: 'var(--bg-color)', minHeight: '100vh', fontFamily: 'var(--font-poppins)' }}>
@@ -74,7 +104,7 @@ export default function MyOrders() {
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
 
-            {/* Simple Navbar Header for Orders Page */}
+            {/* Navbar */}
             <nav className={styles.navbar} style={{ position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid var(--gray)', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)' }}>
                 <div className={styles.navWrapper} style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -89,8 +119,89 @@ export default function MyOrders() {
             </nav>
 
             <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 1rem' }}>
-                <h1 style={{ fontSize: '2rem', marginBottom: '2rem', color: 'var(--black)' }}>Your Orders</h1>
+                <h1 style={{ fontSize: '2rem', marginBottom: '1.5rem', color: 'var(--black)' }}>Orders</h1>
 
+                {/* Tab switcher */}
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', borderBottom: '2px solid var(--gray)', paddingBottom: '0' }}>
+                    {userId && (
+                        <button onClick={() => setActiveTab('my-orders')} style={{
+                            padding: '0.6rem 1.2rem', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
+                            color: activeTab === 'my-orders' ? 'var(--pink)' : 'var(--text-gray)',
+                            borderBottom: activeTab === 'my-orders' ? '2px solid var(--pink)' : '2px solid transparent',
+                            marginBottom: '-2px', transition: 'all 0.2s',
+                        }}>📦 My Orders</button>
+                    )}
+                    <button onClick={() => setActiveTab('track')} style={{
+                        padding: '0.6rem 1.2rem', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
+                        color: activeTab === 'track' ? 'var(--pink)' : 'var(--text-gray)',
+                        borderBottom: activeTab === 'track' ? '2px solid var(--pink)' : '2px solid transparent',
+                        marginBottom: '-2px', transition: 'all 0.2s',
+                    }}>🔍 Track Order</button>
+                </div>
+
+                {/* Track Order tab */}
+                {activeTab === 'track' && (
+                    <div style={{ maxWidth: '480px', margin: '0 auto' }}>
+                        <div style={{ background: 'var(--white)', borderRadius: '20px', padding: '2rem', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '1px solid var(--gray)' }}>
+                            <div style={{ fontSize: '2.5rem', textAlign: 'center', marginBottom: '0.75rem' }}>📦</div>
+                            <h2 style={{ textAlign: 'center', fontSize: '1.3rem', marginBottom: '0.5rem', color: 'var(--black)' }}>Track Your Order</h2>
+                            <p style={{ textAlign: 'center', color: 'var(--text-gray)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+                                Enter the Order ID from your confirmation email and the email you used to place the order.
+                            </p>
+                            <form onSubmit={handleTrackOrder} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: 'var(--black)' }}>Order ID *</label>
+                                    <input type="text" value={trackOrderId} onChange={e => setTrackOrderId(e.target.value)}
+                                        placeholder="e.g. order_XXXXXXXXXXXXXXXXXX"
+                                        style={{ width: '100%', padding: '0.7rem 1rem', border: '1.5px solid var(--gray)', borderRadius: '10px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box', fontFamily: 'monospace' }} />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.35rem', color: 'var(--black)' }}>Email Address *</label>
+                                    <input type="email" value={trackEmail} onChange={e => setTrackEmail(e.target.value)}
+                                        placeholder="Email used during checkout"
+                                        style={{ width: '100%', padding: '0.7rem 1rem', border: '1.5px solid var(--gray)', borderRadius: '10px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+                                </div>
+                                {trackError && <p style={{ color: '#dc2626', fontSize: '0.82rem', margin: 0 }}>{trackError}</p>}
+                                <button type="submit" disabled={trackLoading} style={{
+                                    background: 'var(--pink)', color: 'white', border: 'none', padding: '0.8rem', borderRadius: '12px',
+                                    fontWeight: 700, fontSize: '0.95rem', cursor: trackLoading ? 'not-allowed' : 'pointer', opacity: trackLoading ? 0.7 : 1,
+                                }}>{trackLoading ? 'Searching...' : 'Track Order'}</button>
+                            </form>
+                        </div>
+
+                        {/* Tracked order result */}
+                        {trackedOrder && (
+                            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                                style={{ marginTop: '1.5rem', background: 'var(--white)', borderRadius: '20px', padding: '1.5rem', border: '1px solid var(--gray)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                                    <div>
+                                        <p style={{ fontSize: '0.78rem', color: 'var(--text-gray)', margin: '0 0 0.2rem' }}>Order ID</p>
+                                        <p style={{ fontSize: '0.88rem', fontWeight: 600, fontFamily: 'monospace', margin: 0 }}>{trackedOrder.orderId}</p>
+                                    </div>
+                                    <span style={{ background: '#fdf2f8', color: 'var(--pink-dark)', padding: '4px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                                        {trackedOrder.status}
+                                    </span>
+                                </div>
+                                <p style={{ fontSize: '0.82rem', color: 'var(--text-gray)', marginBottom: '0.5rem' }}>
+                                    📅 {new Date(trackedOrder.createdAt).toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })}
+                                </p>
+                                <p style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--pink)', marginBottom: '1rem' }}>₹{trackedOrder.amount}</p>
+                                {trackedOrder.items?.map((item, i) => (
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0', borderBottom: '1px solid var(--gray)' }}>
+                                        {item.image && <img src={item.image} alt={item.name} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />}
+                                        <span style={{ flex: 1, fontSize: '0.85rem' }}>{item.name}</span>
+                                        <span style={{ fontSize: '0.82rem', color: 'var(--text-gray)' }}>×{item.quantity}</span>
+                                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>₹{(item.price * item.quantity).toFixed(0)}</span>
+                                    </div>
+                                ))}
+                            </motion.div>
+                        )}
+                    </div>
+                )}
+
+                {/* My Orders tab */}
+                {activeTab === 'my-orders' && userId && (
+                    <div>
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-gray)' }}>
                         <div style={{ width: '40px', height: '40px', border: '3px solid var(--pink)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }} />
@@ -200,6 +311,8 @@ export default function MyOrders() {
                                 )}
                             </motion.div>
                         ))}
+                    </div>
+                )}
                     </div>
                 )}
             </main>

@@ -220,7 +220,15 @@ export const CartProvider = ({ children }) => {
     // Don't persist until hydration is fully complete
     if (!hasHydratedRef.current) return;
 
-    // Skip the first update after hydration — that's LOAD_CART, not a user action
+    // Skip the FIRST state.items change after hydration — that change is always
+    // LOAD_CART (either from the backend or from localStorage), NOT a user action.
+    // Without this guard, the effect would fire with items=[] (the initial reducer
+    // state) and overwrite localStorage/DB before LOAD_CART runs, erasing the cart.
+    //
+    // Edge-case: empty cart + user immediately adds an item.
+    // In that scenario the guard consumes the add here, BUT addToCart triggers a
+    // *second* render of this effect (with the new item present), so the item IS
+    // persisted on that second run — the skip never silently drops data.
     if (!userMutatedRef.current) {
       // Mark: next change will be a real user mutation
       userMutatedRef.current = true;

@@ -1,5 +1,6 @@
 // pages/api/orders/create-cod.js
 // Create a Cash on Delivery order — bypasses Razorpay entirely
+// Supports both authenticated and guest checkout
 
 import crypto from 'crypto';
 import { getAuth } from '@clerk/nextjs/server';
@@ -10,17 +11,44 @@ import Product from '../../../models/Product';
 import mongoose from 'mongoose';
 import { sendOrderConfirmationEmail } from '../../../lib/email';
 
+// ── Simple rate limiter (per IP, 5 COD orders/min) ─────────────────────
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60_000;
+const RATE_LIMIT_MAX = 5; // Stricter for COD (no payment friction to deter spam)
+
+function checkRateLimit(ip) {
+    const now = Date.now();
+    const entry = rateLimitMap.get(ip);
+    if (!entry || now - entry.start > RATE_LIMIT_WINDOW) {
+        rateLimitMap.set(ip, { start: now, count: 1 });
+        return true;
+    }
+    entry.count++;
+    return entry.count <= RATE_LIMIT_MAX;
+}
+
+setInterval(() => {
+    const now = Date.now();
+    for (const [ip, entry] of rateLimitMap) {
+        if (now - entry.start > RATE_LIMIT_WINDOW * 5) rateLimitMap.delete(ip);
+    }
+}, 5 * 60_000);
+
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ success: false, message: 'Method not allowed' });
     }
 
-    // ✅ FIX 1: Require authentication — unauthenticated COD was a critical vulnerability
-    const { userId } = getAuth(req);
-    if (!userId) {
-        return res.status(401).json({ success: false, message: 'Sign in to place an order' });
+    // Rate limiting
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+    if (!checkRateLimit(clientIp)) {
+        return res.status(429).json({ success: false, message: 'Too many requests. Please wait a moment.' });
     }
+
+    // Auth is OPTIONAL for guest checkout
+    const { userId } = getAuth(req);
+    const isGuest = !userId;
 
     try {
         await connectDB();
@@ -31,11 +59,35 @@ export default async function handler(req, res) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
-        if (!customer.phone || !customer.address) {
-            return res.status(400).json({ success: false, message: 'Phone and address are required' });
+        // ── Validate customer details ──────────────────────────────────────
+        if (!customer?.name?.trim()) {
+            return res.status(400).json({ success: false, message: 'Customer name is required' });
+        }
+        if (!customer?.email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email.trim())) {
+            return res.status(400).json({ success: false, message: 'A valid email address is required' });
+        }
+        if (!customer?.phone?.trim()) {
+            return res.status(400).json({ success: false, message: 'Phone number is required' });
+        }
+        if (!customer?.address?.trim()) {
+            return res.status(400).json({ success: false, message: 'Delivery address is required' });
         }
 
-        // ✅ FIX 2: Server-side price computation — never trust client-sent amounts
+        // Sanitize customer input
+        const sanitizedCustomer = {
+            clerkUserId: userId || null,
+            name: customer.name.trim().slice(0, 200),
+            email: customer.email.trim().toLowerCase().slice(0, 320),
+            phone: customer.phone.trim().slice(0, 30),
+            address: customer.address.trim().slice(0, 1000),
+            addressLine1: (customer.addressLine1 || '').trim().slice(0, 500),
+            city: (customer.city || '').trim().slice(0, 100),
+            state: (customer.state || '').trim().slice(0, 100),
+            pincode: (customer.pincode || '').trim().slice(0, 10),
+            notes: (customer.notes || '').trim().slice(0, 500),
+        };
+
+        // Server-side price computation — never trust client-sent amounts
         const productIds = items
             .map((i) => i.productId || i.id)
             .filter((id) => id && mongoose.Types.ObjectId.isValid(id));
@@ -53,7 +105,7 @@ export default async function handler(req, res) {
         // Build a lookup map
         const productMap = Object.fromEntries(dbProducts.map((p) => [p._id.toString(), p]));
 
-        // Compute subtotal from DB prices (price is stored as String)
+        // Compute subtotal from DB prices
         let subtotal = 0;
         const resolvedItems = [];
         for (const item of items) {
@@ -84,19 +136,19 @@ export default async function handler(req, res) {
             });
         }
 
-        // ✅ FIX 3: Validate and compute coupon discount server-side
+        // Validate and compute coupon discount server-side
         let serverDiscount = 0;
         let appliedCouponCode = null;
 
         if (couponCode) {
             const normalizedCode = String(couponCode).toUpperCase().trim();
 
-            // ✅ FIX 4: Per-user coupon abuse prevention
-            const alreadyUsed = await Order.findOne({
-                'customer.clerkUserId': userId,
-                couponCode: normalizedCode,
-                status: { $in: ['paid', 'processing', 'shipped', 'delivered'] },
-            });
+            // Per-user/guest coupon abuse prevention
+            const couponQuery = userId
+                ? { 'customer.clerkUserId': userId, couponCode: normalizedCode, status: { $in: ['paid', 'processing', 'shipped', 'delivered'] } }
+                : { 'customer.email': sanitizedCustomer.email, couponCode: normalizedCode, isGuest: true, status: { $in: ['paid', 'processing', 'shipped', 'delivered'] } };
+
+            const alreadyUsed = await Order.findOne(couponQuery);
             if (alreadyUsed) {
                 return res.status(400).json({ success: false, message: 'You have already used this coupon code' });
             }
@@ -130,7 +182,7 @@ export default async function handler(req, res) {
         const serverShipping = discountedSubtotal >= 500 ? 0 : 80;
         const serverAmount = Math.max(0, discountedSubtotal + serverShipping);
 
-        // Generate a unique COD order ID using cryptographically random bytes (M-2)
+        // Generate a unique COD order ID using cryptographically random bytes
         const codOrderId = `COD_${Date.now()}_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
 
@@ -140,18 +192,12 @@ export default async function handler(req, res) {
             currency: 'INR',
             status: 'pending',
             paymentMethod: 'cod',
+            isGuest,
             shippingCharges: serverShipping,
             couponCode: appliedCouponCode,
             discountAmount: serverDiscount,
             items: resolvedItems,
-            customer: {
-                clerkUserId: userId, // ✅ Link order to authenticated user
-                name: customer.name || '',
-                email: customer.email || '',
-                phone: customer.phone,
-                address: customer.address,
-                notes: customer.notes || '',
-            },
+            customer: sanitizedCustomer,
         });
 
         // Send confirmation email asynchronously (never block the response)
@@ -167,7 +213,7 @@ export default async function handler(req, res) {
             ).catch((err) => console.error('Failed to increment coupon usage:', err));
         }
 
-        // ✅ FIX 5: Atomic stock deduction with guard against overselling
+        // Atomic stock deduction with guard against overselling
         for (const item of resolvedItems) {
             if (item.productId) {
                 const updated = await Product.findOneAndUpdate(

@@ -130,6 +130,30 @@ export default function OrderSuccess() {
             )}
           </div>
 
+          {/* Guest save-order-ID prompt */}
+          {order?.isGuest && (
+            <div style={{
+              background: 'linear-gradient(135deg, #ede9fe, #f3e8ff)',
+              borderRadius: '14px', padding: '1rem 1.25rem',
+              border: '1.5px solid #c4b5fd', marginBottom: '1rem',
+              animation: 'fadeInUp 0.4s ease 0.25s both',
+            }}>
+              <p style={{ fontSize: '0.88rem', fontWeight: 700, color: '#5b21b6', margin: '0 0 0.35rem' }}>
+                📌 Save your Order ID!
+              </p>
+              <p style={{ fontSize: '0.82rem', color: '#6d28d9', margin: '0 0 0.5rem', lineHeight: 1.5 }}>
+                You checked out as a guest. To track your order later, go to{' '}
+                <strong>Orders → Track Order</strong> and enter your Order ID and email.
+              </p>
+              <code style={{ fontSize: '0.78rem', background: 'rgba(255,255,255,0.6)', padding: '4px 8px', borderRadius: '6px', display: 'block', wordBreak: 'break-all', color: '#4c1d95' }}>
+                {orderId}
+              </code>
+              <Link href="/orders" style={{ display: 'inline-block', marginTop: '0.6rem', fontSize: '0.82rem', fontWeight: 600, color: '#5b21b6', textDecoration: 'underline' }}>
+                Track my order →
+              </Link>
+            </div>
+          )}
+
           {/* Order Items — if fetched */}
           {order?.items?.length > 0 && (
             <div style={{

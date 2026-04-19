@@ -12,10 +12,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Auth is OPTIONAL — guest checkout doesn't have a userId
   const { userId } = getAuth(req);
-  if (!userId) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
 
   try {
     await connectDB();
@@ -44,17 +42,20 @@ export default async function handler(req, res) {
     }
 
     // ── 2. Atomic state transition: pending/created → paid ─────────────
-    //    This is the ONLY place an order becomes "paid" via frontend.
-    //    The condition `status: { $in: ['pending', 'created'] }` prevents:
-    //      - double-marking (idempotent if already paid)
-    //      - marking cancelled/failed orders as paid
-    //    We also verify the requesting user owns the order.
+    //    Build query: if userId present, verify ownership; if guest, skip user check
+    const updateQuery = {
+      orderId: razorpay_order_id,
+      status: { $in: ['pending', 'created'] },
+    };
+
+    // If logged in, verify the order belongs to this user
+    if (userId) {
+      updateQuery['customer.clerkUserId'] = userId;
+    }
+    // For guests, we rely on the Razorpay signature as proof of payment ownership
+
     const order = await Order.findOneAndUpdate(
-      {
-        orderId: razorpay_order_id,
-        'customer.clerkUserId': userId,
-        status: { $in: ['pending', 'created'] },
-      },
+      updateQuery,
       {
         $set: {
           paymentId: razorpay_payment_id,
@@ -62,6 +63,8 @@ export default async function handler(req, res) {
           status: 'paid',
           paymentVerified: true,
           paidAt: new Date(),
+          // If user just logged in mid-checkout, link the order to their account
+          ...(userId && { 'customer.clerkUserId': userId, isGuest: false }),
         },
       },
       { new: true }
@@ -81,11 +84,11 @@ export default async function handler(req, res) {
           alreadyProcessed: true,
         });
       }
-      console.error(`[verify-payment] Order not found or unauthorized: ${razorpay_order_id}, user: ${userId}`);
+      console.error(`[verify-payment] Order not found or unauthorized: ${razorpay_order_id}, user: ${userId || 'guest'}`);
       return res.status(404).json({ error: 'Order not found or unauthorized' });
     }
 
-    console.log(`[verify-payment] ✅ Order ${razorpay_order_id} marked PAID for user ${userId}`);
+    console.log(`[verify-payment] ✅ Order ${razorpay_order_id} marked PAID for ${userId ? 'user ' + userId : 'guest'}`);
 
     // ── 3. Increment coupon usage count ────────────────────────────────
     if (order.couponCode) {
@@ -99,30 +102,50 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── 4. Deduct stock atomically ─────────────────────────────────────
-    //    Only deduct AFTER payment is confirmed.
-    //    Guard: { stock: { $gte: quantity } } prevents overselling.
+    // ── 4. Deduct stock — two-pass to prevent partial inventory corruption ─
+    //    Pass 1: attempt decrement for every item; record successes and failures.
+    //    Pass 2: if ANY item failed, roll back ALL previously-decremented items
+    //            before marking the order failed and returning the error.
     if (order.items && order.items.length > 0) {
+      const decremented = []; // { productId, quantity } items already decremented
+      const stockErrors = []; // names of items that ran out
+
       for (const item of order.items) {
-        if (item.productId) {
+        if (!item.productId) continue;
+        try {
+          const updated = await Product.findOneAndUpdate(
+            { _id: item.productId, stock: { $gte: item.quantity } },
+            { $inc: { stock: -Math.abs(item.quantity) } },
+            { new: true }
+          );
+          if (!updated) {
+            stockErrors.push(item.name || String(item.productId));
+          } else {
+            decremented.push({ productId: item.productId, quantity: item.quantity });
+          }
+        } catch (err) {
+          console.error('[verify-payment] Failed to deduct stock for', item.productId, err?.message || 'Unknown');
+          stockErrors.push(item.name || String(item.productId));
+        }
+      }
+
+      if (stockErrors.length > 0) {
+        // Roll back every item that was successfully decremented in this pass
+        for (const { productId, quantity } of decremented) {
           try {
-            const updated = await Product.findOneAndUpdate(
-              { _id: item.productId, stock: { $gte: item.quantity } },
-              { $inc: { stock: -Math.abs(item.quantity) } },
-              { new: true }
-            );
-            if (!updated) {
-              // Out of stock after payment — mark order failed, will need manual refund
-              await Order.findByIdAndUpdate(order._id, { status: 'failed' });
-              console.error(`[verify-payment] STOCK EXHAUSTED for ${item.name} (${item.productId}), order ${order.orderId} marked failed`);
-              return res.status(409).json({
-                error: `"${item.name || item.productId}" is out of stock. Payment will be refunded automatically by Razorpay.`,
-              });
-            }
+            await Product.findByIdAndUpdate(productId, { $inc: { stock: Math.abs(quantity) } });
           } catch (err) {
-            console.error('[verify-payment] Failed to deduct stock for', item.productId, err?.message || 'Unknown');
+            console.error('[verify-payment] ROLLBACK FAILED for', productId, err?.message);
           }
         }
+
+        // Mark order failed — customer will need a manual refund
+        await Order.findByIdAndUpdate(order._id, { status: 'failed' });
+        const outOfStock = stockErrors.join('", "');
+        console.error(`[verify-payment] STOCK EXHAUSTED for "${outOfStock}", order ${order.orderId} marked failed; ${decremented.length} item(s) rolled back`);
+        return res.status(409).json({
+          error: `"${outOfStock}" is out of stock. Payment will be refunded automatically by Razorpay.`,
+        });
       }
     }
 

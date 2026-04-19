@@ -1481,7 +1481,6 @@ useEffect(() => {
 
   if (sentinelRef.current) obs.observe(sentinelRef.current);
   return () => obs.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, []);
 
   return (

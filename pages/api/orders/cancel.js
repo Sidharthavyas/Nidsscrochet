@@ -1,5 +1,6 @@
 // pages/api/orders/cancel.js
 // Cancel a pending/created order (user dismissed the payment modal)
+// Supports both authenticated users and guest checkout
 
 import { getAuth } from '@clerk/nextjs/server';
 import connectDB from '../../../lib/mongodb';
@@ -10,28 +11,35 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // Auth is OPTIONAL for guest checkout
     const { userId } = getAuth(req);
-    if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
 
     try {
         await connectDB();
 
-        const { razorpayOrderId } = req.body;
+        const { razorpayOrderId, email } = req.body;
 
         if (!razorpayOrderId) {
             return res.status(400).json({ error: 'razorpayOrderId is required' });
         }
 
-        // Atomic cancel: only if still pending/created AND owned by this user
-        // This prevents cancelling already-paid orders (e.g. webhook arrived first)
+        // Build query: authenticated user uses userId, guest uses email
+        const cancelQuery = {
+            orderId: razorpayOrderId,
+            status: { $in: ['pending', 'created'] },
+        };
+
+        if (userId) {
+            cancelQuery['customer.clerkUserId'] = userId;
+        } else if (email) {
+            cancelQuery['customer.email'] = email.trim().toLowerCase();
+            cancelQuery.isGuest = true;
+        }
+        // If no userId and no email, still allow cancel by orderId alone
+        // (the Razorpay modal dismiss sends this — the order was just created seconds ago)
+
         const result = await Order.updateOne(
-            {
-                orderId: razorpayOrderId,
-                'customer.clerkUserId': userId,
-                status: { $in: ['pending', 'created'] },
-            },
+            cancelQuery,
             { $set: { status: 'cancelled' } }
         );
 
@@ -41,7 +49,7 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true, message: 'No pending order to cancel' });
         }
 
-        console.log(`[cancel] Order ${razorpayOrderId} cancelled by user ${userId}`);
+        console.log(`[cancel] Order ${razorpayOrderId} cancelled by ${userId ? 'user ' + userId : 'guest'}`);
 
         return res.status(200).json({ success: true, message: 'Order cancelled' });
     } catch (error) {

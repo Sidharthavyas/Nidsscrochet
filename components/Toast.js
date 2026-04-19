@@ -1,6 +1,6 @@
 // components/Toast.js
 // Global toast/snackbar notification — used for cart feedback, errors, etc.
-import { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
 import Link from 'next/link';
 import styles from '../styles/Home.module.css';
 
@@ -15,7 +15,7 @@ export function useToast() {
 export function ToastProvider({ children }) {
   const [toast, setToast] = useState(null);
   const [exiting, setExiting] = useState(false);
-  const timerRef = { current: null };
+  const timerRef = useRef(null);
 
   const showToast = useCallback(({ message, link, linkText, duration = 3500 }) => {
     // Clear any existing toast

@@ -24,7 +24,11 @@ export default async function handler(req, res) {
 
             const query = {};
             if (status && status !== 'all') {
-                query.status = status;
+                if (status === 'guest') {
+                    query.isGuest = true; // filter by guest orders regardless of status
+                } else {
+                    query.status = status;
+                }
             }
 
             const [orders, total] = await Promise.all([

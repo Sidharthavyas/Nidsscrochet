@@ -13,15 +13,44 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+// ── Simple rate limiter (per IP, 10 orders/min) ─────────────────────────
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 10;
+
+function checkRateLimit(ip) {
+    const now = Date.now();
+    const entry = rateLimitMap.get(ip);
+    if (!entry || now - entry.start > RATE_LIMIT_WINDOW) {
+        rateLimitMap.set(ip, { start: now, count: 1 });
+        return true;
+    }
+    entry.count++;
+    return entry.count <= RATE_LIMIT_MAX;
+}
+
+// Periodically clean up stale entries (every 5 min)
+setInterval(() => {
+    const now = Date.now();
+    for (const [ip, entry] of rateLimitMap) {
+        if (now - entry.start > RATE_LIMIT_WINDOW * 5) rateLimitMap.delete(ip);
+    }
+}, 5 * 60_000);
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { userId } = getAuth(req);
-    if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized — please sign in' });
+    // Rate limiting
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+    if (!checkRateLimit(clientIp)) {
+        return res.status(429).json({ error: 'Too many requests. Please wait a moment.' });
     }
+
+    // Auth is OPTIONAL for guest checkout
+    const { userId } = getAuth(req);
+    const isGuest = !userId;
 
     try {
         await connectDB();
@@ -32,9 +61,34 @@ export default async function handler(req, res) {
         if (!items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({ error: 'No items in order' });
         }
-        if (!customer?.phone || !customer?.address) {
-            return res.status(400).json({ error: 'Phone and address are required' });
+
+        // ── Validate customer details (required for both guest and logged-in) ──
+        if (!customer?.name?.trim()) {
+            return res.status(400).json({ error: 'Customer name is required' });
         }
+        if (!customer?.email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email.trim())) {
+            return res.status(400).json({ error: 'A valid email address is required' });
+        }
+        if (!customer?.phone?.trim()) {
+            return res.status(400).json({ error: 'Phone number is required' });
+        }
+        if (!customer?.address?.trim()) {
+            return res.status(400).json({ error: 'Delivery address is required' });
+        }
+
+        // Sanitize customer input
+        const sanitizedCustomer = {
+            clerkUserId: userId || null,
+            name: customer.name.trim().slice(0, 200),
+            email: customer.email.trim().toLowerCase().slice(0, 320),
+            phone: customer.phone.trim().slice(0, 30),
+            address: customer.address.trim().slice(0, 1000),
+            addressLine1: (customer.addressLine1 || '').trim().slice(0, 500),
+            city: (customer.city || '').trim().slice(0, 100),
+            state: (customer.state || '').trim().slice(0, 100),
+            pincode: (customer.pincode || '').trim().slice(0, 10),
+            notes: (customer.notes || '').trim().slice(0, 500),
+        };
 
         // Validate all product IDs are real Mongo IDs
         const productIds = items
@@ -87,11 +141,13 @@ export default async function handler(req, res) {
         let appliedCouponCode = null;
         if (couponCode) {
             const normalizedCode = String(couponCode).toUpperCase().trim();
-            const alreadyUsed = await Order.findOne({
-                'customer.clerkUserId': userId,
-                couponCode: normalizedCode,
-                status: { $in: ['paid', 'processing', 'shipped', 'delivered'] },
-            });
+
+            // Per-user/guest coupon abuse prevention
+            const couponQuery = userId
+                ? { 'customer.clerkUserId': userId, couponCode: normalizedCode, status: { $in: ['paid', 'processing', 'shipped', 'delivered'] } }
+                : { 'customer.email': sanitizedCustomer.email, couponCode: normalizedCode, isGuest: true, status: { $in: ['paid', 'processing', 'shipped', 'delivered'] } };
+
+            const alreadyUsed = await Order.findOne(couponQuery);
             if (alreadyUsed) {
                 return res.status(400).json({ error: 'You have already used this coupon code' });
             }
@@ -132,42 +188,33 @@ export default async function handler(req, res) {
             currency: 'INR',
             receipt: receiptId.slice(0, 40),
             notes: {
-                clerkUserId: userId,
-                customerName: customer.name || '',
-                customerPhone: customer.phone || '',
-                customerEmail: customer.email || '',
+                clerkUserId: userId || 'guest',
+                customerName: sanitizedCustomer.name,
+                customerPhone: sanitizedCustomer.phone,
+                customerEmail: sanitizedCustomer.email,
+                isGuest: String(isGuest),
                 itemCount: String(resolvedItems.length),
             },
         });
 
-        // ──────────────────────────────────────────────────────────────────
-        // CRITICAL FIX: Save as "pending" with an expiry — NOT as a
-        // confirmed order.  This order will only become "paid" after
-        // successful signature verification in verify-payment or webhook.
-        // ──────────────────────────────────────────────────────────────────
+        // Save as "pending" with an expiry
         const order = await Order.create({
             orderId: razorpayOrder.id,
             amount: serverAmount,
             currency: 'INR',
-            status: 'pending',              // ← was 'created' — now clearly pending
+            status: 'pending',
             paymentMethod: 'online',
             paymentVerified: false,
+            isGuest,
             expiresAt: new Date(Date.now() + 30 * 60 * 1000), // auto-expire in 30 min
             shippingCharges: serverShipping,
             couponCode: appliedCouponCode,
             discountAmount: serverDiscount,
             items: resolvedItems,
-            customer: {
-                clerkUserId: userId,
-                name: customer.name || '',
-                email: customer.email || '',
-                phone: customer.phone,
-                address: customer.address,
-                notes: customer.notes || '',
-            },
+            customer: sanitizedCustomer,
         });
 
-        console.log(`[create-order] Pending order ${razorpayOrder.id} for user ${userId}, amount ₹${serverAmount}`);
+        console.log(`[create-order] Pending order ${razorpayOrder.id} for ${isGuest ? 'guest' : 'user ' + userId}, amount ₹${serverAmount}`);
 
         return res.status(200).json({
             orderId: razorpayOrder.id,

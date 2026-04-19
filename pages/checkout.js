@@ -31,7 +31,10 @@ export default function Checkout() {
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('online'); // 'online' or 'cod'
+  const [paymentMethod, setPaymentMethod] = useState('online');
+  // Guest-specific fields (used when not signed in)
+  const [guestName, setGuestName] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
 
   const cartTotal = getCartTotal();
   const shippingTotal = getShippingTotal();
@@ -50,18 +53,27 @@ export default function Checkout() {
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
   const codAvailable = allItemsSupportCOD();
 
-  useEffect(() => {
-    if (!isSignedIn && items.length > 0) {
-      localStorage.setItem('checkoutIntent', 'true');
-      router.push('/login');
-    }
-  }, [isSignedIn, items.length, router]);
+  // No login redirect — guest checkout is allowed
 
   useEffect(() => {
     if (items.length === 0 && !loading) {
       router.push('/cart');
     }
   }, [items.length, router, loading]);
+
+  // ─── Resolve customer details (logged-in or guest) ──────────
+  const getCustomerDetails = () => ({
+name: isSignedIn
+  ? (`${user?.firstName || ''} ${user?.lastName || ''}`.trim() 
+     || user?.emailAddresses?.[0]?.emailAddress || '')
+  : guestName.trim(),
+    email: isSignedIn
+      ? (user?.emailAddresses?.[0]?.emailAddress || guestEmail.trim())
+      : guestEmail.trim(),
+    phone: `${countryCode} ${phone.trim()}`,
+    address: address.trim(),
+    notes: notes.trim(),
+  });
 
   // ─── COD Order Handler ───────────────────────────────────
   const handleCODOrder = async () => {
@@ -73,18 +85,9 @@ export default function Checkout() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: grandTotal,
-          shippingCharges: shippingTotal,
-          couponCode: appliedCoupon?.code || null,
-          discountAmount: discountAmount || 0,
           items,
-          customer: {
-            name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '',
-            email: user?.emailAddresses?.[0]?.emailAddress || '',
-            phone: `${countryCode} ${phone.trim()}`,
-            address: address.trim(),
-            notes: notes.trim(),
-          },
+          couponCode: appliedCoupon?.code || null,
+          customer: getCustomerDetails(),
         }),
       });
 
@@ -115,18 +118,9 @@ export default function Checkout() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: grandTotal,
-          shippingCharges: shippingTotal,
-          couponCode: appliedCoupon?.code || null,
-          discountAmount: discountAmount || 0,
           items,
-          customer: {
-            name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '',
-            email: user?.emailAddresses?.[0]?.emailAddress || '',
-            phone: `${countryCode} ${phone.trim()}`,
-            address: address.trim(),
-            notes: notes.trim(),
-          },
+          couponCode: appliedCoupon?.code || null,
+          customer: getCustomerDetails(),
         }),
       });
 
@@ -178,8 +172,8 @@ export default function Checkout() {
           }
         },
         prefill: {
-          name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '',
-          email: user?.emailAddresses?.[0]?.emailAddress || '',
+          name: getCustomerDetails().name,
+          email: getCustomerDetails().email,
           contact: phone.trim(),
         },
         notes: {
@@ -236,18 +230,20 @@ export default function Checkout() {
 
   // ─── Main Handler ─────────────────────────────────────────
   const handleProceedToPayment = async () => {
+    // Validate guest-specific fields
     if (!isSignedIn) {
-      router.push('/login');
-      return;
+      if (!guestName.trim()) { setError('Please enter your name'); return; }
+      if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
+        setError('Please enter a valid email address'); return;
+      }
     }
-
     // Validate delivery details
     if (!address.trim()) {
       setError('Please enter your delivery address');
       return;
     }
-    if (!phone.trim() || phone.trim().length < 10) {
-      setError('Please enter a valid phone number');
+    if (!phone.trim() || phone.replace(/\D/g, '').length < 10) {
+      setError('Please enter a valid 10-digit phone number');
       return;
     }
     setError('');
@@ -259,17 +255,7 @@ export default function Checkout() {
     }
   };
 
-  // Loading / redirect states
-  if (!isSignedIn && items.length > 0) {
-    return (
-      <div style={pageStyles.loadingPage}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={pageStyles.spinner} />
-          <p style={{ color: 'var(--text-gray)' }}>Redirecting to login...</p>
-        </div>
-      </div>
-    );
-  }
+  // Loading state only
 
   if (items.length === 0 && !loading) {
     return (
@@ -346,16 +332,49 @@ export default function Checkout() {
               <div style={{ ...pageStyles.card, marginBottom: '1rem', animation: 'fadeInUp 0.4s ease 0.05s both' }}>
                 <div style={pageStyles.sectionHeader}>
                   <Shield style={{ width: '18px', height: '18px', color: 'var(--pink)' }} />
-                  <h2 style={pageStyles.sectionTitle}>Account</h2>
+                  <h2 style={pageStyles.sectionTitle}>Contact Details</h2>
                 </div>
-                <div style={{
-                  background: 'var(--pink-soft)', borderRadius: '10px', padding: '0.75rem 1rem',
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  color: 'var(--pink-dark)', fontSize: '0.88rem', fontWeight: 500
-                }}>
-                  <Shield style={{ width: '14px', height: '14px' }} />
-                  Signed in as {user?.firstName || user?.emailAddresses?.[0]?.emailAddress}
-                </div>
+                {isSignedIn ? (
+                  <div style={{
+                    background: 'var(--pink-soft)', borderRadius: '10px', padding: '0.75rem 1rem',
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    color: 'var(--pink-dark)', fontSize: '0.88rem', fontWeight: 500
+                  }}>
+                    <Shield style={{ width: '14px', height: '14px' }} />
+                    Signed in as {user?.firstName || user?.emailAddresses?.[0]?.emailAddress}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-gray)', margin: 0 }}>
+                      Checking out as guest. <Link href="/login" style={{ color: 'var(--pink)', fontWeight: 600 }}>Sign in</Link> for faster checkout next time.
+                    </p>
+                    <div>
+                      <label style={pageStyles.label}>Full Name *</label>
+                      <input
+                        style={pageStyles.input}
+                        type="text"
+                        placeholder="Your full name"
+                        value={guestName}
+                        onChange={(e) => setGuestName(e.target.value)}
+                        maxLength={200}
+                      />
+                    </div>
+                    <div>
+                      <label style={pageStyles.label}>Email Address *</label>
+                      <input
+                        style={pageStyles.input}
+                        type="email"
+                        placeholder="your@email.com (for order confirmation)"
+                        value={guestEmail}
+                        onChange={(e) => setGuestEmail(e.target.value)}
+                        maxLength={320}
+                      />
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-gray)', marginTop: '0.25rem' }}>
+                        📌 Save your Order ID after payment to track your order later.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Order Items */}

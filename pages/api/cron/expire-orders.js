@@ -2,7 +2,7 @@
 // Auto-expire stale pending/created orders.
 //
 // Call this via:
-//   - Vercel Cron (vercel.json) every 10 minutes
+//   - Vercel Cron (vercel.json) daily at midnight UTC (Hobby plan limit)
 //   - Or manually: GET /api/cron/expire-orders?secret=YOUR_CRON_SECRET
 //
 // This prevents pending orders from accumulating forever.

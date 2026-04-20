@@ -2492,80 +2492,89 @@ const handleProductClick = useCallback((product) => {
         <main className={styles.mainContainer}>
           <DecorativeShapes />
 
-          {/* HERO */}
-          <section className={styles.hero}>
 
+     
+<section className={styles.hero}>
+  <div className={styles.heroInner}>
+
+    {/* Left: editorial text */}
+    <motion.div
+      className={styles.heroText}
+      initial={{ opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+    >
+      <div className={styles.heroPill}>
+        Mumbai · Handmade · Est. 2023
+      </div>
+
+      <h1 className={styles.heroHeadline}>
+        The kind of pieces<br />people ask about.
+      </h1>
+
+      <p className={styles.heroSub}>
+        Handmade crochet — made slowly, kept for years.<br />
+        Not mass-made. Not machine-made.
+      </p>
+
+      <a href="#collections" className={styles.heroCtaBtn}>
+        See the collection
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6"
+            strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </a>
+
+      <div className={styles.heroMicro}>
+        <a
+          href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.heroMicroLink}
+        >
+          <Instagram size={12} strokeWidth={1.5} />
+          @Nidsscrochet
+        </a>
+        <span className={styles.heroMicroDot} aria-hidden="true" />
+        <a href="tel:9029562156" className={styles.heroMicroLink}>
+          <Phone size={12} strokeWidth={1.5} />
+          +91 90295 62156
+        </a>
+      </div>
+    </motion.div>
+
+    {/* Right: product image mosaic */}
+    {products && products.length >= 2 && (
+      <motion.div
+        className={styles.heroVisual}
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.85, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
+        aria-hidden="true"
+      >
+        <div className={styles.heroImageGrid}>
+          {products.slice(0, 4).map((p, idx) => (
             <div
-              className={styles.heroGlassCard}
+              key={p._id}
+              className={`${styles.heroImageCell} ${styles[`heroCell${idx}`]}`}
             >
-              <motion.div
-                className={styles.heroBadge}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-              >
-                <Sparkles size={14} strokeWidth={1.5} style={{ display: 'inline' }} /> Handcrafted with Love <Sparkles size={14} strokeWidth={1.5} style={{ display: 'inline' }} />
-              </motion.div>
-
-              <motion.h1
-                className={styles.brandName}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.5 }}
-              >
-                Nidsscrochet
-              </motion.h1>
-
-              <motion.p
-                className={styles.creatorName}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.7 }}
-              >
-                by Nidhi Tripathi
-              </motion.p>
-
-              <motion.p
-                className={styles.tagline}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.9 }}
-              >
-                Where Every Stitch Tells a Story
-              </motion.p>
-
-              <motion.div
-                className={styles.heroButtons}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.1 }}
-              >
-                <MagneticButton
-                  href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${styles.ctaButton} ${styles.ctaButtonPrimary}`}
-                >
-                  <span className={styles.buttonIcon}><Instagram size={17} strokeWidth={1.5} /></span>
-                  <span>Follow on Instagram</span>
-                  <motion.div
-                    className={styles.buttonRipple}
-                    initial={{ scale: 0, opacity: 1 }}
-                    animate={{ scale: 2, opacity: 0 }}
-                    transition={{ duration: 0.6 }}
-                  />
-                </MagneticButton>
-
-                <MagneticButton
-                  href="tel:9029562156"
-                  className={`${styles.ctaButton} ${styles.ctaButtonSecondary}`}
-                >
-                  <span className={styles.buttonIcon}><Phone size={17} strokeWidth={1.5} /></span>
-                  <span>Contact Us</span>
-                </MagneticButton>
-              </motion.div>
+              <Image
+                loader={cloudinaryLoader}
+                src={p.images?.[0] || p.image}
+                alt={p.name}
+                fill
+                sizes="(max-width: 768px) 38vw, 20vw"
+                style={{ objectFit: 'cover', objectPosition: 'center' }}
+                priority={idx === 0}
+              />
             </div>
-          </section>
+          ))}
+        </div>
+      </motion.div>
+    )}
+
+  </div>
+</section>
 
           {/* STATS */}
           <section className={styles.statsSection}>

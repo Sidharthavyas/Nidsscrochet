@@ -111,7 +111,7 @@ export default function MyOrders() {
                         <Link href="/" style={{ textDecoration: 'none', fontFamily: "'Pacifico', cursive", fontSize: '1.5rem', background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                             Nidsscrochet
                         </Link>
-                        <Link href="/" style={{ textDecoration: 'none', color: 'var(--pink)', fontWeight: '500' }}>
+                        <Link href="/" style={{ textDecoration: 'none', color: 'var(--pink)', fontWeight: '450' }}>
                             ← Back to Shop
                         </Link>
                     </div>

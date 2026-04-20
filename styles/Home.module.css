@@ -3713,7 +3713,8 @@
 }
 
 .heroText {
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
     order: 1;
 }
 
@@ -3727,6 +3728,9 @@
     aspect-ratio: 4 / 1.1;
     max-width: 100%;
     gap: 0.5rem;
+}
+.heroMicro {
+  justify-content: center;
 }
 
 .heroImageCell,
@@ -3745,6 +3749,7 @@
 
 .heroSub {
     font-size: 0.88rem;
+    text-align: center;
 }
 
 .hero {

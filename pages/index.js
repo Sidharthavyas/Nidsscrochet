@@ -2495,85 +2495,50 @@ const handleProductClick = useCallback((product) => {
 
      
 <section className={styles.hero}>
-  <div className={styles.heroInner}>
+  <motion.div
+    className={styles.heroText}
+    initial={{ opacity: 0, y: 28 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+  >
+    <div className={styles.heroPill}>
+      Mumbai · Handmade · Est. 2024
+    </div>
 
-    {/* Left: editorial text */}
-    <motion.div
-      className={styles.heroText}
-      initial={{ opacity: 0, y: 28 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-    >
-      <div className={styles.heroPill}>
-        Mumbai · Handmade · Est. 2023
-      </div>
+    <h1 className={styles.heroHeadline}>
+      The kind of pieces<br />people ask about.
+    </h1>
 
-      <h1 className={styles.heroHeadline}>
-        The kind of pieces<br />people ask about.
-      </h1>
+    <p className={styles.heroSub}>
+      Handmade crochet — made slowly, kept for years.<br />
+      Not mass-made. Not machine-made.
+    </p>
 
-      <p className={styles.heroSub}>
-        Handmade crochet — made slowly, kept for years.<br />
-        Not mass-made. Not machine-made.
-      </p>
+    <a href="#collections" className={styles.heroCtaBtn}>
+      See the collection
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6"
+          strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </a>
 
-      <a href="#collections" className={styles.heroCtaBtn}>
-        See the collection
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6"
-            strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </a>
-
-      <div className={styles.heroMicro}>
-        <a
-          href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.heroMicroLink}
-        >
-          <Instagram size={12} strokeWidth={1.5} />
-          @Nidsscrochet
-        </a>
-        <span className={styles.heroMicroDot} aria-hidden="true" />
-        <a href="tel:9029562156" className={styles.heroMicroLink}>
-          <Phone size={12} strokeWidth={1.5} />
-          +91 90295 62156
-        </a>
-      </div>
-    </motion.div>
-
-    {/* Right: product image mosaic */}
-    {products && products.length >= 2 && (
-      <motion.div
-        className={styles.heroVisual}
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.85, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
-        aria-hidden="true"
+    <div className={styles.heroMicro}>
+      <a
+        href="https://www.instagram.com/Nidsscrochet?igsh=cXp1NWFtNWplaHc3"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.heroMicroLink}
       >
-        <div className={styles.heroImageGrid}>
-          {products.slice(0, 4).map((p, idx) => (
-            <div
-              key={p._id}
-              className={`${styles.heroImageCell} ${styles[`heroCell${idx}`]}`}
-            >
-              <Image
-                loader={cloudinaryLoader}
-                src={p.images?.[0] || p.image}
-                alt={p.name}
-                fill
-                sizes="(max-width: 768px) 38vw, 20vw"
-                style={{ objectFit: 'cover', objectPosition: 'center' }}
-                priority={idx === 0}
-              />
-            </div>
-          ))}
-        </div>
-      </motion.div>
-    )}
-
-  </div>
+        <Instagram size={12} strokeWidth={1.5} />
+        @Nidsscrochet
+      </a>
+      <span className={styles.heroMicroDot} aria-hidden="true" />
+      <a href="tel:9029562156" className={styles.heroMicroLink}>
+        <Phone size={12} strokeWidth={1.5} />
+        +91 90295 62156
+      </a>
+    </div>
+  </motion.div>
 </section>
 
           {/* STATS */}

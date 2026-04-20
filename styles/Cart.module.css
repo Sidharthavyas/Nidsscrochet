@@ -561,78 +561,137 @@
    MOBILE RESPONSIVE
    ================================================ */
 
+/* ================================================
+   MOBILE CART ITEM — grid replaces broken flex
+   ================================================ */
 @media (max-width: 768px) {
-    .cartPage {
-        padding-top: 1.5rem;
-        padding-bottom: 2rem;
-        padding-bottom: calc(2rem + env(safe-area-inset-bottom));
-    }
 
-    .cartContainer {
-        padding: 0 1rem;
-    }
+  /* ---- cartItem: switch to 2-row grid ---- */
+  .cartItem {
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "img info del"
+      "img qty  sub";
+    gap: 0.4rem 0.75rem;
+    padding: 0.85rem 1rem;
+    align-items: center;
+  }
 
-    .cartTitle {
-        font-size: 1.7rem;
-    }
+  .itemImageWrap {
+    grid-area: img;
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
+    align-self: center;
+  }
 
-    .cartItem {
-        padding: 1rem;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-    }
+  .itemInfo {
+    grid-area: info;
+    min-width: 0;           /* prevents grid blowout */
+  }
 
-    .itemImageWrap {
-        width: 64px;
-        height: 64px;
-        border-radius: 12px;
-    }
+  /* CRITICAL FIX: allow the name to wrap, never truncate silently */
+  .itemName {
+    white-space: normal;
+    font-size: 0.85rem;
+    line-height: 1.35;
+    overflow: hidden;
+    display: -webkit-box;
+     line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
 
-    .itemName {
-        font-size: 0.88rem;
-    }
+  .itemPrice {
+    font-size: 0.75rem;
+    margin-top: 2px;
+  }
 
-    .qtyBtn {
-        width: 30px;
-        height: 30px;
-    }
+  .qtyControls {
+    grid-area: qty;
+    align-self: center;
+  }
 
-    .itemSubtotal {
-        min-width: auto;
-    }
+  .itemSubtotal {
+    grid-area: sub;
+    text-align: right;
+    align-self: center;
+    min-width: 0;
+  }
 
-    .cartActions {
-        flex-direction: column;
-    }
+  .itemSubtotalPrice {
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
 
-    .continueBtn,
-    .clearBtn {
-        width: 100%;
-        justify-content: center;
-    }
+  .removeBtn {
+    grid-area: del;
+    align-self: start;
+    margin-top: 2px;
+  }
 
-    .summaryCard {
-        position: static;
-        padding: 1.5rem;
-    }
+  /* ---- Keep qty controls compact ---- */
+  .qtyBtn {
+    width: 28px;
+    height: 28px;
+  }
 
-    .summaryTitle {
-        font-size: 1.1rem;
-    }
+  .qtyValue {
+    min-width: 1.5rem;
+    font-size: 0.85rem;
+  }
 
-    .emptyTitle {
-        font-size: 1.5rem;
-    }
+  /* ---- Cart page spacing ---- */
+  .cartPage {
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+  }
 
-    .emptyIconCircle {
-        width: 80px;
-        height: 80px;
-    }
+  .cartContainer {
+    padding: 0 1rem;
+  }
 
-    .emptyIcon {
-        width: 34px;
-        height: 34px;
-    }
+  .cartTitle {
+    font-size: 1.7rem;
+  }
+
+  .cartActions {
+    flex-direction: column;
+  }
+
+  .continueBtn,
+  .clearBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .summaryCard {
+    position: static;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cartItem {
+    grid-template-columns: 56px 1fr auto;
+    gap: 0.35rem 0.6rem;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .itemImageWrap {
+    width: 56px;
+    height: 56px;
+  }
+
+  .itemName {
+    font-size: 0.8rem;
+  }
+
+  .itemSubtotalPrice {
+    font-size: 0.82rem;
+  }
 }
 
 @media (max-width: 480px) {

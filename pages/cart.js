@@ -1,7 +1,7 @@
 import Cart from '@/components/Cart';
 import Head from 'next/head';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+
 
 export default function CartPage() {
   return (
@@ -11,14 +11,11 @@ export default function CartPage() {
         <meta name="description" content="View and manage your shopping cart" />
       </Head>
 
-      {/* Minimal cart-page header — keeps focus on the cart only */}
       <header style={{
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        background: 'rgba(255,255,255,0.95)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        background: '#ffffff',          // solid — no backdrop-filter (causes Safari bugs on sticky)
         borderBottom: '1px solid rgba(255,107,157,0.12)',
         boxShadow: '0 2px 16px rgba(0,0,0,0.05)',
       }}>
@@ -26,10 +23,10 @@ export default function CartPage() {
           maxWidth: '1280px',
           margin: '0 auto',
           padding: '0 1.25rem',
-          height: '60px',
+          height: '56px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'space-between',  // keep for future nav items
         }}>
           <Link href="/" style={{
             fontFamily: "'Pacifico', cursive",
@@ -39,26 +36,11 @@ export default function CartPage() {
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
             textDecoration: 'none',
+            flexShrink: 0,
           }}>
             Nidsscrochet
           </Link>
-          <Link href="/" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            color: '#ff6b9d',
-            textDecoration: 'none',
-            fontSize: '0.85rem',
-            fontWeight: 600,
-            padding: '0.4rem 0.9rem',
-            borderRadius: '50px',
-            border: '1.5px solid rgba(255,107,157,0.25)',
-            background: 'rgba(255,107,157,0.04)',
-            transition: 'all 0.2s ease',
-          }}>
-            <ArrowLeft style={{ width: '14px', height: '14px' }} />
-            Continue Shopping
-          </Link>
+         
         </div>
       </header>
 

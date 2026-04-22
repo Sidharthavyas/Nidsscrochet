@@ -1,0 +1,659 @@
+/* ================================================
+   Orders.module.css — Orders & Track Order page
+   Uses :root variables from globals.css
+   ================================================ */
+
+/* ================================================
+   PAGE SHELL
+   ================================================ */
+
+.ordersPage {
+    background: var(--surface);
+    min-height: 100vh;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ================================================
+   PAGE NAVBAR (simple: brand + back link)
+   ================================================ */
+
+.pageNav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--gray);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.pageNavInner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pageNavBrand {
+    text-decoration: none;
+    font-family: 'Pacifico', cursive;
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.pageNavBack {
+    text-decoration: none;
+    color: var(--pink);
+    font-weight: 450;
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+}
+
+.pageNavBack:hover {
+    color: var(--pink-dark);
+}
+
+/* ================================================
+   MAIN CONTENT
+   ================================================ */
+
+.mainContent {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.pageTitle {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: var(--black);
+}
+
+/* ================================================
+   TABS
+   ================================================ */
+
+.tabBar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--gray);
+    padding-bottom: 0;
+}
+
+.tabBtn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-gray);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s ease;
+}
+
+.tabBtn:hover {
+    color: var(--pink);
+}
+
+.tabBtnActive {
+    color: var(--pink);
+    border-bottom-color: var(--pink);
+}
+
+/* ================================================
+   TRACK ORDER FORM
+   ================================================ */
+
+.trackContainer {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.trackCard {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--gray);
+}
+
+.trackIconLarge {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+.trackTitle {
+    text-align: center;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: var(--black);
+}
+
+.trackDescription {
+    text-align: center;
+    color: var(--text-gray);
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+.trackForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.formLabel {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    color: var(--black);
+}
+
+.formInput {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid var(--gray);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.formInput:focus {
+    border-color: var(--pink);
+}
+
+/* FIX: replaced `composes: formInput` with explicit shared properties */
+.formInputMono {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid var(--gray);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+    font-family: monospace;
+}
+
+.formInputMono:focus {
+    border-color: var(--pink);
+}
+
+.trackError {
+    color: #dc2626;
+    font-size: 0.82rem;
+    margin: 0;
+}
+
+.trackSubmitBtn {
+    background: var(--pink);
+    color: white;
+    border: none;
+    padding: 0.8rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.trackSubmitBtn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* ================================================
+   TRACKED ORDER RESULT
+   ================================================ */
+
+.trackedResult {
+    margin-top: 1.5rem;
+    background: var(--white);
+    border-radius: 20px;
+    padding: 1.5rem;
+    border: 1px solid var(--gray);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.trackedHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.trackedIdLabel {
+    font-size: 0.78rem;
+    color: var(--text-gray);
+    margin: 0 0 0.2rem;
+}
+
+.trackedIdValue {
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: monospace;
+    margin: 0;
+}
+
+.trackedStatusBadge {
+    background: #fdf2f8;
+    color: var(--pink-dark);
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.trackedDate {
+    font-size: 0.82rem;
+    color: var(--text-gray);
+    margin-bottom: 0.5rem;
+}
+
+.trackedAmount {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--pink);
+    margin-bottom: 1rem;
+}
+
+.trackedItemRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--gray);
+}
+
+.trackedItemImage {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.trackedItemName {
+    flex: 1;
+    font-size: 0.85rem;
+}
+
+.trackedItemQty {
+    font-size: 0.82rem;
+    color: var(--text-gray);
+}
+
+.trackedItemPrice {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* ================================================
+   LOADING / ERROR / EMPTY STATES
+   ================================================ */
+
+.loadingState {
+    text-align: center;
+    padding: 4rem 0;
+    color: var(--text-gray);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--pink);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: ordersSpinner 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes ordersSpinner {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.errorState {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 1rem;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 4rem 0;
+    background: var(--white);
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.emptyIcon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.emptyTitle {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--black);
+}
+
+.emptyText {
+    color: var(--text-gray);
+    margin-bottom: 2rem;
+}
+
+.emptyShopLink {
+    background: var(--pink);
+    color: white;
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.emptyShopLink:hover {
+    background: var(--pink-dark);
+}
+
+/* ================================================
+   ORDER CARDS LIST
+   ================================================ */
+
+.ordersList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.orderCard {
+    background: var(--white);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--gray);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+/* Order card header */
+.orderCardHeader {
+    background: var(--surface);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.orderCardMeta {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+/* FIX: removed empty .orderMetaItem {} ruleset */
+
+.orderMetaLabel {
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+}
+
+.orderMetaValue {
+    font-weight: 500;
+}
+
+.orderMetaValueMono {
+    font-weight: 500;
+    font-family: monospace;
+}
+
+.orderIdColumn {
+    text-align: right;
+}
+
+/* Order status bar */
+.orderStatusBar {
+    padding: 1.5rem 1.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.statusDot {
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.statusLabel {
+    margin: 0;
+    text-transform: capitalize;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.codBadge {
+    font-size: 0.8rem;
+    background: #f3f4f6;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+}
+
+/* Order items */
+.orderItemsSection {
+    padding: 1.5rem;
+}
+
+.orderItemRow {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--gray);
+}
+
+.orderItemRow:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.orderItemImageWrap {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f9f9f9;
+    flex-shrink: 0;
+}
+
+.orderItemImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.orderItemPlaceholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+}
+
+.orderItemDetails {
+    flex: 1;
+}
+
+.orderItemName {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+    color: var(--black);
+    text-decoration: none;
+}
+
+.orderItemName:hover {
+    color: var(--pink);
+}
+
+.orderItemQtyPrice {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.buyAgainLink {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--gray);
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--black);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.buyAgainLink:hover {
+    border-color: var(--pink);
+    color: var(--pink);
+}
+
+/* Order summary footer */
+.orderSummaryFooter {
+    padding: 1rem 1.5rem;
+    background: #fafafa;
+    border-top: 1px solid var(--gray);
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.summaryFooterRow {
+    display: flex;
+    justify-content: space-between;
+}
+
+.discountText {
+    color: #e91e63;
+}
+
+.shippingText {
+    color: var(--text-gray);
+}
+
+/* ================================================
+   TABLET (769px–1024px)
+   ================================================ */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .pageNavBrand {
+        font-size: 1.3rem;
+    }
+
+    .orderCardMeta {
+        gap: 1.5rem;
+    }
+
+    .orderItemRow {
+        gap: 1rem;
+    }
+
+    .orderItemImageWrap {
+        width: 68px;
+        height: 68px;
+    }
+}
+
+/* ================================================
+   MOBILE (≤768px)
+   ================================================ */
+
+@media (max-width: 768px) {
+    .mainContent {
+        padding: 1.5rem 1rem;
+    }
+
+    .pageTitle {
+        font-size: 1.5rem;
+    }
+
+    .pageNavBrand {
+        font-size: 1.2rem;
+    }
+
+    .tabBtn {
+        font-size: 0.82rem;
+        padding: 0.5rem 0.8rem;
+    }
+
+    .orderCardHeader {
+        padding: 0.85rem 1rem;
+        gap: 0.5rem;
+    }
+
+    .orderCardMeta {
+        gap: 1rem;
+    }
+
+    .orderMetaLabel {
+        font-size: 0.72rem;
+    }
+
+    .orderStatusBar {
+        padding: 1rem 1rem 0;
+    }
+
+    .statusLabel {
+        font-size: 1rem;
+    }
+
+    .orderItemsSection {
+        padding: 1rem;
+    }
+
+    .orderItemRow {
+        gap: 1rem;
+    }
+
+    .orderItemImageWrap {
+        width: 60px;
+        height: 60px;
+    }
+
+    .orderItemName {
+        font-size: 0.95rem;
+    }
+
+    .trackCard {
+        padding: 1.5rem;
+    }
+
+    .trackTitle {
+        font-size: 1.15rem;
+    }
+}

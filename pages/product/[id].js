@@ -797,7 +797,6 @@ const handleBuyNow = useCallback(() => {
               <Link
                 href="/"
                 className={styles.navBrand}
-                style={{ textDecoration: 'none' }}
               >
                 Nidsscrochet
               </Link>
@@ -817,7 +816,6 @@ const handleBuyNow = useCallback(() => {
                 <Link
                   href="/#collections"
                   className={styles.navLink}
-                  style={{ textDecoration: 'none' }}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Collections
@@ -827,7 +825,6 @@ const handleBuyNow = useCallback(() => {
                   <Link
                     href="/orders"
                     className={styles.navLink}
-                    style={{ textDecoration: 'none' }}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     My Orders
@@ -841,7 +838,6 @@ const handleBuyNow = useCallback(() => {
                     <SignInButton mode="modal">
                       <button
                         className={styles.navLink}
-                        style={{ cursor: 'pointer' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign In
@@ -850,7 +846,6 @@ const handleBuyNow = useCallback(() => {
                     <SignUpButton mode="modal">
                       <button
                         className={styles.navCta}
-                        style={{ cursor: 'pointer' }}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Sign Up
@@ -870,21 +865,14 @@ const handleBuyNow = useCallback(() => {
         {/* ★ Mobile nav backdrop — closes menu on outside tap, never blocks page scroll */}
         {mobileMenuOpen && (
           <div
+            className={styles.mobileBackdrop}
             onClick={() => setMobileMenuOpen(false)}
-            style={{
-              height:'66px',
-              position: 'fixed',
-              inset: 0,
-              zIndex: 999,
-              background: 'rgba(0,0,0,0.25)',
-            }}
             aria-hidden="true"
           />
         )}
 
         {/* ============ BREADCRUMBS ============ */}
-        <div className={styles.productPageContainer}
-        style={{paddingTop:'1.25rem'}}>
+        <div className={styles.productPageContainer}>
           <div className={styles.breadcrumbs}>
             <Link href="/" className={styles.breadcrumbLink}>
               Home

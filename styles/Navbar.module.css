@@ -423,6 +423,45 @@
 }
 
 /* ================================================
+   TABLET — 769px – 1024px
+   Prevents the "half-broken" state between full desktop
+   and mobile drawer. Elements stay horizontal but tighten.
+   ================================================ */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .navContent {
+        padding: 0.65rem 1.25rem;
+        gap: 0.75rem;
+    }
+
+    .navBrand {
+        font-size: 1.2rem;
+    }
+
+    .navLinks {
+        gap: 1rem;
+    }
+
+    .navLink {
+        font-size: 0.78rem;
+    }
+
+    .searchContainer {
+        margin: 0 0.75rem;
+        max-width: 280px;
+    }
+
+    .navCta {
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+    }
+
+    .authButtons {
+        gap: 0.5rem;
+    }
+}
+
+/* ================================================
    MOBILE — ≤768px
    ================================================ */
 

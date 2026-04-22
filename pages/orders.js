@@ -108,8 +108,8 @@ export default function MyOrders() {
             <nav className={styles.navbar} style={{ position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid var(--gray)', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)' }}>
                 <div className={styles.navWrapper} style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Link href="/" style={{ textDecoration: 'none', fontFamily: "'Pacifico', cursive", fontSize: '1.5rem', background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                            Nidsscrochet
+                        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                            <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
                         </Link>
                         <Link href="/" style={{ textDecoration: 'none', color: 'var(--pink)', fontWeight: '450' }}>
                             ← Back to Shop

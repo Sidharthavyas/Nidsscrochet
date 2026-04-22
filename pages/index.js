@@ -2753,7 +2753,9 @@ const handleProductClick = useCallback((product) => {
             <footer className={styles.footer}>
               <div className={styles.footerContent}>
                 <div className={styles.footerBrand}>
-                  <h3>Nidsscrochet</h3>
+                  <Link href="/">
+                    <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" className={styles.footerLogo} />
+                  </Link>
                   <p>Crafting happiness, one stitch at a time</p>
                 </div>
                 <div className={styles.footerLinks}>

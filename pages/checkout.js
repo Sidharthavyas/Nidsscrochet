@@ -301,7 +301,9 @@ name: isSignedIn
         {/* Navbar */}
         <header style={pageStyles.header}>
           <div style={pageStyles.headerInner}>
-            <Link href="/" style={pageStyles.logo}>Nidsscrochet</Link>
+            <Link href="/" style={pageStyles.logo}>
+              <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" style={pageStyles.logoImg} />
+            </Link>
             <Link href="/cart" style={pageStyles.backBtn}>
               <ArrowLeft style={{ width: '15px', height: '15px' }} />
               Back to Cart
@@ -613,7 +615,8 @@ const pageStyles = {
   spinner: { width: '40px', height: '40px', border: '3px solid var(--pink-soft)', borderTop: '3px solid var(--pink)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' },
   header: { background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,107,157,0.1)', boxShadow: '0 2px 20px rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 100 },
   headerInner: { maxWidth: '1100px', margin: '0 auto', padding: '0.9rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  logo: { fontFamily: "'Pacifico', cursive", fontSize: '1.4rem', background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', textDecoration: 'none' },
+  logo: { display: 'flex', alignItems: 'center', textDecoration: 'none' },
+  logoImg: { height: '38px', width: 'auto', objectFit: 'contain' },
   backBtn: { display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--pink)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: '600', padding: '0.45rem 1rem', borderRadius: '50px', border: '1.5px solid var(--pink-soft)', background: 'var(--white)', transition: 'all 0.3s ease' },
   card: { background: 'var(--white)', borderRadius: '16px', padding: '1.25rem', boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(255,107,157,0.08)' },
   sectionHeader: { display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' },

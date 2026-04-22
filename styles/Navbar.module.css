@@ -52,12 +52,8 @@
 
 /* ── Brand ── */
 .navBrand {
-    font-family: 'Pacifico', cursive;
-    font-size: 1.4rem;
-    background: linear-gradient(135deg, #e91e8c, #ff6b9d);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    display: flex;
+    align-items: center;
     text-decoration: none;
     cursor: pointer;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -70,6 +66,13 @@
 .navBrand:hover {
     transform: translateY(-2px) scale(1.02);
     filter: drop-shadow(0 3px 8px rgba(255, 107, 157, 0.25));
+}
+
+.navLogoImg {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.3s ease;
 }
 
 /* ── Mobile menu toggle ── */

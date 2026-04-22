@@ -659,7 +659,9 @@ function AdminDashboard() {
               transition={{ duration: 0.6 }}
               className={styles.headerBrand}
             >
-              <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 700 }}>Nidsscrochet</h1>
+              <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+                <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
+              </h1>
               <span className={styles.adminBadge}>📦 Admin</span>
             </motion.div>
             <div className={styles.headerActions}>

@@ -93,16 +93,8 @@ export default function Login() {
             padding: '0.9rem 1.25rem',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
           }}>
-            <Link href="/" style={{
-              fontFamily: "'Pacifico', cursive",
-              fontSize: '1.4rem',
-              background: 'linear-gradient(135deg, var(--pink), var(--pink-dark))',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              textDecoration: 'none',
-            }}>
-              Nidsscrochet
+            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+              <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
             </Link>
 
             <Link href="/" style={{

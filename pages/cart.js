@@ -26,7 +26,7 @@ export default function CartPage() {
 
           {/* Brand — center (flexbox centered, no absolute positioning) */}
           <Link href="/" className={styles.headerBrand}>
-            Nidsscrochet
+            <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" className={styles.headerLogoImg} />
           </Link>
 
           {/* Right spacer — matches back button width for true centering */}

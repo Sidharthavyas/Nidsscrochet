@@ -798,7 +798,7 @@ const handleBuyNow = useCallback(() => {
                 href="/"
                 className={styles.navBrand}
               >
-                Nidsscrochet
+                <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" className={styles.navLogoImg} />
               </Link>
 
               <button

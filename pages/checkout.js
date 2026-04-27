@@ -35,6 +35,7 @@ export default function Checkout() {
   // Guest-specific fields (used when not signed in)
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   const cartTotal = getCartTotal();
   const shippingTotal = getShippingTotal();
@@ -55,11 +56,52 @@ export default function Checkout() {
 
   // No login redirect — guest checkout is allowed
 
+  // ─── Pre-fill saved profile for signed-in users ─────────────
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || profileLoaded) return;
+    fetch('/api/user-profile')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.profile) {
+          const p = data.profile;
+          if (p.phone && !phone) {
+            // Strip country code prefix if stored together
+            const digits = p.phone.replace(/^\+\d+\s*/, '');
+            setPhone(digits);
+          }
+          if (p.address && !address) setAddress(p.address);
+        }
+      })
+      .catch(() => {/* silently fail */})
+      .finally(() => setProfileLoaded(true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, isSignedIn]);
+
   useEffect(() => {
     if (items.length === 0 && !loading) {
       router.push('/cart');
     }
   }, [items.length, router, loading]);
+
+  // ─── Save profile after successful order ────────────────────
+  const saveUserProfile = async () => {
+    if (!isSignedIn) return;
+    try {
+      const details = getCustomerDetails();
+      await fetch('/api/user-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: details.name,
+          email: details.email,
+          phone: details.phone,
+          address: details.address,
+        }),
+      });
+    } catch {
+      // Non-critical — silently ignore
+    }
+  };
 
   // ─── Resolve customer details (logged-in or guest) ──────────
   const getCustomerDetails = () => ({
@@ -96,6 +138,7 @@ name: isSignedIn
         throw new Error(data.message || 'Failed to create COD order');
       }
 
+      await saveUserProfile();
       clearCart();
       router.push(`/order-success?orderId=${data.orderId}&paymentMethod=cod`);
     } catch (err) {
@@ -161,6 +204,7 @@ name: isSignedIn
             }
 
             // 4. Success — clear cart and redirect
+            await saveUserProfile();
             clearCart();
             router.push(`/order-success?orderId=${verifyData.orderId}&paymentId=${verifyData.paymentId}`);
           } catch (err) {

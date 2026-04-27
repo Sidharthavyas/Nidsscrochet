@@ -2602,12 +2602,14 @@
 
 .modalBtnPrimary {
   background: linear-gradient(135deg, #D4748A, #B0546A);
+  color: #fff !important;
   box-shadow: 0 5px 18px rgba(212,116,138,.30);
   touch-action: manipulation;
 }
 
 .modalBtnPrimary:hover {
   box-shadow: 0 8px 25px rgba(212,116,138,.45);
+  color: #fff !important;
 }
 
 .modalBtnPrimary:active:not(:disabled) {

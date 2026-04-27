@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 import { motion,  AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
 import Navbar from '@/components/Navbar';
-import { Search, Phone, Instagram, Link2, MessageCircle, Facebook, Twitter, MapPin, Users, Package, Sparkles, Palette, Scissors, CheckCircle2, Heart, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Phone, Instagram, Link2, MessageCircle, Facebook, Twitter, MapPin, Users, Package, Sparkles, Palette, Scissors, CheckCircle2, Heart, AlertCircle, Loader2, ChevronLeft, ChevronRight, Mail } from 'lucide-react';
 
 // SSG Imports
 import connectDB from '../lib/mongodb';

@@ -6,7 +6,9 @@ import { Search, Phone, X, Menu, ExternalLink } from 'lucide-react';
 import { useAuth, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import CartButton from '@/components/CartButton';
 import styles from '../styles/Navbar.module.css';
+import { Pacifico } from 'next/font/google';
 
+const pacifico = Pacifico({ subsets: ['latin'], weight: '400' });
 // ================================================
 // SHARED NAVBAR (used across all pages)
 // Props:
@@ -101,9 +103,11 @@ export default function Navbar({ showSearch = false, products = [] }) {
 
             {/* ── Brand ── */}
             <Link href="/" className={styles.navBrand} aria-label="Nidsscrochet home">
-              <span style={{ color: '#e75480', fontFamily: 'inherit', fontWeight: 700, fontSize: '1.35rem', letterSpacing: '0.01em' }}>
-                Nidsscrochet
-              </span>
+<Link href="/" className={styles.navBrand} aria-label="Nidsscrochet home">
+  <span className={pacifico.className} style={{ color: '#e75480', fontSize: '1.35rem', letterSpacing: '0.01em' }}>
+    Nidsscrochet
+  </span>
+</Link>
             </Link>
 
             {/* ── Search Bar (homepage only) ── */}

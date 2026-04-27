@@ -2753,8 +2753,10 @@ const handleProductClick = useCallback((product) => {
             <footer className={styles.footer}>
               <div className={styles.footerContent}>
                 <div className={styles.footerBrand}>
-                  <Link href="/">
-                    <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" className={styles.footerLogo} />
+                  <Link href="/" style={{ textDecoration: 'none' }}>
+                    <span style={{ color: '#e75480', fontWeight: 700, fontSize: '1.35rem', letterSpacing: '0.01em' }}>
+                      Nidsscrochet
+                    </span>
                   </Link>
                   <p>Crafting happiness, one stitch at a time</p>
                 </div>

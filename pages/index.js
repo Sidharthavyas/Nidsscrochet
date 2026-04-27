@@ -2791,6 +2791,14 @@ const handleProductClick = useCallback((product) => {
                     />
                     WhatsApp
                   </motion.a>
+                  <Link href="/privacy-policy" legacyBehavior passHref>
+                    <motion.a
+                      whileHover={{ y: -3, scale: 1.05 }}
+                      className={styles.footerLink}
+                    >
+                      Privacy Policy
+                    </motion.a>
+                  </Link>
                 </div>
                 <div className={styles.footerLove}>
                   <p>Made with <Heart size={14} strokeWidth={1.5} fill="#e91e63" color="#e91e63" style={{ display: 'inline', verticalAlign: 'middle' }} /> by Nidhi Tripathi</p>

@@ -2,13 +2,18 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Phone, X, Menu, ExternalLink } from 'lucide-react';
+import { Search, Phone, X, Menu } from 'lucide-react';
 import { useAuth, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import CartButton from '@/components/CartButton';
 import styles from '../styles/Navbar.module.css';
 import { Pacifico } from 'next/font/google';
 
-const pacifico = Pacifico({ subsets: ['latin'], weight: '400' });
+const pacifico = Pacifico({
+  subsets: ['latin'],
+  weight: '400',
+  display: 'block', // prevents FOUT flash — font blocks render until loaded
+});
+
 // ================================================
 // SHARED NAVBAR (used across all pages)
 // Props:
@@ -103,11 +108,12 @@ export default function Navbar({ showSearch = false, products = [] }) {
 
             {/* ── Brand ── */}
             <Link href="/" className={styles.navBrand} aria-label="Nidsscrochet home">
-<Link href="/" className={styles.navBrand} aria-label="Nidsscrochet home">
-  <span className={pacifico.className} style={{ color: '#e75480', fontSize: '1.35rem', letterSpacing: '0.01em' }}>
-    Nidsscrochet
-  </span>
-</Link>
+              <span
+                className={pacifico.className}
+                style={{ color: '#e75480', fontSize: '1.35rem', letterSpacing: '0.01em' }}
+              >
+                Nidsscrochet
+              </span>
             </Link>
 
             {/* ── Search Bar (homepage only) ── */}
@@ -233,21 +239,7 @@ export default function Navbar({ showSearch = false, products = [] }) {
               </div>
             )}
 
-            {/* ── Mobile menu toggle ── */}
-            <motion.button
-              className={styles.mobileMenuBtn}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              {mobileMenuOpen
-                ? <X size={22} strokeWidth={1.5} />
-                : <Menu size={22} strokeWidth={1.5} />
-              }
-            </motion.button>
-
-            {/* ── Nav Links ── */}
+            {/* ── Nav Links (desktop) ── */}
             <div className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''}`}>
               <motion.a
                 href={router.pathname === '/' ? '#collections' : '/#collections'}
@@ -327,6 +319,20 @@ export default function Navbar({ showSearch = false, products = [] }) {
                 Call Us
               </motion.a>
             </div>
+
+            {/* ── Mobile menu toggle (right side) ── */}
+            <motion.button
+              className={styles.mobileMenuBtn}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              {mobileMenuOpen
+                ? <X size={22} strokeWidth={1.5} />
+                : <Menu size={22} strokeWidth={1.5} />
+              }
+            </motion.button>
 
           </div>
         </div>

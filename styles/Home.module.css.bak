@@ -214,65 +214,378 @@
     filter: drop-shadow(0 0 10px rgba(255, 107, 157, 0.6));
 }
 
+/* ================================================
+   NAVBAR
+   ================================================ */
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 0;
+    transition: var(--transition-smooth);
+    will-change: transform;
+}
+
 /* FIXED: Added flex-shrink to prevent brand from being squeezed */
+.navBrand {
+    font-family: 'Pacifico', cursive;
+    font-size: 1.4rem;
+    background: linear-gradient(135deg, var(--pink-primary), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    letter-spacing: 0.5px;
+    z-index: 10;
+    min-height: auto;
+    min-width: auto;
+    flex-shrink: 0;
+    /* Removed janky float animation */
+}
 
 /* Removed: float animation on brand (too jittery, hurts premium feel) */
 
+.mobileMenuBtn {
+    display: none;
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    color: var(--pink);
+    cursor: pointer;
+    padding: 0.4rem;
+    z-index: 1001;
+    transition: var(--transition);
+    min-height: auto;
+    min-width: auto;
+}
+
 /* Logo Styles */
+.navLogo,
+.footerLogo {
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(255, 107, 157, 0.2));
+    transition: var(--transition);
+}
+
+/* ================================================
+   SEARCH BAR
+   ================================================ */
+
+.searchContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--pink-soft);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 400px;
+    flex: 1;
+    margin: 0 1.5rem;
+    z-index: 5;
+}
+
+/* ================================================
+   SEARCH SUGGESTIONS DROPDOWN — IMPROVED
+   ================================================ */
+
+.suggestionsDropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow:
+        0 12px 48px rgba(0, 0, 0, 0.12),
+        0 4px 16px rgba(255, 107, 157, 0.06);
+    border: 1px solid rgba(255, 107, 157, 0.1);
+    overflow: hidden;
+    z-index: 2001;
+}
 
 /* Header with result count */
+.suggestionsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, rgba(255, 107, 157, 0.04), rgba(168, 218, 255, 0.04));
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
 
 /* Scrollable list */
+.suggestionsList {
+    max-height: 340px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
 
 /* Individual suggestion row */
+.suggestionItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    position: relative;
+}
 
 /* Image thumbnail */
+.suggestionImageWrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #fff5f7, #f0f4ff);
+    border: 1px solid rgba(255, 107, 157, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 /* Info text */
+.suggestionInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
 
 /* Highlight matched text */
+.suggestionHighlight {
+    background: rgba(255, 107, 157, 0.15);
+    color: var(--pink-dark);
+    border-radius: 2px;
+    padding: 0 1px;
+    font-weight: 700;
+}
 
 /* Price + arrow */
+.suggestionPriceWrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+}
 
 /* No results state */
+.noSuggestionsContent {
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+}
+
+/* ================================================
+   MOBILE SUGGESTIONS (768px)
+   ================================================ */
 
 @media (max-width: 768px) {
 
     /* On mobile, when search is active (fixed bar at top),
        the dropdown becomes a panel below the search bar */
-    
+    .searchActive .suggestionsDropdown {
+        position: fixed;
+        top: 54px;
+        /* height of the mobile search bar */
+        left: 0;
+        right: 0;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.16);
+        border-top: none;
+        max-height: calc(70vh - 54px);
+        max-height: calc(70dvh - 54px);
+        display: flex;
+        flex-direction: column;
+    }
 
-    
+    .searchActive .suggestionsList {
+        max-height: none;
+        flex: 1;
+        min-height: 0;
+    }
 
     /* Hide keyboard hint on mobile */
-    
+    .suggestionsHint {
+        display: none;
+    }
 
-    
+    .suggestionsHeader {
+        padding: 6px 14px;
+    }
 
-    
+    .suggestionsCount {
+        font-size: 0.62rem;
+    }
 
-    
+    .suggestionItem {
+        padding: 10px 14px;
+        gap: 10px;
+    }
 
-    
+    .suggestionImageWrap {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+    }
 
-    
+    .suggestionName {
+        font-size: 0.82rem;
+    }
 
-    
+    .suggestionCategory {
+        font-size: 0.6rem;
+    }
 
-    
+    .suggestionPrice {
+        font-size: 0.82rem;
+    }
 
-    
+    .suggestionArrow {
+        display: none;
+    }
 
-    
+    .noSuggestionsContent {
+        padding: 1.5rem 1rem;
+    }
 
-    
+    .noSuggestionsIcon {
+        font-size: 1.6rem;
+    }
 
-    
+    .noSuggestionsTitle {
+        font-size: 0.82rem;
+    }
 
-    
+    .noSuggestionsHint {
+        font-size: 0.72rem;
+    }
+}
+
+/* ================================================
+   SMALL MOBILE SUGGESTIONS (480px)
+   ================================================ */
+
+@media (max-width: 480px) {
+
+    .searchActive .suggestionsDropdown {
+        top: 50px;
+        border-radius: 0 0 16px 16px;
+        max-height: calc(65vh - 50px);
+        max-height: calc(65dvh - 50px);
+    }
+
+    .suggestionItem {
+        padding: 9px 12px;
+        gap: 8px;
+    }
+
+    .suggestionImageWrap {
+        width: 36px;
+        height: 36px;
+        border-radius: 7px;
+    }
+
+    .suggestionName {
+        font-size: 0.78rem;
+    }
+
+    .suggestionCategory {
+        font-size: 0.56rem;
+    }
+
+    .suggestionPrice {
+        font-size: 0.78rem;
+    }
+}
+
+/* ================================================
+   EXTRA SMALL SUGGESTIONS (360px)
+   ================================================ */
+
+@media (max-width: 360px) {
+
+    .searchActive .suggestionsDropdown {
+        top: 46px;
+        border-radius: 0 0 14px 14px;
+        max-height: calc(60vh - 46px);
+    }
+
+    .suggestionItem {
+        padding: 8px 10px;
+        gap: 7px;
+    }
+
+    .suggestionImageWrap {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+    }
+
+    .suggestionName {
+        font-size: 0.75rem;
+    }
+
+    .suggestionPrice {
+        font-size: 0.75rem;
+    }
+
+    .noSuggestionsContent {
+        padding: 1rem 0.8rem;
+    }
 }
 
 /* Search Results */
+.searchResultsSection {
+    padding: 4rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 400px;
+}
+
+.searchResultsHeader {
+    margin-bottom: 2rem;
+}
+
+.searchResultsTitle {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 800;
+    color: var(--black);
+    margin-bottom: 0.5rem;
+}
+
+.searchResultsCount {
+    font-size: 1rem;
+    color: var(--text-gray);
+    font-weight: 500;
+}
+
+.searchHighlight {
+    color: var(--pink);
+    font-weight: 700;
+}
+
+.searchResultsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 2rem;
+    padding: 1rem 0;
+}
 
 .noResults {
     text-align: center;
@@ -2480,6 +2793,14 @@
    ================================================ */
 
 /* Mobile backdrop overlay for product page nav drawer */
+.mobileBackdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
 
 .productPageContainer {
     max-width: 1200px;
@@ -2800,19 +3121,36 @@
     }
 
     /* ── Navbar tablet tightening ── */
-    
+    .navContent {
+        padding: 0.65rem 1.25rem;
+        gap: 0.75rem;
+    }
 
-    
+    .navBrand {
+        font-size: 1.2rem;
+    }
 
-    
+    .navLinks {
+        gap: 1rem;
+    }
 
-    
+    .navLink {
+        font-size: 0.8rem;
+    }
 
-    
+    .searchContainer {
+        margin: 0 0.75rem;
+        max-width: 260px;
+    }
 
-    
+    .navCta {
+        padding: 0.35rem 0.85rem;
+        font-size: 0.78rem;
+    }
 
-    
+    .authButtons {
+        gap: 0.5rem;
+    }
 
     /* ── Hero tablet ── */
     .hero {
@@ -2877,57 +3215,214 @@
         display: none !important;
     }
 
-    
-    
+    /* =============================================
+       FIXED: NAVBAR — Brand left, actions right
+       ============================================= */
+    .navContent {
+        padding: 0.6rem 1rem;
+        gap: 0;
+    }
 
     /* FIXED: Brand takes left side, pushes everything else right */
-    
+    .navBrand {
+        font-size: 1.15rem;
+        z-index: 1001;
+        flex-shrink: 0;
+        margin-right: auto;
+    }
 
-    
+    .mobileMenuBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        font-size: 1.4rem;
+        padding: 0.5rem;
+        flex-shrink: 0;
+    }
 
-    
+    .navLogo {
+        max-width: 120px;
+    }
 
-    
-    
+    /* =============================================
+       FIXED: SEARCH BAR — Compact icon on right
+       No more centering. Fixed width, sits next to menu btn.
+       ============================================= */
+    .searchContainer {
+        position: static;
+        transform: none;
+        max-width: none;
+        width: 40px;
+        height: 40px;
+        margin: 0 0.4rem 0 0;
+        padding: 0;
+        border-color: transparent;
+        background: transparent;
+        overflow: hidden;
+        border-radius: 50%;
+        flex: 0 0 40px;
+        justify-content: center;
+    }
 
-    
+    .searchContainer .searchInput {
+        opacity: 0;
+        width: 0;
+        padding: 0;
+        min-width: 0;
+        position: absolute;
+        pointer-events: none;
+    }
 
-    
+    .searchContainer .searchClear {
+        display: none;
+    }
 
-    
+    .searchContainer .searchIcon {
+        margin: 0;
+        padding: 0;
+        font-size: 1.15rem;
+        color: var(--pink);
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
     /* Search suggestions on mobile */
-    
+    .searchSuggestions,
+    .noSuggestions {
+        position: fixed;
+        top: auto;
+        left: 0;
+        right: 0;
+        border-radius: 0 0 16px 16px;
+        max-height: 60vh;
+    }
 
     /* -- SEARCH EXPANDED STATE (full-width overlay) -- */
-    
+    .searchActive {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        height: auto !important;
+        border-radius: 0 !important;
+        background: var(--white) !important;
+        border-color: transparent !important;
+        border-bottom: 2px solid var(--pink) !important;
+        padding: 0.8rem 1rem !important;
+        z-index: 2000 !important;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15) !important;
+        overflow: visible !important;
+        flex: 1 1 100% !important;
+    }
 
-    
+    .searchActive .searchInput {
+        opacity: 1 !important;
+        width: 100% !important;
+        position: static !important;
+        font-size: 1rem !important;
+        padding: 0.5rem !important;
+        min-width: auto !important;
+        pointer-events: auto !important;
+    }
 
-    
+    .searchActive .searchClear {
+        display: flex !important;
+        font-size: 1.3rem;
+        padding: 0.5rem;
+    }
 
-    
+    .searchActive .searchIcon {
+        margin-right: 0.3rem;
+        width: auto;
+        height: auto;
+        padding: 0.3rem;
+    }
 
-    
+    .searchResultsSection {
+        padding: 2rem 1rem;
+        min-height: 300px;
+    }
 
-    
+    .searchResultsGrid {
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+    }
 
-    
+    .searchResultsTitle {
+        font-size: 1.3rem;
+    }
 
     /* -- NAV MENU -- */
-    
+    .navLinks {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        height: 100vh;
+        height: 100dvh;
+        width: 80%;
+        max-width: 320px;
+        background: #fff5f5;
+        box-shadow: -10px 0 50px rgba(255, 107, 157, 0.15);
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 5rem 2rem 2rem;
+        gap: 0;
+        transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1000;
+        overflow-y: auto;
+    }
 
-    
+    .navLinksMobile {
+        right: 0;
+    }
 
-    
+    .navLink {
+        font-family: var(--font-poppins, 'Poppins');
+        font-size: 1.1rem;
+        font-weight: 500;
+        width: 100%;
+        padding: 1.2rem 0;
+        border-bottom: 1px solid rgba(255, 182, 193, 0.3);
+        color: var(--black);
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        text-align: left;
+    }
 
-    
+    .authButtons {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 0;
+        margin-top: 0.5rem;
+    }
 
-    
+    .navLink::after {
+        display: none;
+    }
 
-    
+    .navLink:hover {
+        transform: translateX(5px);
+        color: var(--pink);
+        background: transparent;
+    }
 
-    
+    .navCta {
+    width: 100%;
+    justify-content: center;
+    padding: 0.9rem 1.5rem;
+    margin-top: 1.5rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    border-color: rgba(176, 84, 106, 0.35);
+}
 .heroInner {
     grid-template-columns: 1fr;
     gap: 2.5rem;
@@ -3589,7 +4084,9 @@
         margin-bottom: 1.5rem;
     }
 
-    
+    .footerLogo {
+        max-width: 140px;
+    }
 
     .footerLinks {
         flex-direction: column;
@@ -3762,14 +4259,27 @@
    ================================================ */
 
 @media (max-width: 480px) {
-    
+    .navBrand {
+        font-size: 1rem;
+    }
 
-    
+    .navLogo {
+        max-width: 100px;
+    }
 
     /* FIXED: Smaller search icon for small screens */
-    
+    .searchContainer {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+        margin: 0 0.3rem 0 0;
+    }
 
-    
+    .searchContainer .searchIcon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.05rem;
+    }
 
     .hero {
         padding: 4rem 0.8rem 1.5rem;
@@ -3997,18 +4507,36 @@
    ================================================ */
 
 @media (max-width: 360px) {
-    
+    .navContent {
+        padding: 0.5rem 0.6rem;
+    }
 
-    
+    .navBrand {
+        font-size: 0.9rem;
+    }
 
-    
+    .navLogo {
+        max-width: 85px;
+    }
 
     /* FIXED: Even smaller search for tiny screens */
-    
+    .searchContainer {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        margin: 0 0.2rem 0 0;
+    }
 
-    
+    .searchContainer .searchIcon {
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
+    }
 
-    
+    .mobileMenuBtn {
+        font-size: 1.2rem;
+        padding: 0.4rem;
+    }
 
     .brandName {
         font-size: 1.6rem;
@@ -4182,7 +4710,9 @@
             padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
         }
 
-        
+        .navLinks {
+            padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+        }
     }
 }
 
@@ -5520,9 +6050,35 @@
     font-weight: 500;
 }
 
+/* ================================================
+   MOBILE NAVBAR PROFILE LABEL
+   ================================================ */
+
 /* Wrapper for UserButton + "Profile" label in mobile drawer */
+.navProfileItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+}
 
 /* Label — hidden on desktop, visible on mobile, inherits navLink sizing */
+.navProfileLabel {
+    display: none;
+    color: var(--black);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+    transition: var(--transition);
+}
+
+@media (max-width: 768px) {
+    .navProfileLabel {
+        display: inline;
+        font-size: 1.2rem;
+    }
+}
 
 /* Skeleton CSS — pure CSS shimmer, zero JS */
 @keyframes shimmer {

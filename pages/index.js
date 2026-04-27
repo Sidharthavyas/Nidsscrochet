@@ -2754,10 +2754,11 @@ const handleProductClick = useCallback((product) => {
               <div className={styles.footerContent}>
                 <div className={styles.footerBrand}>
                   <Link href="/" style={{ textDecoration: 'none' }}>
-                    <span style={{ color: '#e75480', fontWeight: 700, fontSize: '1.35rem', letterSpacing: '0.01em' }}>
-                      Nidsscrochet
-                    </span>
-                  </Link>
+  <span className={pacifico.className} style={{ color: '#e75480', fontSize: '1.35rem', letterSpacing: '0.01em' }}>
+    Nidsscrochet
+  </span>
+</Link>
+
                   <p>Crafting happiness, one stitch at a time</p>
                 </div>
                 <div className={styles.footerLinks}>

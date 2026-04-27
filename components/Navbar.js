@@ -101,7 +101,9 @@ export default function Navbar({ showSearch = false, products = [] }) {
 
             {/* ── Brand ── */}
             <Link href="/" className={styles.navBrand} aria-label="Nidsscrochet home">
-              <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" className={styles.navLogoImg} />
+              <span style={{ color: '#e75480', fontFamily: 'inherit', fontWeight: 700, fontSize: '1.35rem', letterSpacing: '0.01em' }}>
+                Nidsscrochet
+              </span>
             </Link>
 
             {/* ── Search Bar (homepage only) ── */}

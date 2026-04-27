@@ -41,7 +41,7 @@ export default function PrivacyPolicy() {
       </Head>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,500&display=swap');
+       @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,500&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -462,11 +462,12 @@ export default function PrivacyPolicy() {
           z-index: 100;
         }
         .pp-nav-brand {
-          font-family: 'Playfair Display', serif;
-          font-size: 18px;
-          font-weight: 600;
-          color: #2c1a14;
-          text-decoration: none;
+  font-family: 'Pacifico', cursive;
+  font-size: 18px;
+  font-weight: 400;  /* Pacifico only has 400 */
+  color: #e75480;    /* match the navbar's pink */
+  text-decoration: none;
+
         }
         .pp-nav-sep {
           color: #e0b0c8;

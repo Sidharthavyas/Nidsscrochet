@@ -2799,6 +2799,14 @@ const handleProductClick = useCallback((product) => {
                       Privacy Policy
                     </motion.a>
                   </Link>
+                  <motion.a
+                    href="mailto:business@nidsscrochet.in"
+                    whileHover={{ y: -3, scale: 1.05 }}
+                    className={styles.footerLink}
+                  >
+                    <Mail size={16} strokeWidth={1.5} style={{ display: 'inline', marginRight: '4px' }} />
+                    Mail Us
+                  </motion.a>
                 </div>
                 <div className={styles.footerLove}>
                   <p>Made with <Heart size={14} strokeWidth={1.5} fill="#e91e63" color="#e91e63" style={{ display: 'inline', verticalAlign: 'middle' }} /> by Nidhi Tripathi</p>

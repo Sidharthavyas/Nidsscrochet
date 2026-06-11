@@ -8,7 +8,14 @@ import { useRouter } from 'next/router';
 import { motion,  AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
 import Navbar from '@/components/Navbar';
+import { Pacifico } from 'next/font/google';
 import { Search, Phone, Instagram, Link2, MessageCircle, Facebook, Twitter, MapPin, Users, Package, Sparkles, Palette, Scissors, CheckCircle2, Heart, AlertCircle, Loader2, ChevronLeft, ChevronRight, Mail } from 'lucide-react';
+
+const pacifico = Pacifico({
+  subsets: ['latin'],
+  weight: '400',
+  display: 'block',
+});
 
 // SSG Imports
 import connectDB from '../lib/mongodb';

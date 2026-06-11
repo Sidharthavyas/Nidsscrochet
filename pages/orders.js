@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 import { useAuth, SignedIn, SignedOut } from '@clerk/nextjs';
-import styles from '../styles/Home.module.css';
+import { Pacifico } from 'next/font/google';
+
+const pacifico = Pacifico({ subsets: ['latin'], weight: '400', display: 'block' });
 
 export default function MyOrders() {
     const { isLoaded, userId } = useAuth();
@@ -105,18 +107,16 @@ export default function MyOrders() {
             </Head>
 
             {/* Navbar */}
-            <nav className={styles.navbar} style={{ position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid var(--gray)', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)' }}>
-                <div className={styles.navWrapper} style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                            <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
-                        </Link>
-                        <Link href="/" style={{ textDecoration: 'none', color: 'var(--pink)', fontWeight: '450' }}>
-                            ← Back to Shop
-                        </Link>
-                    </div>
+            <header style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,107,157,0.1)', boxShadow: '0 2px 20px rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 100 }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.9rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                        <span className={pacifico.className} style={{ color: '#e75480', fontSize: '1.35rem', letterSpacing: '0.01em' }}>Nidsscrochet</span>
+                    </Link>
+                    <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--pink)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: '600', padding: '0.45rem 1rem', borderRadius: '50px', border: '1.5px solid var(--pink-soft)', background: 'var(--white)', transition: 'all 0.3s ease' }}>
+                        ← Back to Shop
+                    </Link>
                 </div>
-            </nav>
+            </header>
 
             <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 1rem' }}>
                 <h1 style={{ fontSize: '2rem', marginBottom: '1.5rem', color: 'var(--black)' }}>Orders</h1>

@@ -9,16 +9,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../../styles/Home.module.css';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/components/Toast';
-import {
-  useAuth,
-  useUser,
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from '@clerk/nextjs';
-import CartButton from '@/components/CartButton';
+import { useAuth, useUser, SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
+import Navbar from '@/components/Navbar';
 import {
   ShoppingCart,
   Plus,
@@ -375,7 +367,6 @@ export default function ProductPage({
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
   const addedTimerRef = useRef(null); 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Reviews
   const [reviews, setReviews] = useState(initialReviews || []);
@@ -791,85 +782,7 @@ const handleBuyNow = useCallback(() => {
 
       <main className={styles.mainContainer}>
         {/* ============ NAVBAR ============ */}
-        <nav className={`${styles.navbar} ${styles.scrolled}`}>
-          <div className={styles.navWrapper}>
-            <div className={styles.navContent}>
-              <Link
-                href="/"
-                className={styles.navBrand}
-              >
-                <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" className={styles.navLogoImg} />
-              </Link>
-
-              <button
-                className={styles.mobileMenuBtn}
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label="Toggle menu"
-              >
-                {mobileMenuOpen ? '✕' : '☰'}
-              </button>
-
-              <div
-                className={`${styles.navLinks} ${mobileMenuOpen ? styles.navLinksMobile : ''
-                  }`}
-              >
-                <Link
-                  href="/#collections"
-                  className={styles.navLink}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Collections
-                </Link>
-
-                <SignedIn>
-                  <Link
-                    href="/orders"
-                    className={styles.navLink}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    My Orders
-                  </Link>
-                </SignedIn>
-
-                <CartButton />
-
-                <SignedOut>
-                  <div className={styles.authButtons}>
-                    <SignInButton mode="modal">
-                      <button
-                        className={styles.navLink}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Sign In
-                      </button>
-                    </SignInButton>
-                    <SignUpButton mode="modal">
-                      <button
-                        className={styles.navCta}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Sign Up
-                      </button>
-                    </SignUpButton>
-                  </div>
-                </SignedOut>
-
-                <SignedIn>
-                  <UserButton afterSignOutUrl="/" />
-                </SignedIn>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        {/* ★ Mobile nav backdrop — closes menu on outside tap, never blocks page scroll */}
-        {mobileMenuOpen && (
-          <div
-            className={styles.mobileBackdrop}
-            onClick={() => setMobileMenuOpen(false)}
-            aria-hidden="true"
-          />
-        )}
+        <Navbar />
 
         {/* ============ BREADCRUMBS ============ */}
         <div className={styles.productPageContainer}>

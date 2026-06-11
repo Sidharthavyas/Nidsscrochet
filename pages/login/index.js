@@ -4,7 +4,10 @@ import { useAuth } from '@clerk/nextjs';
 import { SignIn } from '@clerk/nextjs';
 import Head from 'next/head';
 import Link from 'next/link';
+import { Pacifico } from 'next/font/google';
 import { ArrowLeft } from 'lucide-react';
+
+const pacifico = Pacifico({ subsets: ['latin'], weight: '400', display: 'block' });
 
 export default function Login() {
   const router = useRouter();
@@ -94,7 +97,7 @@ export default function Login() {
             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
           }}>
             <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-              <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
+              <span className={pacifico.className} style={{ color: '#e75480', fontSize: '1.35rem', letterSpacing: '0.01em' }}>Nidsscrochet</span>
             </Link>
 
             <Link href="/" style={{

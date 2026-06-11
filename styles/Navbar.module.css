@@ -68,12 +68,6 @@
     filter: drop-shadow(0 3px 8px rgba(255, 107, 157, 0.25));
 }
 
-.navLogoImg {
-    height: 38px;
-    width: auto;
-    object-fit: contain;
-    transition: transform 0.3s ease;
-}
 
 /* ── Mobile menu toggle ── */
 .mobileMenuBtn {
@@ -100,7 +94,6 @@
     align-items: center;
     gap: 1.5rem;
     flex-shrink: 0;
-    margin-left: left;
 }
 
 .navLink {
@@ -458,7 +451,8 @@
     }
 
     .navBrand {
-        font-size: 1.2rem;
+        /* keep same size as desktop for visual consistency */
+        font-size: 1.35rem;
     }
 
     .navLinks {
@@ -512,7 +506,7 @@
     }
 
     .navBrand {
-        font-size: 1.15rem;
+        font-size: 1.35rem;
         margin-right: auto;
     }
 
@@ -603,6 +597,6 @@
     }
 
     .navBrand {
-        font-size: 1.2rem;
+        font-size: 1.35rem;
     }
 }

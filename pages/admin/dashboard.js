@@ -2,10 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Image from 'next/image';
+import Link from 'next/link';
+import { Pacifico } from 'next/font/google';
 import { motion } from 'framer-motion';
 import ProtectedRoute from '../../components/ProtectedRoute';
 import styles from '../../styles/Admin.module.css';
 import imageCompression from 'browser-image-compression';
+
+const pacifico = Pacifico({ subsets: ['latin'], weight: '400', display: 'block' });
 
 function AdminDashboard() {
   const router = useRouter();
@@ -659,8 +663,8 @@ function AdminDashboard() {
               transition={{ duration: 0.6 }}
               className={styles.headerBrand}
             >
-              <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
-                <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" style={{ height: '38px', width: 'auto', objectFit: 'contain' }} />
+              <h1 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className={pacifico.className} style={{ color: '#e75480', fontSize: '1.35rem', letterSpacing: '0.01em' }}>Nidsscrochet</span>
               </h1>
               <span className={styles.adminBadge}>📦 Admin</span>
             </motion.div>

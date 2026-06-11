@@ -2281,9 +2281,9 @@
 }
 
 .footerBrand h3 {
-    font-family: 'Pacifico', cursive;
-    font-size: 1.75rem;
-    color: #F5C8D5; /* Soft petal — replaces --pink-soft which is now blush bg */
+    /* font loaded via pacifico.className on the <span> — keep size in sync */
+    font-size: 1.35rem;
+    color: #e75480;
     margin-bottom: 0.8rem;
 }
 

@@ -1130,10 +1130,6 @@
   .headerBrand {
     justify-content: center;
   }
-
-  .headerBrand img {
-    max-width: 140px !important;
-  }
 }
 
 /* ================================================

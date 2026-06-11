@@ -4,7 +4,10 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
+import { Pacifico } from 'next/font/google';
 import { ArrowLeft, Lock, ShoppingCart, CreditCard, Truck, Shield, IndianRupee } from 'lucide-react';
+
+const pacifico = Pacifico({ subsets: ['latin'], weight: '400', display: 'block' });
 
 // Helper: wait for Razorpay SDK to be available (loaded async in _document.js)
 function loadRazorpaySDK() {
@@ -346,7 +349,9 @@ name: isSignedIn
         <header style={pageStyles.header}>
           <div style={pageStyles.headerInner}>
             <Link href="/" style={pageStyles.logo}>
-              <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" style={pageStyles.logoImg} />
+              <span className={pacifico.className} style={{ color: '#e75480', fontSize: '1.35rem', letterSpacing: '0.01em' }}>
+                Nidsscrochet
+              </span>
             </Link>
             <Link href="/cart" style={pageStyles.backBtn}>
               <ArrowLeft style={{ width: '15px', height: '15px' }} />
@@ -660,7 +665,6 @@ const pageStyles = {
   header: { background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,107,157,0.1)', boxShadow: '0 2px 20px rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 100 },
   headerInner: { maxWidth: '1100px', margin: '0 auto', padding: '0.9rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   logo: { display: 'flex', alignItems: 'center', textDecoration: 'none' },
-  logoImg: { height: '38px', width: 'auto', objectFit: 'contain' },
   backBtn: { display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--pink)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: '600', padding: '0.45rem 1rem', borderRadius: '50px', border: '1.5px solid var(--pink-soft)', background: 'var(--white)', transition: 'all 0.3s ease' },
   card: { background: 'var(--white)', borderRadius: '16px', padding: '1.25rem', boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(255,107,157,0.08)' },
   sectionHeader: { display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' },

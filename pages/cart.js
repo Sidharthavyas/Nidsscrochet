@@ -2,6 +2,13 @@ import Cart from '@/components/Cart';
 import Head from 'next/head';
 import Link from 'next/link';
 import styles from '../styles/Cart.module.css';
+import { Pacifico } from 'next/font/google';
+
+const pacifico = Pacifico({
+  subsets: ['latin'],
+  weight: '400',
+  display: 'block',
+});
 
 
 export default function CartPage() {
@@ -26,7 +33,12 @@ export default function CartPage() {
 
           {/* Brand — center (flexbox centered, no absolute positioning) */}
           <Link href="/" className={styles.headerBrand}>
-            <img src="/nidsscrochet-logo.png" alt="Nidsscrochet" className={styles.headerLogoImg} />
+            <span
+              className={pacifico.className}
+              style={{ color: '#e75480', fontSize: '1.35rem', letterSpacing: '0.01em' }}
+            >
+              Nidsscrochet
+            </span>
           </Link>
 
           {/* Right spacer — matches back button width for true centering */}

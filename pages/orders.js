@@ -7,10 +7,12 @@ import { useAuth, SignedIn, SignedOut } from '@clerk/nextjs';
 import { Pacifico } from 'next/font/google';
 
 const pacifico = Pacifico({ subsets: ['latin'], weight: '400', display: 'block' });
+import { useToast } from '@/components/Toast';
 
 export default function MyOrders() {
     const { isLoaded, userId } = useAuth();
     const router = useRouter();
+    const { showToast } = useToast();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -50,12 +52,16 @@ export default function MyOrders() {
     const handleTrackOrder = async (e) => {
         e.preventDefault();
         if (!trackOrderId.trim() || !trackEmail.trim()) {
-            setTrackError('Please enter both Order ID and email address.');
+            const msg = 'Please enter both Order ID and email address.';
+            setTrackError(msg);
+            showToast({ message: msg });
             return;
         }
+
         setTrackLoading(true);
         setTrackError('');
         setTrackedOrder(null);
+
         try {
             const res = await fetch('/api/orders/track', {
                 method: 'POST',
@@ -63,10 +69,14 @@ export default function MyOrders() {
                 body: JSON.stringify({ orderId: trackOrderId.trim(), email: trackEmail.trim() }),
             });
             const data = await res.json();
-            if (!res.ok || !data.success) throw new Error(data.message || 'Order not found');
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || 'Order not found');
+            }
             setTrackedOrder(data.data);
+            showToast({ message: 'Order found successfully!' });
         } catch (err) {
             setTrackError(err.message);
+            showToast({ message: err.message || 'Order not found' });
         } finally {
             setTrackLoading(false);
         }
@@ -108,7 +118,7 @@ export default function MyOrders() {
 
             {/* Navbar */}
             <header style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,107,157,0.1)', boxShadow: '0 2px 20px rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 100 }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.9rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.9rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                         <span className={pacifico.className} style={{ color: '#e75480', fontSize: '1.35rem', letterSpacing: '0.01em' }}>Nidsscrochet</span>
                     </Link>

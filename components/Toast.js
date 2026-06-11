@@ -2,7 +2,6 @@
 // Global toast/snackbar notification — used for cart feedback, errors, etc.
 import { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
 import Link from 'next/link';
-import styles from '../styles/Home.module.css';
 
 const ToastContext = createContext();
 
@@ -47,15 +46,16 @@ export function ToastProvider({ children }) {
       {children}
       {toast && (
         <div
-          className={`${styles.cartToast} ${exiting ? styles.toastOut : ''}`}
+          className={`global-toast ${exiting ? 'toast-out' : ''}`}
           role="status"
           aria-live="polite"
           onClick={dismissToast}
+          style={{ cursor: 'pointer' }}
         >
-          <span className={styles.cartToastDot} />
+          <span className="global-toast-dot" />
           <span>{toast.message}</span>
           {toast.link && (
-            <Link href={toast.link} className={styles.cartToastLink}>
+            <Link href={toast.link} className="global-toast-link">
               {toast.linkText || 'View'}
             </Link>
           )}

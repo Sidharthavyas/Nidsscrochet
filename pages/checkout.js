@@ -8,6 +8,7 @@ import { Pacifico } from 'next/font/google';
 import { ArrowLeft, Lock, ShoppingCart, CreditCard, Truck, Shield, IndianRupee } from 'lucide-react';
 
 const pacifico = Pacifico({ subsets: ['latin'], weight: '400', display: 'block' });
+import { useToast } from '@/components/Toast';
 
 // Helper: wait for Razorpay SDK to be available (loaded async in _document.js)
 function loadRazorpaySDK() {
@@ -28,6 +29,7 @@ export default function Checkout() {
   const { items, getCartTotal, getShippingTotal, allItemsSupportCOD, clearCart, appliedCoupon } = useCart();
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [address, setAddress] = useState('');
   const [countryCode, setCountryCode] = useState('+91');
@@ -146,7 +148,9 @@ name: isSignedIn
       router.push(`/order-success?orderId=${data.orderId}&paymentMethod=cod`);
     } catch (err) {
       console.error('COD order error:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
+      const msg = err.message || 'Something went wrong. Please try again.';
+      setError(msg);
+      showToast({ message: msg });
       setLoading(false);
     }
   };
@@ -270,7 +274,9 @@ name: isSignedIn
       rzp.open();
     } catch (err) {
       console.error('Payment error:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
+      const msg = err.message || 'Something went wrong. Please try again.';
+      setError(msg);
+      showToast({ message: msg });
       setLoading(false);
     }
   };
@@ -279,18 +285,30 @@ name: isSignedIn
   const handleProceedToPayment = async () => {
     // Validate guest-specific fields
     if (!isSignedIn) {
-      if (!guestName.trim()) { setError('Please enter your name'); return; }
+      if (!guestName.trim()) {
+        const msg = 'Please enter your name';
+        setError(msg);
+        showToast({ message: msg });
+        return;
+      }
       if (!guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
-        setError('Please enter a valid email address'); return;
+        const msg = 'Please enter a valid email address';
+        setError(msg);
+        showToast({ message: msg });
+        return;
       }
     }
     // Validate delivery details
     if (!address.trim()) {
-      setError('Please enter your delivery address');
+      const msg = 'Please enter your delivery address';
+      setError(msg);
+      showToast({ message: msg });
       return;
     }
     if (!phone.trim() || phone.replace(/\D/g, '').length < 10) {
-      setError('Please enter a valid 10-digit phone number');
+      const msg = 'Please enter a valid 10-digit phone number';
+      setError(msg);
+      showToast({ message: msg });
       return;
     }
     setError('');
@@ -663,7 +681,7 @@ const pageStyles = {
   loadingPage: { minHeight: '100vh', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   spinner: { width: '40px', height: '40px', border: '3px solid var(--pink-soft)', borderTop: '3px solid var(--pink)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' },
   header: { background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,107,157,0.1)', boxShadow: '0 2px 20px rgba(0,0,0,0.04)', position: 'sticky', top: 0, zIndex: 100 },
-  headerInner: { maxWidth: '1100px', margin: '0 auto', padding: '0.9rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  headerInner: { maxWidth: '1100px', margin: '0 auto', padding: '0.9rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   logo: { display: 'flex', alignItems: 'center', textDecoration: 'none' },
   backBtn: { display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--pink)', textDecoration: 'none', fontSize: '0.85rem', fontWeight: '600', padding: '0.45rem 1rem', borderRadius: '50px', border: '1.5px solid var(--pink-soft)', background: 'var(--white)', transition: 'all 0.3s ease' },
   card: { background: 'var(--white)', borderRadius: '16px', padding: '1.25rem', boxShadow: 'var(--shadow-sm)', border: '1px solid rgba(255,107,157,0.08)' },

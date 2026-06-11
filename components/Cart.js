@@ -5,10 +5,12 @@ import CartItem from './CartItem';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import styles from '../styles/Cart.module.css';
+import { useToast } from '@/components/Toast';
 
 const Cart = () => {
   const { items, getCartTotal, getShippingTotal, clearCart, appliedCoupon, applyCoupon, removeCoupon } = useCart();
   const router = useRouter();
+  const { showToast } = useToast();
 
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState('');
@@ -40,6 +42,7 @@ const Cart = () => {
   const handleClearCart = () => {
     if (window.confirm('Are you sure you want to clear your cart?')) {
       clearCart();
+      showToast({ message: 'Cart cleared successfully' });
     }
   };
 
@@ -59,12 +62,16 @@ const Cart = () => {
 
       if (data.success) {
         applyCoupon(data.data);
+        showToast({ message: `Coupon "${data.data.code}" applied successfully!` });
         setCouponCode('');
       } else {
         setCouponError(data.message);
+        showToast({ message: data.message || 'Invalid coupon code' });
       }
     } catch (error) {
-      setCouponError('Error validating coupon. Please try again.');
+      const errMsg = 'Error validating coupon. Please try again.';
+      setCouponError(errMsg);
+      showToast({ message: errMsg });
     } finally {
       setIsValidating(false);
     }
@@ -204,7 +211,14 @@ const Cart = () => {
                     <span style={{ fontSize: '0.75rem', color: '#be185d' }}>Coupon applied</span>
                   </div>
                 </div>
-                <button onClick={removeCoupon} style={{ background: 'none', border: 'none', color: '#f43f5e', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <button
+                  onClick={() => {
+                    removeCoupon();
+                    showToast({ message: 'Coupon removed' });
+                  }}
+                  style={{ background: 'none', border: 'none', color: '#f43f5e', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  aria-label="Remove coupon"
+                >
                   <X style={{ width: '16px', height: '16px' }} />
                 </button>
               </div>

@@ -2,15 +2,19 @@ import { useCart } from '@/context/CartContext';
 import { Minus, Plus, Trash2, IndianRupee } from 'lucide-react';
 import Image from 'next/image';
 import styles from '../styles/Cart.module.css';
+import { useToast } from '@/components/Toast';
 
 const CartItem = ({ item }) => {
   const { updateQuantity, removeFromCart } = useCart();
+  const { showToast } = useToast();
 
   const handleQuantityChange = (newQuantity) => {
     if (newQuantity > 0) {
       updateQuantity(item.id, newQuantity);
+      showToast({ message: `Updated "${item.name}" quantity to ${newQuantity}` });
     } else {
       removeFromCart(item.id);
+      showToast({ message: `Removed "${item.name}" from cart` });
     }
   };
 
@@ -68,7 +72,10 @@ const CartItem = ({ item }) => {
 
       {/* Remove Button */}
       <button
-        onClick={() => removeFromCart(item.id)}
+        onClick={() => {
+          removeFromCart(item.id);
+          showToast({ message: `Removed "${item.name}" from cart` });
+        }}
         className={styles.removeBtn}
         aria-label="Remove item"
       >

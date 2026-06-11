@@ -8,6 +8,7 @@ import { useRouter } from 'next/router';
 import { motion,  AnimatePresence, useInView } from 'framer-motion';
 import styles from '../styles/Home.module.css';
 import Navbar from '@/components/Navbar';
+import { useToast } from '@/components/Toast';
 import { Pacifico } from 'next/font/google';
 import { Search, Phone, Instagram, Link2, MessageCircle, Facebook, Twitter, MapPin, Users, Package, Sparkles, Palette, Scissors, CheckCircle2, Heart, AlertCircle, Loader2, ChevronLeft, ChevronRight, Mail } from 'lucide-react';
 
@@ -95,15 +96,17 @@ function unlockScroll() {
 // ================================================
 function ShareModalComponent({ product, productUrl, onClose }) {
   const [copied, setCopied] = useState(false);
+  const { showToast } = useToast();
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(productUrl);
       setCopied(true);
+      showToast({ message: 'Link copied to clipboard!' });
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
-      alert('Link copied to clipboard!');
+      showToast({ message: 'Link copied to clipboard!' });
     }
   };
 

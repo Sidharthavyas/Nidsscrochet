@@ -92,8 +92,8 @@ export default function Signup() {
           position: 'sticky', top: 0, zIndex: 100
         }}>
           <div style={{
-            maxWidth: '1400px', margin: '0 auto',
-            padding: '0.9rem 1.25rem',
+            maxWidth: '1200px', margin: '0 auto',
+            padding: '0.9rem 1rem',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
           }}>
             <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>

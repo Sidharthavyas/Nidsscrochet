@@ -40,7 +40,7 @@
 }
 
 .navContent {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 0.75rem 2rem;
     display: flex;
@@ -94,6 +94,7 @@
     align-items: center;
     gap: 1.5rem;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .navLink {
@@ -598,5 +599,165 @@
 
     .navBrand {
         font-size: 1.35rem;
+    }
+}
+
+/* ================================================
+   NEW LAYOUT HELPERS & CART BUTTON STYLES
+   ================================================ */
+
+/* Hide specific elements on desktop */
+@media (min-width: 769px) {
+    .desktopHide {
+        display: none !important;
+    }
+}
+
+/* Mobile Top-bar Cart Container */
+.mobileNavbarCart {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobileNavbarCart {
+        display: flex;
+        align-items: center;
+        margin-right: 0.5rem;
+        z-index: 1002;
+    }
+}
+
+/* Wrapper helpers for cart buttons inside nav list */
+.desktopCartWrapper {
+    display: block;
+}
+
+.mobileCartWrapper {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .desktopCartWrapper {
+        display: none;
+    }
+    .mobileCartWrapper {
+        display: block;
+        width: 100%;
+    }
+}
+
+/* --- Cart Button Styles --- */
+.cartButton {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--black);
+    transition: background 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+}
+
+.cartButton:hover {
+    background: rgba(255, 107, 157, 0.08);
+    color: var(--pink);
+    transform: translateY(-2px);
+}
+
+@keyframes cartBounceAnim {
+    0%, 100% {
+        transform: scale(1);
+    }
+    30% {
+        transform: scale(1.15);
+    }
+    60% {
+        transform: scale(0.95);
+    }
+}
+
+.cartBounce {
+    animation: cartBounceAnim 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.iconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cartIcon {
+    width: 20px;
+    height: 20px;
+    color: currentColor;
+    transition: color 0.2s ease;
+}
+
+.badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    border-radius: 50px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 0 2px 6px rgba(255, 107, 157, 0.4);
+    pointer-events: none;
+}
+
+@keyframes badgePopAnim {
+    0% {
+        transform: scale(1);
+    }
+    40% {
+        transform: scale(1.4);
+    }
+    70% {
+        transform: scale(0.85);
+    }
+}
+
+.badgePop {
+    animation: badgePopAnim 0.5s ease;
+}
+
+/* "Cart" label — hidden on desktop, visible on mobile */
+.label {
+    display: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.labelDesktop {
+    display: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .label {
+        display: inline;
+    }
+    .cartIcon {
+        width: 23px;
+        height: 23px;
+    }
+    .badge {
+        min-width: 19px;
+        height: 19px;
+        font-size: 0.65rem;
+        top: -9px;
+        right: -9px;
     }
 }

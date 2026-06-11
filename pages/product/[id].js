@@ -460,7 +460,6 @@ const handleBuyNow = useCallback(() => {
       unlockScroll();
       setLightboxOpen(false);
       setShowShareModal(false);
-      setMobileMenuOpen(false);
     };
 
     router.events.on('routeChangeStart', handleRouteChange);
@@ -798,9 +797,12 @@ const handleBuyNow = useCallback(() => {
               Collections
             </Link>
             <span className={styles.breadcrumbSeparator}>/</span>
-            <span className={styles.breadcrumbLink}>
+            <Link
+              href="/#collections"
+              className={styles.breadcrumbLink}
+            >
               {product.category}
-            </span>
+            </Link>
             <span className={styles.breadcrumbSeparator}>/</span>
             <span className={styles.breadcrumbCurrent}>
               {product.name}

@@ -4,7 +4,7 @@ import { useCart } from '@/context/CartContext';
 import { ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useEffect, useRef, useState } from 'react';
-import styles from '../styles/Home.module.css';
+import styles from '../styles/Navbar.module.css';
 
 const CartButton = ({ showLabel = false, variant = 'default', onClick }) => {
   const { items } = useCart();

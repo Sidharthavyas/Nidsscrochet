@@ -262,7 +262,14 @@ export default function Navbar({ showSearch = false, products = [] }) {
                 </Link>
               </SignedIn>
 
-              <CartButton variant="menu" onClick={closeMenu} />
+              {/* On desktop, show the default cart button inside navLinks */}
+              <div className={styles.desktopCartWrapper}>
+                <CartButton onClick={closeMenu} />
+              </div>
+              {/* On mobile, show a simple cart link inside the mobile drawer menu */}
+              <div className={styles.mobileCartWrapper}>
+                <CartButton variant="menu" onClick={closeMenu} />
+              </div>
 
               <SignedOut>
                 <div className={styles.authButtons}>
@@ -302,7 +309,7 @@ export default function Navbar({ showSearch = false, products = [] }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ y: -2 }}
-                className={styles.navLink}
+                className={`${styles.navLink} ${styles.desktopHide}`}
                 onClick={closeMenu}
               >
                 Instagram
@@ -312,12 +319,17 @@ export default function Navbar({ showSearch = false, products = [] }) {
                 href="tel:9029562156"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={styles.navCta}
+                className={`${styles.navCta} ${styles.desktopHide}`}
                 onClick={closeMenu}
               >
                 <Phone size={15} strokeWidth={1.5} />
                 Call Us
               </motion.a>
+            </div>
+
+            {/* ── Mobile Cart Icon (visible only on mobile next to menu toggle) ── */}
+            <div className={styles.mobileNavbarCart}>
+              <CartButton onClick={closeMenu} />
             </div>
 
             {/* ── Mobile menu toggle (right side) ── */}
